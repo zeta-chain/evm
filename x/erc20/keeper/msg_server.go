@@ -96,12 +96,18 @@ func (k Keeper) convertERC20IntoCoinsForNativeToken(
 
 	// Check evm call response
 	var unpackedRet types.ERC20BoolResponse
-	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return nil, err
-	}
-
-	if !unpackedRet.Value {
-		return nil, sdkerrors.Wrap(errortypes.ErrLogic, "failed to execute transfer")
+	if len(res.Ret) == 0 {
+		// if the token does not return a value, check for the transfer event in logs
+		if err := k.monitorTransferEvent(res); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
+			return nil, err
+		}
+		if !unpackedRet.Value {
+			return nil, sdkerrors.Wrap(errortypes.ErrLogic, "failed to execute transfer")
+		}
 	}
 
 	// Check expected escrow balance after transfer execution
@@ -266,12 +272,18 @@ func (k Keeper) ConvertCoinNativeERC20(
 
 	// Check unpackedRet execution
 	var unpackedRet types.ERC20BoolResponse
-	if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
-		return err
-	}
-
-	if !unpackedRet.Value {
-		return sdkerrors.Wrap(errortypes.ErrLogic, "failed to execute unescrow tokens from user")
+	if len(res.Ret) == 0 {
+		// if the token does not return a value, check for the transfer event in logs
+		if err := k.monitorTransferEvent(res); err != nil {
+			return err
+		}
+	} else {
+		if err := erc20.UnpackIntoInterface(&unpackedRet, "transfer", res.Ret); err != nil {
+			return err
+		}
+		if !unpackedRet.Value {
+			return sdkerrors.Wrap(errortypes.ErrLogic, "failed to execute unescrow tokens from user")
+		}
 	}
 
 	// Check expected Receiver balance after transfer execution

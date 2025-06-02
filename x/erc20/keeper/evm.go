@@ -152,3 +152,26 @@ func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error 
 
 	return nil
 }
+
+// monitorApprovalEvent returns an error if the given transactions logs DO NOT include
+// an expected `Transfer` event
+func (k Keeper) monitorTransferEvent(res *evmtypes.MsgEthereumTxResponse) error {
+	if res == nil || len(res.Logs) == 0 {
+		return errorsmod.Wrapf(
+			types.ErrExpectedEvent, "expected Transfer event",
+		)
+	}
+
+	logTransferSig := []byte("Transfer(address,address,uint256)")
+	logTransferSigHash := crypto.Keccak256Hash(logTransferSig)
+
+	for _, log := range res.Logs {
+		if log.Topics[0] == logTransferSigHash.Hex() {
+			return nil
+		}
+	}
+
+	return errorsmod.Wrapf(
+		types.ErrExpectedEvent, "expected Transfer event",
+	)
+}
