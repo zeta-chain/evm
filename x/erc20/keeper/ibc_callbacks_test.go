@@ -424,7 +424,7 @@ func (suite *KeeperTestSuite) TestConvertCoinToERC20FromPacket() {
 				)
 				suite.Require().NoError(err)
 
-				_, err = suite.network.App.EVMKeeper.CallEVM(ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, suite.keyring.GetAddr(0), contractAddr, true, "mint", types.ModuleAddress, big.NewInt(10))
+				_, err = suite.network.App.EVMKeeper.CallEVM(ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, suite.keyring.GetAddr(0), contractAddr, true, nil, "mint", types.ModuleAddress, big.NewInt(10))
 				suite.Require().NoError(err)
 
 				return transfertypes.NewFungibleTokenPacketData(pair.Denom, "10", senderAddr, "", "")
@@ -560,7 +560,7 @@ func (suite *KeeperTestSuite) TestOnAcknowledgementPacket() {
 				)
 				suite.Require().NoError(err)
 
-				_, err = suite.network.App.EVMKeeper.CallEVM(ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, suite.keyring.GetAddr(0), contractAddr, true, "mint", types.ModuleAddress, big.NewInt(100))
+				_, err = suite.network.App.EVMKeeper.CallEVM(ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, suite.keyring.GetAddr(0), contractAddr, true, nil, "mint", types.ModuleAddress, big.NewInt(100))
 				suite.Require().NoError(err)
 
 				ack = channeltypes.NewErrorAcknowledgement(errors.New("error"))
@@ -666,7 +666,7 @@ func (suite *KeeperTestSuite) TestOnTimeoutPacket() {
 				pair, _ = suite.network.App.Erc20Keeper.GetTokenPair(ctx, id)
 				suite.Require().NotNil(pair)
 
-				_, err = suite.network.App.EVMKeeper.CallEVM(ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, suite.keyring.GetAddr(0), contractAddr, true, "mint", types.ModuleAddress, big.NewInt(100))
+				_, err = suite.network.App.EVMKeeper.CallEVM(ctx, contracts.ERC20MinterBurnerDecimalsContract.ABI, suite.keyring.GetAddr(0), contractAddr, true, nil, "mint", types.ModuleAddress, big.NewInt(100))
 				suite.Require().NoError(err)
 
 				// Fund module account with ATOM, ERC20 coins and IBC vouchers
