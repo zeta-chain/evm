@@ -93,6 +93,10 @@ func SignatureVerification(
 	}
 
 	// set up the sender to the transaction field if not already
+	if msg.From != "" && msg.From != sender.Hex() {
+		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid from address; expected %q; got: %q", sender.Hex(), msg.From)
+	}
+
 	msg.From = sender.Hex()
 	return nil
 }
