@@ -13,12 +13,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdktypes.AccountI)(nil),
 		// TODO: uncomment after moving into migrations for EVM version
-		// &EthAccount{},
+		&EthAccount{},
 	)
 	registry.RegisterImplementations(
 		(*authtypes.GenesisAccount)(nil),
 		// TODO: uncomment after moving into migrations for EVM version
-		// &EthAccount{},
+		&EthAccount{},
 	)
 	registry.RegisterImplementations(
 		(*tx.TxExtensionOptionI)(nil),
