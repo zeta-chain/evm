@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	erc21 "github.com/cosmos/evm/precompiles/erc20"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
