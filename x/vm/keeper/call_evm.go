@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+	types2 "cosmossdk.io/store/types"
 	"encoding/json"
+	evmante "github.com/cosmos/evm/x/vm/ante"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -72,7 +74,11 @@ func (k Keeper) CallEVMWithData(
 			return nil, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "failed to marshal tx args: %s", err.Error())
 		}
 
-		gasRes, err := k.EstimateGasInternal(ctx, &types.EthCallRequest{
+		cachedCtx, _ := ctx.CacheContext()
+		cachedCtx = evmante.BuildEvmExecutionCtx(cachedCtx).
+			WithGasMeter(types2.NewInfiniteGasMeter())
+
+		gasRes, err := k.EstimateGasInternal(cachedCtx, &types.EthCallRequest{
 			Args:   args,
 			GasCap: gasCap.Uint64(),
 		}, types.Internal)
@@ -99,6 +105,8 @@ func (k Keeper) CallEVMWithData(
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.GasMeter().ConsumeGas(res.GasUsed, "apply evm message")
 
 	if res.Failed() {
 		return nil, errorsmod.Wrap(types.ErrVMExecution, res.VmError)

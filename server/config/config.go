@@ -66,7 +66,7 @@ const (
 	DefaultEVMChainID = 262144
 
 	// DefaultGasCap is the default cap on gas that can be used in eth_call/estimateGas
-	DefaultGasCap uint64 = 25000000
+	DefaultGasCap uint64 = 250000
 
 	// DefaultJSONRPCAllowInsecureUnlock is true
 	DefaultJSONRPCAllowInsecureUnlock bool = true
