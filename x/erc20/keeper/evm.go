@@ -71,7 +71,7 @@ func (k Keeper) QueryERC20(
 	erc20 := contracts.ERC20MinterBurnerDecimalsContract.ABI
 
 	// Name
-	res, err := k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "name", big.NewInt(erc21.GasName*10))
+	res, err := k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "name", nil)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -83,7 +83,7 @@ func (k Keeper) QueryERC20(
 	}
 
 	// Symbol
-	res, err = k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "symbol", big.NewInt(erc21.GasSymbol*10))
+	res, err = k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, false, "symbol", nil)
 	if err != nil {
 		return types.ERC20Data{}, err
 	}
@@ -115,7 +115,7 @@ func (k Keeper) BalanceOf(
 	abi abi.ABI,
 	contract, account common.Address,
 ) *big.Int {
-	res, err := k.evmKeeper.CallEVM(ctx, abi, types.ModuleAddress, contract, false, "balanceOf", big.NewInt(erc21.GasBalanceOf*10), account)
+	res, err := k.evmKeeper.CallEVM(ctx, abi, types.ModuleAddress, contract, false, "balanceOf", nil, account)
 	if err != nil {
 		return nil
 	}

@@ -2,24 +2,19 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
-	types2 "cosmossdk.io/store/types"
-	"encoding/json"
-	evmante "github.com/cosmos/evm/x/vm/ante"
+	"github.com/cosmos/evm/server/config"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/cosmos/evm/server/config"
 	"github.com/cosmos/evm/x/vm/types"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // CallEVM performs a smart contract method call using given args.
@@ -64,29 +59,6 @@ func (k Keeper) CallEVMWithData(
 	if gasCap == nil {
 		gasCap = math.NewIntFromUint64(config.DefaultGasCap).BigInt()
 	}
-	if commit {
-		args, err := json.Marshal(types.TransactionArgs{
-			From: &from,
-			To:   contract,
-			Data: (*hexutil.Bytes)(&data),
-		})
-		if err != nil {
-			return nil, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "failed to marshal tx args: %s", err.Error())
-		}
-
-		cachedCtx, _ := ctx.CacheContext()
-		cachedCtx = evmante.BuildEvmExecutionCtx(cachedCtx).
-			WithGasMeter(types2.NewInfiniteGasMeter())
-
-		gasRes, err := k.EstimateGasInternal(cachedCtx, &types.EthCallRequest{
-			Args:   args,
-			GasCap: gasCap.Uint64(),
-		}, types.Internal)
-		if err != nil {
-			return nil, err
-		}
-		gasCap = math.NewIntFromUint64(gasRes.Gas).BigInt()
-	}
 
 	msg := core.Message{
 		From:       from,
@@ -101,16 +73,17 @@ func (k Keeper) CallEVMWithData(
 		AccessList: ethtypes.AccessList{},
 	}
 
-	res, err := k.ApplyMessage(ctx, msg, nil, commit)
+	res, err := k.ApplyMessage(ctx, msg, nil, commit, true)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx.GasMeter().ConsumeGas(res.GasUsed, "apply evm message")
-
 	if res.Failed() {
+		k.ResetGasMeterAndConsumeGas(ctx, ctx.GasMeter().Limit())
 		return nil, errorsmod.Wrap(types.ErrVMExecution, res.VmError)
 	}
+
+	ctx.GasMeter().ConsumeGas(res.GasUsed, "apply evm message")
 
 	return res, nil
 }

@@ -286,6 +286,7 @@ func (suite *ICS20TransferTestSuite) TestHandleMsgTransfer() {
 				"INVALID-DENOM-HASH",
 			)
 			suite.Require().ErrorContains(err, "invalid denom trace hash")
+			ctxB.GasMeter().RefundGas(ctxB.GasMeter().Limit(), "refund after error")
 
 			// denomHash query method
 			evmRes, err = evmAppB.EVMKeeper.CallEVM(
@@ -332,6 +333,7 @@ func (suite *ICS20TransferTestSuite) TestHandleMsgTransfer() {
 				"",
 			)
 			suite.Require().ErrorContains(err, "invalid denomination for cross-chain transfer")
+			ctxB.GasMeter().RefundGas(ctxB.GasMeter().Limit(), "refund after error")
 		})
 	}
 }

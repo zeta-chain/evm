@@ -89,7 +89,7 @@ func (k Keeper) convertERC20IntoCoinsForNativeToken(
 		return nil, err
 	}
 
-	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true, big.NewInt(math.NewIntFromUint64(ctx.GasMeter().GasRemaining()).Int64()))
+	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func (k Keeper) ConvertCoinNativeERC20(
 	}
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "transfer", big.NewInt(math.NewIntFromUint64(ctx.GasMeter().GasRemaining()).Int64()), receiver, amount.BigInt())
+	res, err := k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "transfer", nil, receiver, amount.BigInt())
 	if err != nil {
 		return err
 	}
