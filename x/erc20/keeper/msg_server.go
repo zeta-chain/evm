@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	evmante "github.com/cosmos/evm/x/vm/ante"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -89,7 +90,11 @@ func (k Keeper) convertERC20IntoCoinsForNativeToken(
 		return nil, err
 	}
 
-	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true)
+	cachedCtx, writeFn := ctx.CacheContext()
+	cachedCtx = evmante.BuildEvmExecutionCtx(cachedCtx).
+		WithGasMeter()
+
+	res, err := k.evmKeeper.CallEVMWithData(ctx, sender, &contract, transferData, true, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +264,7 @@ func (k Keeper) ConvertCoinNativeERC20(
 	}
 
 	// Unescrow Tokens and send to receiver
-	res, err := k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "transfer", receiver, amount.BigInt())
+	res, err := k.evmKeeper.CallEVM(ctx, erc20, types.ModuleAddress, contract, true, "transfer", nil, receiver, amount.BigInt())
 	if err != nil {
 		return err
 	}
