@@ -28,7 +28,7 @@ const (
 	GasDecreaseAllowance = 34_519
 	GasName              = 3_421
 	GasSymbol            = 3_464
-	GasDecimals          = 3_464
+	GasDecimals          = 427
 	GasTotalSupply       = 2_477
 	GasBalanceOf         = 2_851
 	GasAllowance         = 3_246

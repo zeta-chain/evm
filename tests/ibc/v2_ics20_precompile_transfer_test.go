@@ -332,7 +332,6 @@ func (suite *ICS20TransferV2TestSuite) TestHandleMsgTransfer() {
 			)
 			suite.Require().ErrorContains(err, "invalid denomination for cross-chain transfer")
 			ctxB.GasMeter().RefundGas(ctxB.GasMeter().Limit(), "refund after error")
-
 		})
 	}
 }
