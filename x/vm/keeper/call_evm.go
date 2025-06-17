@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"cosmossdk.io/math"
 	"github.com/cosmos/evm/server/config"
 	"math/big"
 
@@ -24,7 +23,6 @@ func (k Keeper) CallEVM(
 	from, contract common.Address,
 	commit bool,
 	method string,
-	gasCap *big.Int,
 	args ...interface{},
 ) (*types.MsgEthereumTxResponse, error) {
 	data, err := abi.Pack(method, args...)
@@ -35,7 +33,7 @@ func (k Keeper) CallEVM(
 		)
 	}
 
-	resp, err := k.CallEVMWithData(ctx, from, &contract, data, commit, gasCap)
+	resp, err := k.CallEVMWithData(ctx, from, &contract, data, commit)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
 	}
@@ -49,15 +47,10 @@ func (k Keeper) CallEVMWithData(
 	contract *common.Address,
 	data []byte,
 	commit bool,
-	gasCap *big.Int,
 ) (*types.MsgEthereumTxResponse, error) {
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
 		return nil, err
-	}
-
-	if gasCap == nil {
-		gasCap = math.NewIntFromUint64(config.DefaultGasCap).BigInt()
 	}
 
 	msg := core.Message{
@@ -65,7 +58,7 @@ func (k Keeper) CallEVMWithData(
 		To:         contract,
 		Nonce:      nonce,
 		Value:      big.NewInt(0),
-		GasLimit:   gasCap.Uint64(),
+		GasLimit:   config.DefaultGasCap,
 		GasPrice:   big.NewInt(0),
 		GasTipCap:  big.NewInt(0),
 		GasFeeCap:  big.NewInt(0),

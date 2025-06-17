@@ -69,7 +69,6 @@ func SetupNativeErc20(t *testing.T, chain *evmibctesting.TestChain) *NativeErc20
 		contractAddr,
 		true,
 		"mint",
-		nil,
 		common.BytesToAddress(senderAcc),
 		big.NewInt(sendAmt.Int64()),
 	)
