@@ -508,9 +508,15 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		WithGasMeter(storetypes.NewGasMeter(maxPredecessorGas))
 	for i, tx := range req.Predecessors {
 		ethTx := tx.AsTransaction()
-		msg, err := core.TransactionToMessage(ethTx, signer, cfg.BaseFee)
-		if err != nil {
-			continue
+		var msg *core.Message
+		// if tx is not unsigned, from field should be derived from signer, which can be done using AsMessage function
+		if !isUnsigned(ethTx) {
+			msg, err = core.TransactionToMessage(ethTx, signer, cfg.BaseFee)
+			if err != nil {
+				continue
+			}
+		} else {
+			msg = unsignedTxAsMessage(common.HexToAddress(req.Msg.From), ethTx, cfg.BaseFee)
 		}
 		msg.GasLimit = min(msg.GasLimit, maxPredecessorGas)
 		txConfig.TxHash = ethTx.Hash()
@@ -532,7 +538,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		txConfig.TxIndex++
 	}
 
-	result, _, err := k.traceTx(ctx, cfg, txConfig, signer, tx, req.TraceConfig, false)
+	result, _, err := k.traceTx(ctx, cfg, txConfig, signer, common.HexToAddress(req.Msg.From), tx, req.TraceConfig, false)
 	if err != nil {
 		// error will be returned with detail status from traceTx
 		return nil, err
@@ -599,7 +605,7 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 		ethTx := tx.AsTransaction()
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i) //nolint:gosec // G115 // won't exceed uint64
-		traceResult, logIndex, err := k.traceTx(ctx, cfg, txConfig, signer, ethTx, req.TraceConfig, true)
+		traceResult, logIndex, err := k.traceTx(ctx, cfg, txConfig, signer, common.HexToAddress(tx.From), ethTx, req.TraceConfig, true)
 		if err != nil {
 			result.Error = err.Error()
 		} else {
@@ -625,6 +631,7 @@ func (k *Keeper) traceTx(
 	cfg *statedb.EVMConfig,
 	txConfig statedb.TxConfig,
 	signer ethtypes.Signer,
+	from common.Address,
 	tx *ethtypes.Transaction,
 	traceConfig *types.TraceConfig,
 	commitMessage bool,
@@ -637,9 +644,15 @@ func (k *Keeper) traceTx(
 		err              error
 		timeout          = defaultTraceTimeout
 	)
-	msg, err := core.TransactionToMessage(tx, signer, cfg.BaseFee)
-	if err != nil {
-		return nil, 0, status.Error(codes.Internal, err.Error())
+
+	var msg *core.Message
+	if !isUnsigned(tx) {
+		msg, err = core.TransactionToMessage(tx, signer, cfg.BaseFee)
+		if err != nil {
+			return nil, 0, status.Errorf(codes.InvalidArgument, "transaction to message: %v", err.Error())
+		}
+	} else {
+		msg = unsignedTxAsMessage(from, tx, cfg.BaseFee)
 	}
 
 	if traceConfig == nil {
@@ -755,4 +768,40 @@ func (k Keeper) Config(_ context.Context, _ *types.QueryConfigRequest) (*types.Q
 func buildTraceCtx(ctx sdk.Context, gasLimit uint64) sdk.Context {
 	return evmante.BuildEvmExecutionCtx(ctx).
 		WithGasMeter(cosmosevmtypes.NewInfiniteGasMeterWithLimit(gasLimit))
+}
+
+func isUnsigned(ethTx *ethtypes.Transaction) bool {
+	r, v, s := ethTx.RawSignatureValues()
+
+	return (r == nil && v == nil && s == nil) || (r.Int64() == 0 && v.Int64() == 0 && s.Int64() == 0)
+}
+
+// same as core.TransactionToMessage, just from is provided instead of calculated from signature
+func unsignedTxAsMessage(from common.Address, tx *ethtypes.Transaction, baseFee *big.Int) *core.Message {
+	msg := &core.Message{
+		From:                  from,
+		Nonce:                 tx.Nonce(),
+		GasLimit:              tx.Gas(),
+		GasPrice:              new(big.Int).Set(tx.GasPrice()),
+		GasFeeCap:             new(big.Int).Set(tx.GasFeeCap()),
+		GasTipCap:             new(big.Int).Set(tx.GasTipCap()),
+		To:                    tx.To(),
+		Value:                 tx.Value(),
+		Data:                  tx.Data(),
+		AccessList:            tx.AccessList(),
+		SetCodeAuthorizations: tx.SetCodeAuthorizations(),
+		SkipNonceChecks:       false,
+		SkipFromEOACheck:      false,
+		BlobHashes:            tx.BlobHashes(),
+		BlobGasFeeCap:         tx.BlobGasFeeCap(),
+	}
+	// If baseFee provided, set gasPrice to effectiveGasPrice.
+	if baseFee != nil {
+		msg.GasPrice = msg.GasPrice.Add(msg.GasTipCap, baseFee)
+		if msg.GasPrice.Cmp(msg.GasFeeCap) > 0 {
+			msg.GasPrice = msg.GasFeeCap
+		}
+	}
+
+	return msg
 }
