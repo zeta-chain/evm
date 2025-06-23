@@ -166,7 +166,7 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Bool(server.FlagInterBlockCache, true, "Enable inter-block caching")
 	cmd.Flags().String(srvflags.CPUProfile, "", "Enable CPU profiling and write to the provided file")
 	cmd.Flags().Bool(server.FlagTrace, false, "Provide full stack traces for errors in ABCI Log")
-	cmd.Flags().Bool(srvflags.FlagTracesOnly, true, "Enable traces and disable every other endpoint else from the debug namespace (for tracing nodes)")
+	cmd.Flags().Bool(srvflags.JSONTracesOnly, true, "Enable traces and disable every other endpoint else from the debug namespace (for tracing nodes)")
 	cmd.Flags().String(server.FlagPruning, pruningtypes.PruningOptionDefault, "Pruning strategy (default|nothing|everything|custom)")
 	cmd.Flags().Uint64(server.FlagPruningKeepRecent, 0, "Number of recent heights to keep on disk (ignored if pruning is not 'custom')")
 	cmd.Flags().Uint64(server.FlagPruningInterval, 0, "Height interval at which pruned heights are removed from disk (ignored if pruning is not 'custom')") //nolint:lll

@@ -7,6 +7,8 @@ import (
 	"runtime/pprof"
 	"strings"
 
+	"github.com/cosmos/evm/server/flags"
+
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/server"
@@ -24,8 +26,7 @@ func isCPUProfileConfigurationActivated(ctx *server.Context) bool {
 }
 
 func isTracesOnly(ctx *server.Context) bool {
-	const flagDebugOnly = "debug-traces-only"
-	return ctx.Viper.GetBool(flagDebugOnly)
+	return ctx.Viper.GetBool(flags.JSONTracesOnly)
 }
 
 // ExpandHome expands home directory in file paths.

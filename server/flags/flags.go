@@ -10,12 +10,11 @@ import (
 
 // Tendermint/cosmos-sdk full-node start flags
 const (
-	WithCometBFT   = "with-cometbft"
-	Address        = "address"
-	Transport      = "transport"
-	TraceStore     = "trace-store"
-	CPUProfile     = "cpu-profile"
-	FlagTracesOnly = "traces-only"
+	WithCometBFT = "with-cometbft"
+	Address      = "address"
+	Transport    = "transport"
+	TraceStore   = "trace-store"
+	CPUProfile   = "cpu-profile"
 
 	// The type of database for application and snapshots databases
 	AppDBBackend = "app-db-backend"
@@ -54,6 +53,7 @@ const (
 	JSONRPCAllowUnprotectedTxs = "json-rpc.allow-unprotected-txs"
 	JSONRPCMaxOpenConnections  = "json-rpc.max-open-connections"
 	JSONRPCEnableIndexer       = "json-rpc.enable-indexer"
+	JSONTracesOnly             = "json-rpc.traces-only"
 	// JSONRPCEnableMetrics enables EVM RPC metrics server.
 	// Set to `metrics` which is hardcoded flag from go-ethereum.
 	// https://github.com/ethereum/go-ethereum/blob/master/metrics/metrics.go#L35-L55
