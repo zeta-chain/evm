@@ -27,10 +27,16 @@ import (
 
 func (*API) StartGoTrace(string file) error {
 	a.logger.Debug("debug_stopGoTrace", "file", file)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	return errors.New("tracing is not supported on Go < 1.5")
 }
 
 func (*API) StopGoTrace() error {
 	a.logger.Debug("debug_stopGoTrace")
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	return errors.New("tracing is not supported on Go < 1.5")
 }

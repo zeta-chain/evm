@@ -30,6 +30,9 @@ import (
 // StartGoTrace turns on tracing, writing to the given file.
 func (a *API) StartGoTrace(file string) error {
 	a.logger.Debug("debug_startGoTrace", "file", file)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	a.handler.mu.Lock()
 	defer a.handler.mu.Unlock()
 
@@ -65,6 +68,9 @@ func (a *API) StartGoTrace(file string) error {
 // StopGoTrace stops an ongoing trace.
 func (a *API) StopGoTrace() error {
 	a.logger.Debug("debug_stopGoTrace")
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	a.handler.mu.Lock()
 	defer a.handler.mu.Unlock()
 

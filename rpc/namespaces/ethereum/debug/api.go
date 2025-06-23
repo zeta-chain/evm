@@ -104,6 +104,9 @@ func (a *API) TraceBlockByHash(hash common.Hash, config *evmtypes.TraceConfig) (
 // desired, set the rate and write the profile manually.
 func (a *API) BlockProfile(file string, nsec uint) error {
 	a.logger.Debug("debug_blockProfile", "file", file, "nsec", nsec)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	runtime.SetBlockProfileRate(1)
 	defer runtime.SetBlockProfileRate(0)
 
@@ -115,6 +118,9 @@ func (a *API) BlockProfile(file string, nsec uint) error {
 // profile data to file.
 func (a *API) CpuProfile(file string, nsec uint) error { //nolint: golint, revive
 	a.logger.Debug("debug_cpuProfile", "file", file, "nsec", nsec)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	if err := a.StartCPUProfile(file); err != nil {
 		return err
 	}
@@ -123,17 +129,23 @@ func (a *API) CpuProfile(file string, nsec uint) error { //nolint: golint, reviv
 }
 
 // GcStats returns GC statistics.
-func (a *API) GcStats() *debug.GCStats {
+func (a *API) GcStats() (*debug.GCStats, error) {
 	a.logger.Debug("debug_gcStats")
+	if isTracesOnly(a.ctx) {
+		return nil, errors.New("only traces are enabled in the debug namespace")
+	}
 	s := new(debug.GCStats)
 	debug.ReadGCStats(s)
-	return s
+	return s, nil
 }
 
 // GoTrace turns on tracing for nsec seconds and writes
 // trace data to file.
 func (a *API) GoTrace(file string, nsec uint) error {
 	a.logger.Debug("debug_goTrace", "file", file, "nsec", nsec)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	if err := a.StartGoTrace(file); err != nil {
 		return err
 	}
@@ -142,34 +154,47 @@ func (a *API) GoTrace(file string, nsec uint) error {
 }
 
 // MemStats returns detailed runtime memory statistics.
-func (a *API) MemStats() *runtime.MemStats {
+func (a *API) MemStats() (*runtime.MemStats, error) {
 	a.logger.Debug("debug_memStats")
+	if isTracesOnly(a.ctx) {
+		return nil, errors.New("only traces are enabled in the debug namespace")
+	}
 	s := new(runtime.MemStats)
 	runtime.ReadMemStats(s)
-	return s
+	return s, nil
 }
 
 // SetBlockProfileRate sets the rate of goroutine block profile data collection.
 // rate 0 disables block profiling.
-func (a *API) SetBlockProfileRate(rate int) {
+func (a *API) SetBlockProfileRate(rate int) error {
 	a.logger.Debug("debug_setBlockProfileRate", "rate", rate)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	runtime.SetBlockProfileRate(rate)
+	return nil
 }
 
 // Stacks returns a printed representation of the stacks of all goroutines.
-func (a *API) Stacks() string {
+func (a *API) Stacks() (string, error) {
 	a.logger.Debug("debug_stacks")
+	if isTracesOnly(a.ctx) {
+		return "", errors.New("only traces are enabled in the debug namespace")
+	}
 	buf := new(bytes.Buffer)
 	err := pprof.Lookup("goroutine").WriteTo(buf, 2)
 	if err != nil {
 		a.logger.Error("Failed to create stacks", "error", err.Error())
 	}
-	return buf.String()
+	return buf.String(), nil
 }
 
 // StartCPUProfile turns on CPU profiling, writing to the given file.
 func (a *API) StartCPUProfile(file string) error {
 	a.logger.Debug("debug_startCPUProfile", "file", file)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	a.handler.mu.Lock()
 	defer a.handler.mu.Unlock()
 
@@ -210,6 +235,9 @@ func (a *API) StartCPUProfile(file string) error {
 // StopCPUProfile stops an ongoing CPU profile.
 func (a *API) StopCPUProfile() error {
 	a.logger.Debug("debug_stopCPUProfile")
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	a.handler.mu.Lock()
 	defer a.handler.mu.Unlock()
 
@@ -236,6 +264,9 @@ func (a *API) StopCPUProfile() error {
 // WriteBlockProfile writes a goroutine blocking profile to the given file.
 func (a *API) WriteBlockProfile(file string) error {
 	a.logger.Debug("debug_writeBlockProfile", "file", file)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	return writeProfile("block", file, a.logger)
 }
 
@@ -244,6 +275,9 @@ func (a *API) WriteBlockProfile(file string) error {
 // it must be set on the command line.
 func (a *API) WriteMemProfile(file string) error {
 	a.logger.Debug("debug_writeMemProfile", "file", file)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	return writeProfile("heap", file, a.logger)
 }
 
@@ -252,6 +286,9 @@ func (a *API) WriteMemProfile(file string) error {
 // desired, set the rate and write the profile manually.
 func (a *API) MutexProfile(file string, nsec uint) error {
 	a.logger.Debug("debug_mutexProfile", "file", file, "nsec", nsec)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	runtime.SetMutexProfileFraction(1)
 	time.Sleep(time.Duration(nsec) * time.Second) //#nosec G115 -- int overflow is not a concern here
 	defer runtime.SetMutexProfileFraction(0)
@@ -259,32 +296,49 @@ func (a *API) MutexProfile(file string, nsec uint) error {
 }
 
 // SetMutexProfileFraction sets the rate of mutex profiling.
-func (a *API) SetMutexProfileFraction(rate int) {
+func (a *API) SetMutexProfileFraction(rate int) error {
 	a.logger.Debug("debug_setMutexProfileFraction", "rate", rate)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	runtime.SetMutexProfileFraction(rate)
+	return nil
 }
 
 // WriteMutexProfile writes a goroutine blocking profile to the given file.
 func (a *API) WriteMutexProfile(file string) error {
 	a.logger.Debug("debug_writeMutexProfile", "file", file)
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	return writeProfile("mutex", file, a.logger)
 }
 
 // FreeOSMemory forces a garbage collection.
-func (a *API) FreeOSMemory() {
+func (a *API) FreeOSMemory() error {
 	a.logger.Debug("debug_freeOSMemory")
+	if isTracesOnly(a.ctx) {
+		return errors.New("only traces are enabled in the debug namespace")
+	}
 	debug.FreeOSMemory()
+	return nil
 }
 
 // SetGCPercent sets the garbage collection target percentage. It returns the previous
 // setting. A negative value disables GC.
-func (a *API) SetGCPercent(v int) int {
+func (a *API) SetGCPercent(v int) (int, error) {
 	a.logger.Debug("debug_setGCPercent", "percent", v)
-	return debug.SetGCPercent(v)
+	if isTracesOnly(a.ctx) {
+		return 0, errors.New("only traces are enabled in the debug namespace")
+	}
+	return debug.SetGCPercent(v), nil
 }
 
 // GetHeaderRlp retrieves the RLP encoded for of a single header.
 func (a *API) GetHeaderRlp(number uint64) (hexutil.Bytes, error) {
+	if isTracesOnly(a.ctx) {
+		return nil, errors.New("only traces are enabled in the debug namespace")
+	}
 	header, err := a.backend.HeaderByNumber(rpctypes.BlockNumber(number)) //#nosec G115 -- int overflow is not a concern here -- block number is not likely to exceed int64 max value
 	if err != nil {
 		return nil, err
@@ -295,6 +349,9 @@ func (a *API) GetHeaderRlp(number uint64) (hexutil.Bytes, error) {
 
 // GetBlockRlp retrieves the RLP encoded for of a single block.
 func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
+	if isTracesOnly(a.ctx) {
+		return nil, errors.New("only traces are enabled in the debug namespace")
+	}
 	block, err := a.backend.EthBlockByNumber(rpctypes.BlockNumber(number)) //#nosec G115 -- int overflow is not a concern here -- block number is not likely to exceed int64 max value
 	if err != nil {
 		return nil, err
@@ -305,6 +362,9 @@ func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
 
 // PrintBlock retrieves a block and returns its pretty printed form.
 func (a *API) PrintBlock(number uint64) (string, error) {
+	if isTracesOnly(a.ctx) {
+		return "", errors.New("only traces are enabled in the debug namespace")
+	}
 	block, err := a.backend.EthBlockByNumber(rpctypes.BlockNumber(number)) //#nosec G115 -- int overflow is not a concern here -- block number is not likely to exceed int64 max value
 	if err != nil {
 		return "", err
@@ -317,5 +377,8 @@ func (a *API) PrintBlock(number uint64) (string, error) {
 // of intermediate roots: the stateroot after each transaction.
 func (a *API) IntermediateRoots(hash common.Hash, _ *evmtypes.TraceConfig) ([]common.Hash, error) {
 	a.logger.Debug("debug_intermediateRoots", "hash", hash)
+	if isTracesOnly(a.ctx) {
+		return nil, errors.New("only traces are enabled in the debug namespace")
+	}
 	return ([]common.Hash)(nil), nil
 }
