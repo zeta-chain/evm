@@ -24,8 +24,8 @@ func isCPUProfileConfigurationActivated(ctx *server.Context) bool {
 }
 
 func isTracesOnly(ctx *server.Context) bool {
-	const flagPublicOnly = "debug-traces-only"
-	return ctx.Viper.GetBool(flagPublicOnly)
+	const flagDebugOnly = "debug-traces-only"
+	return ctx.Viper.GetBool(flagDebugOnly)
 }
 
 // ExpandHome expands home directory in file paths.
