@@ -2,7 +2,9 @@ package keeper_test
 
 import (
 	"bytes"
+	"cosmossdk.io/math"
 	"fmt"
+	types2 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"math/big"
 	"testing"
 
@@ -511,7 +513,7 @@ func (suite *KeeperTestSuite) TestSetAndGetCodeHash() {
 
 func (suite *KeeperTestSuite) TestSuicide() {
 	keyring := testkeyring.New(1)
-	unitNetwork := network.NewUnitTestNetwork(
+	suite.network = network.NewUnitTestNetwork(
 		network.WithPreFundedAccounts(keyring.GetAllAccAddrs()...),
 	)
 
@@ -521,7 +523,7 @@ func (suite *KeeperTestSuite) TestSuicide() {
 	secondAddress := keyring.GetAddr(secondAddressIndex)
 
 	code := []byte("code")
-	db := unitNetwork.GetStateDB()
+	db := suite.network.GetStateDB()
 	// Add code to account
 	db.SetCode(firstAddress, code)
 	suite.Require().Equal(code, db.GetCode(firstAddress))
@@ -534,7 +536,7 @@ func (suite *KeeperTestSuite) TestSuicide() {
 		)
 	}
 	suite.Require().NoError(db.Commit())
-	db = unitNetwork.GetStateDB()
+	db = suite.network.GetStateDB()
 
 	// Add code and state to account 2
 	db.SetCode(secondAddress, code)
@@ -555,14 +557,14 @@ func (suite *KeeperTestSuite) TestSuicide() {
 
 	// Commit state
 	suite.Require().NoError(db.Commit())
-	db = unitNetwork.GetStateDB()
+	db = suite.network.GetStateDB()
 
 	// Check code is deleted
 	suite.Require().Nil(db.GetCode(firstAddress))
 
 	// Check state is deleted
 	var storage types.Storage
-	unitNetwork.App.EVMKeeper.ForEachStorage(unitNetwork.GetContext(), firstAddress, func(key, value common.Hash) bool {
+	suite.network.App.EVMKeeper.ForEachStorage(suite.network.GetContext(), firstAddress, func(key, value common.Hash) bool {
 		storage = append(storage, types.NewState(key, value))
 		return true
 	})
@@ -1044,6 +1046,41 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 			errContains: "only smart contracts can be self-destructed",
 		},
 		{
+			name: "removing vested account should remove all balance (including locked)",
+			malleate: func() common.Address {
+				contractAccAddr := sdk.AccAddress(contractAddr.Bytes())
+				err := suite.network.App.BankKeeper.SendCoins(ctx, suite.keyring.GetAccAddr(0), contractAccAddr, sdk.NewCoins(sdk.NewCoin(suite.network.GetBaseDenom(), math.NewInt(100))))
+				suite.Require().NoError(err)
+				// replace with vesting account
+				balanceResp, err := suite.handler.GetBalanceFromEVM(contractAccAddr)
+				suite.Require().NoError(err)
+
+				balance, ok := math.NewIntFromString(balanceResp.Balance)
+				suite.Require().True(ok)
+
+				ctx := suite.network.GetContext()
+				baseAccount := suite.network.App.AccountKeeper.GetAccount(ctx, contractAccAddr).(*authtypes.BaseAccount)
+				baseDenom := suite.network.GetBaseDenom()
+				currTime := suite.network.GetContext().BlockTime().Unix()
+				acc, err := types2.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), suite.network.GetContext().BlockTime().Unix(), currTime+100)
+				suite.Require().NoError(err)
+				suite.network.App.AccountKeeper.SetAccount(ctx, acc)
+
+				spendable := suite.network.App.BankKeeper.SpendableCoin(ctx, contractAccAddr, baseDenom).Amount
+				suite.Require().Equal(spendable.String(), "0")
+
+				evmBalanceRes, err := suite.handler.GetBalanceFromEVM(contractAccAddr)
+				suite.Require().NoError(err)
+				evmBalance := evmBalanceRes.Balance
+				suite.Require().Equal(evmBalance, "0")
+
+				totalBalance := suite.network.App.BankKeeper.GetBalance(ctx, contractAccAddr, baseDenom)
+				suite.Require().Equal(totalBalance.Amount, balance)
+				return contractAddr
+			},
+			expPass: true,
+		},
+		{
 			name:     "remove unexistent address - returns nil error",
 			malleate: func() common.Address { return common.HexToAddress("unexistent_address") },
 			expPass:  true,
@@ -1070,7 +1107,7 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 				acc := suite.network.App.EVMKeeper.GetAccount(ctx, addr)
 				suite.Require().Nil(acc, "expected no account to be found after deleting")
 
-				balance := suite.network.App.EVMKeeper.SpendableCoin(ctx, addr)
+				balance := suite.network.App.EVMKeeper.GetBalance(ctx, addr)
 				suite.Require().Equal(new(uint256.Int), balance, "expected balance to be zero after deleting account")
 			} else {
 				suite.Require().ErrorContains(err, tc.errContains, "expected error to contain message")
