@@ -1090,7 +1090,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithDynamicTxFee() {
 			suite.GetNetwork().App.AccountKeeper.SetAccount(ctx, acc)
 
 			ctx = ctx.WithIsCheckTx(tc.checkTx).WithIsReCheckTx(tc.reCheckTx)
-			err := suite.GetNetwork().App.EVMKeeper.SetBalance(ctx, addr, uint256.NewInt((ethparams.InitialBaseFee+10)*100000))
+			err := suite.GetNetwork().App.EVMKeeper.SetBalance(ctx, addr, uint256.NewInt((ethparams.InitialBaseFee+10)*100000), true)
 			suite.Require().NoError(err)
 
 			anteHandler := suite.GetAnteHandler()
@@ -1217,7 +1217,7 @@ func (suite *AnteTestSuite) TestAnteHandlerWithParams() {
 			suite.GetNetwork().App.AccountKeeper.SetAccount(ctx, acc)
 
 			ctx = ctx.WithIsCheckTx(true)
-			err := suite.GetNetwork().App.EVMKeeper.SetBalance(ctx, addr, uint256.NewInt((ethparams.InitialBaseFee+10)*100000))
+			err := suite.GetNetwork().App.EVMKeeper.SetBalance(ctx, addr, uint256.NewInt((ethparams.InitialBaseFee+10)*100000), true)
 			suite.Require().NoError(err)
 
 			anteHandler := suite.GetAnteHandler()

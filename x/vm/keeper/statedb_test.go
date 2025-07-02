@@ -1013,7 +1013,7 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			tc.malleate()
-			err := suite.network.App.EVMKeeper.SetBalance(suite.network.GetContext(), tc.addr, amount)
+			err := suite.network.App.EVMKeeper.SetBalance(suite.network.GetContext(), tc.addr, amount, true)
 			if tc.expErr {
 				suite.Require().Error(err)
 			} else {
