@@ -139,7 +139,7 @@ func (md MonoDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, ne
 		// We get the account with the balance from the EVM keeper because it is
 		// using a wrapper of the bank keeper as a dependency to scale all
 		// balances to 18 decimals.
-		account := md.evmKeeper.GetAccount(ctx, fromAddr)
+		account := md.evmKeeper.GetAccount(ctx, fromAddr) // needs spendable
 		if err := VerifyAccountBalance(
 			ctx,
 			md.accountKeeper,

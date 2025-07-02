@@ -131,7 +131,7 @@ func (k Keeper) ValidatorAccount(c context.Context, req *types.QueryValidatorAcc
 }
 
 // Balance implements the Query/Balance gRPC method. The method returns the 18
-// decimal representation of the account balance.
+// decimal representation of the account's *spendable* balance.
 func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*types.QueryBalanceResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -146,7 +146,7 @@ func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*typ
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	balanceInt := k.GetBalance(ctx, common.HexToAddress(req.Address))
+	balanceInt := k.SpendableCoin(ctx, common.HexToAddress(req.Address))
 
 	return &types.QueryBalanceResponse{
 		Balance: balanceInt.String(),
@@ -330,7 +330,7 @@ func (k Keeper) EstimateGasInternal(c context.Context, req *types.EthCallRequest
 	if msg.GasFeeCap.BitLen() != 0 {
 		baseDenom := types.GetEVMCoinDenom()
 
-		balance := k.bankWrapper.GetBalance(ctx, sdk.AccAddress(args.From.Bytes()), baseDenom)
+		balance := k.bankWrapper.SpendableCoin(ctx, sdk.AccAddress(args.From.Bytes()), baseDenom)
 		available := balance.Amount
 		transfer := "0"
 		if args.Value != nil {

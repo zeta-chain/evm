@@ -1017,7 +1017,7 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 			if tc.expErr {
 				suite.Require().Error(err)
 			} else {
-				balance := suite.network.App.EVMKeeper.GetBalance(suite.network.GetContext(), tc.addr)
+				balance := suite.network.App.EVMKeeper.SpendableCoin(suite.network.GetContext(), tc.addr)
 				suite.Require().NoError(err)
 				suite.Require().Equal(amount, balance)
 			}
@@ -1070,7 +1070,7 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 				acc := suite.network.App.EVMKeeper.GetAccount(ctx, addr)
 				suite.Require().Nil(acc, "expected no account to be found after deleting")
 
-				balance := suite.network.App.EVMKeeper.GetBalance(ctx, addr)
+				balance := suite.network.App.EVMKeeper.SpendableCoin(ctx, addr)
 				suite.Require().Equal(new(uint256.Int), balance, "expected balance to be zero after deleting account")
 			} else {
 				suite.Require().ErrorContains(err, tc.errContains, "expected error to contain message")

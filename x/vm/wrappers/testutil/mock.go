@@ -155,7 +155,7 @@ func (mr *MockBankWrapperMockRecorder) GetAllBalances(ctx, addr any) *gomock.Cal
 // GetBalance mocks base method.
 func (m *MockBankWrapper) GetBalance(ctx context.Context, addr types.AccAddress, denom string) types.Coin {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBalance", ctx, addr, denom)
+	ret := m.ctrl.Call(m, "SpendableCoin", ctx, addr, denom)
 	ret0, _ := ret[0].(types.Coin)
 	return ret0
 }
@@ -163,7 +163,7 @@ func (m *MockBankWrapper) GetBalance(ctx context.Context, addr types.AccAddress,
 // GetBalance indicates an expected call of GetBalance.
 func (mr *MockBankWrapperMockRecorder) GetBalance(ctx, addr, denom any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockBankWrapper)(nil).GetBalance), ctx, addr, denom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoin", reflect.TypeOf((*MockBankWrapper)(nil).GetBalance), ctx, addr, denom)
 }
 
 // IsSendEnabledCoins mocks base method.
@@ -253,4 +253,18 @@ func (m *MockBankWrapper) SendCoinsFromModuleToAccount(ctx context.Context, send
 func (mr *MockBankWrapperMockRecorder) SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCoinsFromModuleToAccount", reflect.TypeOf((*MockBankWrapper)(nil).SendCoinsFromModuleToAccount), ctx, senderModule, recipientAddr, amt)
+}
+
+// SpendableCoin mocks base method.
+func (m *MockBankWrapper) SpendableCoin(ctx context.Context, addr types.AccAddress, denom string) types.Coin {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpendableCoin", ctx, addr, denom)
+	ret0, _ := ret[0].(types.Coin)
+	return ret0
+}
+
+// SpendableCoin indicates an expected call of SpendableCoin.
+func (mr *MockBankWrapperMockRecorder) SpendableCoin(ctx, addr, denom interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoin", reflect.TypeOf((*MockBankWrapper)(nil).SpendableCoin), ctx, addr, denom)
 }
