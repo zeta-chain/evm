@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"errors"
-	types2 "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -264,7 +264,7 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 
 	// set account to a base account to set the whole balance as spendable
 	baseAccount := k.accountKeeper.GetAccount(ctx, cosmosAddr)
-	k.accountKeeper.SetAccount(ctx, types2.NewBaseAccount(cosmosAddr, baseAccount.GetPubKey(), baseAccount.GetAccountNumber(), baseAccount.GetSequence()))
+	k.accountKeeper.SetAccount(ctx, authtypes.NewBaseAccount(cosmosAddr, baseAccount.GetPubKey(), baseAccount.GetAccountNumber(), baseAccount.GetSequence()))
 
 	// clear balance
 	if err := k.SetBalance(ctx, addr, new(uint256.Int), false); err != nil {

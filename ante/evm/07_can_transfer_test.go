@@ -2,9 +2,9 @@ package evm_test
 
 import (
 	"fmt"
-	types2 "github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	testconstants "github.com/cosmos/evm/testutil/constants"
 	"math/big"
 
@@ -83,7 +83,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 				baseAccount := unitNetwork.App.AccountKeeper.GetAccount(ctx, senderKey.AccAddr).(*authtypes.BaseAccount)
 				baseDenom := unitNetwork.GetBaseDenom()
 				currTime := unitNetwork.GetContext().BlockTime().Unix()
-				acc, err := types.NewContinuousVestingAccount(baseAccount, types2.NewCoins(types2.NewCoin(baseDenom, balance)), unitNetwork.GetContext().BlockTime().Unix(), currTime+100)
+				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), unitNetwork.GetContext().BlockTime().Unix(), currTime+100)
 				suite.Require().NoError(err)
 				unitNetwork.App.AccountKeeper.SetAccount(ctx, acc)
 
@@ -115,7 +115,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 				baseAccount := unitNetwork.App.AccountKeeper.GetAccount(ctx, senderKey.AccAddr).(*authtypes.BaseAccount)
 				baseDenom := unitNetwork.GetBaseDenom()
 				currTime := unitNetwork.GetContext().BlockTime().Unix()
-				acc, err := types.NewContinuousVestingAccount(baseAccount, types2.NewCoins(types2.NewCoin(baseDenom, balance)), unitNetwork.GetContext().BlockTime().Unix(), currTime+100)
+				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), unitNetwork.GetContext().BlockTime().Unix(), currTime+100)
 				suite.Require().NoError(err)
 				unitNetwork.App.AccountKeeper.SetAccount(ctx, acc)
 
@@ -130,7 +130,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 				totalBalance := unitNetwork.App.BankKeeper.GetBalance(ctx, senderKey.AccAddr, baseDenom)
 				suite.Require().Equal(totalBalance.Amount, balance)
 
-				mintAmt := types2.NewCoins(types2.NewCoin(baseDenom, balance))
+				mintAmt := sdk.NewCoins(sdk.NewCoin(baseDenom, balance))
 				err = unitNetwork.App.BankKeeper.MintCoins(ctx, "mint", mintAmt)
 				suite.Require().NoError(err)
 

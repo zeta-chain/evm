@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"cosmossdk.io/math"
 	"fmt"
-	types2 "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"math/big"
 	"testing"
 
@@ -1062,7 +1062,7 @@ func (suite *KeeperTestSuite) TestDeleteAccount() {
 				baseAccount := suite.network.App.AccountKeeper.GetAccount(ctx, contractAccAddr).(*authtypes.BaseAccount)
 				baseDenom := suite.network.GetBaseDenom()
 				currTime := suite.network.GetContext().BlockTime().Unix()
-				acc, err := types2.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), suite.network.GetContext().BlockTime().Unix(), currTime+100)
+				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), suite.network.GetContext().BlockTime().Unix(), currTime+100)
 				suite.Require().NoError(err)
 				suite.network.App.AccountKeeper.SetAccount(ctx, acc)
 
