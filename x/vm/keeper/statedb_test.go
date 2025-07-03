@@ -985,13 +985,15 @@ func (suite *KeeperTestSuite) TestAddSlotToAccessList() {
 
 func (suite *KeeperTestSuite) TestSetBalance() {
 	amount := common.U2560
+	totalBalance := common.U2560
 	addr := utiltx.GenerateAddress()
 
 	testCases := []struct {
-		name     string
-		addr     common.Address
-		malleate func()
-		expErr   bool
+		name           string
+		addr           common.Address
+		malleate       func()
+		expErr         bool
+		expTotalAmount func() *uint256.Int
 	}{
 		{
 			"mint to address",
@@ -1000,6 +1002,50 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 				amount = uint256.NewInt(100)
 			},
 			false,
+			func() *uint256.Int {
+				return uint256.NewInt(100)
+			},
+		},
+		{
+			"mint to address, vesting account",
+			addr,
+			func() {
+				ctx := suite.network.GetContext()
+				accAddr := sdk.AccAddress(addr.Bytes())
+				err := suite.network.App.BankKeeper.SendCoins(ctx, suite.keyring.GetAccAddr(0), accAddr, sdk.NewCoins(sdk.NewCoin(suite.network.GetBaseDenom(), math.NewInt(100))))
+				suite.Require().NoError(err)
+				// replace with vesting account
+				balanceResp, err := suite.handler.GetBalanceFromEVM(accAddr)
+				suite.Require().NoError(err)
+
+				balance, ok := math.NewIntFromString(balanceResp.Balance)
+				suite.Require().True(ok)
+
+				baseAccount := suite.network.App.AccountKeeper.GetAccount(ctx, accAddr).(*authtypes.BaseAccount)
+				baseDenom := suite.network.GetBaseDenom()
+				currTime := suite.network.GetContext().BlockTime().Unix()
+				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), suite.network.GetContext().BlockTime().Unix(), currTime+100)
+				suite.Require().NoError(err)
+				suite.network.App.AccountKeeper.SetAccount(ctx, acc)
+
+				spendable := suite.network.App.BankKeeper.SpendableCoin(ctx, accAddr, baseDenom).Amount
+				suite.Require().Equal(spendable.String(), "0")
+
+				evmBalanceRes, err := suite.handler.GetBalanceFromEVM(accAddr)
+				suite.Require().NoError(err)
+				evmBalance := evmBalanceRes.Balance
+				suite.Require().Equal(evmBalance, "0")
+
+				tb, overflow := uint256.FromBig(suite.network.App.BankKeeper.GetBalance(ctx, accAddr, baseDenom).Amount.BigInt())
+				suite.Require().False(overflow)
+				suite.Require().Equal(tb.ToBig(), balance.BigInt())
+				totalBalance = tb
+				amount = uint256.NewInt(100)
+			},
+			false,
+			func() *uint256.Int {
+				return common.U2560.Add(totalBalance, amount)
+			},
 		},
 		{
 			"burn from address",
@@ -1008,6 +1054,50 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 				amount = uint256.NewInt(60)
 			},
 			false,
+			func() *uint256.Int {
+				return uint256.NewInt(100)
+			},
+		},
+		{
+			"burn from address, don't burn vesting amount",
+			addr,
+			func() {
+				ctx := suite.network.GetContext()
+				accAddr := sdk.AccAddress(addr.Bytes())
+				err := suite.network.App.BankKeeper.SendCoins(ctx, suite.keyring.GetAccAddr(0), accAddr, sdk.NewCoins(sdk.NewCoin(suite.network.GetBaseDenom(), math.NewInt(100))))
+				suite.Require().NoError(err)
+				// replace with vesting account
+				balanceResp, err := suite.handler.GetBalanceFromEVM(accAddr)
+				suite.Require().NoError(err)
+
+				balance, ok := math.NewIntFromString(balanceResp.Balance)
+				suite.Require().True(ok)
+
+				baseAccount := suite.network.App.AccountKeeper.GetAccount(ctx, accAddr).(*authtypes.BaseAccount)
+				baseDenom := suite.network.GetBaseDenom()
+				currTime := suite.network.GetContext().BlockTime().Unix()
+				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), suite.network.GetContext().BlockTime().Unix(), currTime+100)
+				suite.Require().NoError(err)
+				suite.network.App.AccountKeeper.SetAccount(ctx, acc)
+
+				spendable := suite.network.App.BankKeeper.SpendableCoin(ctx, accAddr, baseDenom).Amount
+				suite.Require().Equal(spendable.String(), "0")
+
+				evmBalanceRes, err := suite.handler.GetBalanceFromEVM(accAddr)
+				suite.Require().NoError(err)
+				evmBalance := evmBalanceRes.Balance
+				suite.Require().Equal(evmBalance, "0")
+
+				tb, overflow := uint256.FromBig(suite.network.App.BankKeeper.GetBalance(ctx, accAddr, baseDenom).Amount.BigInt())
+				suite.Require().False(overflow)
+				suite.Require().Equal(tb.ToBig(), balance.BigInt())
+				totalBalance = tb
+				amount = uint256.NewInt(0)
+			},
+			false,
+			func() *uint256.Int {
+				return uint256.NewInt(100)
+			},
 		},
 	}
 
@@ -1019,9 +1109,12 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 			if tc.expErr {
 				suite.Require().Error(err)
 			} else {
-				balance := suite.network.App.EVMKeeper.SpendableCoin(suite.network.GetContext(), tc.addr)
+				balance := suite.network.App.EVMKeeper.GetBalance(suite.network.GetContext(), tc.addr)
 				suite.Require().NoError(err)
-				suite.Require().Equal(amount, balance)
+				expTotalAmount := tc.expTotalAmount()
+				suite.Require().Equal(expTotalAmount, balance)
+				spendable := suite.network.App.EVMKeeper.SpendableCoin(suite.network.GetContext(), tc.addr)
+				suite.Require().Equal(amount, spendable)
 			}
 		})
 	}
