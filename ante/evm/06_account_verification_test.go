@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/cosmos/evm/x/precisebank/types"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -102,6 +103,7 @@ func (suite *EvmAnteTestSuite) TestVerifyAccountBalance() {
 
 				balance, ok := math.NewIntFromString(balanceResp.Balance)
 				suite.Require().True(ok)
+				balance = balance.Quo(types.ConversionFactor())
 
 				// replace with vesting account
 				ctx := unitNetwork.GetContext()
@@ -124,7 +126,7 @@ func (suite *EvmAnteTestSuite) TestVerifyAccountBalance() {
 				suite.Require().Equal(totalBalance.Amount, balance)
 
 				statedbAccount := getDefaultStateDBAccount(unitNetwork, senderKey.Addr)
-				suite.Require().Equal(spendable.String(), statedbAccount.Balance.String())
+				suite.Require().Equal(spendable.String(), math.NewIntFromBigInt(statedbAccount.Balance.ToBig()).Quo(types.ConversionFactor()).String())
 				return statedbAccount, txArgs
 			},
 		},
@@ -141,6 +143,7 @@ func (suite *EvmAnteTestSuite) TestVerifyAccountBalance() {
 
 				balance, ok := math.NewIntFromString(balanceResp.Balance)
 				suite.Require().True(ok)
+				balance = balance.Quo(types.ConversionFactor())
 
 				// replace with vesting account
 				ctx := unitNetwork.GetContext()
@@ -175,13 +178,13 @@ func (suite *EvmAnteTestSuite) TestVerifyAccountBalance() {
 				evmBalanceRes, err = grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
 				suite.Require().NoError(err)
 				evmBalance = evmBalanceRes.Balance
-				suite.Require().Equal(evmBalance, balance.String())
+				suite.Require().Equal(evmBalance, balanceResp.Balance)
 
 				totalBalance = unitNetwork.App.BankKeeper.GetBalance(ctx, senderKey.AccAddr, baseDenom)
 				suite.Require().Equal(totalBalance.Amount, balance.Mul(math.NewInt(2)))
 
 				statedbAccount := getDefaultStateDBAccount(unitNetwork, senderKey.Addr)
-				suite.Require().Equal(spendable.String(), statedbAccount.Balance.String())
+				suite.Require().Equal(spendable.String(), math.NewIntFromBigInt(statedbAccount.Balance.ToBig()).Quo(types.ConversionFactor()).String())
 				return statedbAccount, txArgs
 			},
 		},

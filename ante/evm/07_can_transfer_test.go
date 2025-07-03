@@ -6,6 +6,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	testconstants "github.com/cosmos/evm/testutil/constants"
+	"github.com/cosmos/evm/x/precisebank/types"
 	"math/big"
 
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -77,6 +78,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 
 				balance, ok := math.NewIntFromString(balanceResp.Balance)
 				suite.Require().True(ok)
+				balance = balance.Quo(types.ConversionFactor())
 
 				// replace with vesting account
 				ctx := unitNetwork.GetContext()
@@ -109,6 +111,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 
 				balance, ok := math.NewIntFromString(balanceResp.Balance)
 				suite.Require().True(ok)
+				balance = balance.Quo(types.ConversionFactor())
 
 				// replace with vesting account
 				ctx := unitNetwork.GetContext()
@@ -143,7 +146,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 				evmBalanceRes, err = grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
 				suite.Require().NoError(err)
 				evmBalance = evmBalanceRes.Balance
-				suite.Require().Equal(evmBalance, balance.String())
+				suite.Require().Equal(evmBalance, balanceResp.Balance)
 
 				totalBalance = unitNetwork.App.BankKeeper.GetBalance(ctx, senderKey.AccAddr, baseDenom)
 				suite.Require().Equal(totalBalance.Amount, balance.Mul(math.NewInt(2)))
@@ -161,6 +164,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 				}),
 				network.WithPreFundedAccounts(keyring.GetAllAccAddrs()...),
 			)
+
 			grpcHandler = grpc.NewIntegrationHandler(unitNetwork)
 			txFactory = factory.New(unitNetwork, grpcHandler)
 
