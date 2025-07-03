@@ -144,7 +144,7 @@ func (b *Backend) GetStorageAt(address common.Address, key string, blockNrOrHash
 	return value.Bytes(), nil
 }
 
-// GetBalance returns the provided account's balance up to the provided block number.
+// GetBalance returns the provided account's *spendable* balance up to the provided block number.
 func (b *Backend) GetBalance(address common.Address, blockNrOrHash rpctypes.BlockNumberOrHash) (*hexutil.Big, error) {
 	blockNum, err := b.BlockNumberFromTendermint(blockNrOrHash)
 	if err != nil {

@@ -38,7 +38,7 @@ const (
 )
 
 // Account implements the Query/Account gRPC method. The method returns the
-// balance of the account in 18 decimals representation.
+// *spendable* balance of the account in 18 decimals representation.
 func (k Keeper) Account(c context.Context, req *types.QueryAccountRequest) (*types.QueryAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
