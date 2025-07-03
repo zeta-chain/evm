@@ -35,6 +35,9 @@ var _ types.QueryServer = Keeper{}
 
 const (
 	defaultTraceTimeout = 5 * time.Second
+	// maxTracePredecessors is the maximum amount of transaction predecessors to be included in a trace Tx request.
+	// This limit is chosen as a sensible default to prevent unbounded predecessor iteration.
+	maxTracePredecessors = 10_000
 )
 
 // Account implements the Query/Account gRPC method. The method returns the
@@ -450,6 +453,10 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 
 	if req.TraceConfig != nil && req.TraceConfig.Limit < 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "output limit cannot be negative, got %d", req.TraceConfig.Limit)
+	}
+
+	if len(req.Predecessors) > maxTracePredecessors {
+		return nil, status.Errorf(codes.InvalidArgument, "too many predecessors, got %d: limit %d", len(req.Predecessors), maxTracePredecessors)
 	}
 
 	// get the context of block beginning
