@@ -1055,7 +1055,7 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 			},
 			false,
 			func() *uint256.Int {
-				return uint256.NewInt(100)
+				return uint256.NewInt(60)
 			},
 		},
 		{
@@ -1105,7 +1105,7 @@ func (suite *KeeperTestSuite) TestSetBalance() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 			tc.malleate()
-			err := suite.network.App.EVMKeeper.SetBalance(suite.network.GetContext(), tc.addr, amount, true)
+			err := suite.network.App.EVMKeeper.SetBalance(suite.network.GetContext(), tc.addr, amount)
 			if tc.expErr {
 				suite.Require().Error(err)
 			} else {

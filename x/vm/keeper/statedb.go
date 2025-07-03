@@ -109,16 +109,12 @@ func (k *Keeper) ForEachStorage(ctx sdk.Context, addr common.Address, cb func(ke
 }
 
 // SetBalance update account's balance, compare with current balance first, then decide to mint or burn.
-func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amount *uint256.Int, spendableOnly bool) error {
+func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amount *uint256.Int) error {
 	if amount == nil {
 		return nil
 	}
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
-
-	coin := k.bankWrapper.GetBalance(ctx, cosmosAddr, types.GetEVMCoinDenom())
-	if spendableOnly {
-		coin = k.bankWrapper.SpendableCoin(ctx, cosmosAddr, types.GetEVMCoinDenom())
-	}
+	coin := k.bankWrapper.SpendableCoin(ctx, cosmosAddr, types.GetEVMCoinDenom())
 
 	balance := coin.Amount.BigInt()
 	delta := new(big.Int).Sub(amount.ToBig(), balance)
@@ -158,7 +154,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 	}
 	k.accountKeeper.SetAccount(ctx, acct)
 
-	if err := k.SetBalance(ctx, addr, account.Balance, true); err != nil {
+	if err := k.SetBalance(ctx, addr, account.Balance); err != nil {
 		return err
 	}
 
@@ -267,7 +263,7 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 	k.accountKeeper.SetAccount(ctx, authtypes.NewBaseAccount(cosmosAddr, baseAccount.GetPubKey(), baseAccount.GetAccountNumber(), baseAccount.GetSequence()))
 
 	// clear balance
-	if err := k.SetBalance(ctx, addr, new(uint256.Int), false); err != nil {
+	if err := k.SetBalance(ctx, addr, new(uint256.Int)); err != nil {
 		return err
 	}
 
