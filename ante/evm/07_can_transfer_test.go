@@ -2,25 +2,25 @@ package evm_test
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	testconstants "github.com/cosmos/evm/testutil/constants"
-	"github.com/cosmos/evm/x/precisebank/types"
 	"math/big"
 
 	gethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/cosmos/evm/ante/evm"
+	testconstants "github.com/cosmos/evm/testutil/constants"
 	"github.com/cosmos/evm/testutil/integration/os/factory"
 	"github.com/cosmos/evm/testutil/integration/os/grpc"
 	testkeyring "github.com/cosmos/evm/testutil/integration/os/keyring"
 	"github.com/cosmos/evm/testutil/integration/os/network"
+	"github.com/cosmos/evm/x/precisebank/types"
 	evmtypes "github.com/cosmos/evm/x/vm/types"
 
 	"cosmossdk.io/math"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 )
 
 func (suite *EvmAnteTestSuite) TestCanTransfer() {
@@ -95,6 +95,7 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 				evmBalanceRes, err := grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
 				suite.Require().NoError(err)
 				evmBalance, ok := math.NewIntFromString(evmBalanceRes.Balance)
+				suite.Require().True(ok)
 				suite.Require().Equal(evmBalance.Int64(), int64(0))
 
 				totalBalance := unitNetwork.App.BankKeeper.GetBalance(ctx, senderKey.AccAddr, baseDenom)
@@ -156,7 +157,6 @@ func (suite *EvmAnteTestSuite) TestCanTransfer() {
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("%v_%v_%v", evmtypes.GetTxTypeName(suite.ethTxType), suite.chainID, tc.name), func() {
-
 			unitNetwork = network.NewUnitTestNetwork(
 				network.WithChainID(testconstants.ChainID{
 					ChainID:    suite.chainID,
