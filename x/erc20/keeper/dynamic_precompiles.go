@@ -1,13 +1,9 @@
 package keeper
 
 import (
-	"fmt"
-	"slices"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/cosmos/evm/utils"
 	"github.com/cosmos/evm/x/erc20/types"
 	"github.com/cosmos/evm/x/vm/statedb"
 
@@ -96,10 +92,7 @@ func (k Keeper) EnableDynamicPrecompiles(ctx sdk.Context, addresses ...common.Ad
 	activePrecompiles := params.DynamicPrecompiles
 
 	// Append and sort the new precompiles
-	updatedPrecompiles, err := appendPrecompiles(activePrecompiles, addresses...)
-	if err != nil {
-		return err
-	}
+	updatedPrecompiles := addPrecompiles(activePrecompiles, addresses...)
 
 	// Update params
 	params.DynamicPrecompiles = updatedPrecompiles
@@ -107,24 +100,12 @@ func (k Keeper) EnableDynamicPrecompiles(ctx sdk.Context, addresses ...common.Ad
 	return k.SetParams(ctx, params)
 }
 
-// appendPrecompiles append addresses to the existingPrecompiles and sort the resulting slice.
+// addPrecompiles append addresses to the existingPrecompiles and sort the resulting slice.
 // The function returns an error is the two sets are overlapping.
-func appendPrecompiles(existingPrecompiles []string, addresses ...common.Address) ([]string, error) {
-	// check for duplicates
-	hexAddresses := make([]string, len(addresses))
+func addPrecompiles(existingPrecompiles map[string]bool, addresses ...common.Address) map[string]bool {
 	for i := range addresses {
-		addrHex := addresses[i].Hex()
-		if slices.Contains(existingPrecompiles, addrHex) {
-			return nil, fmt.Errorf("attempted to register a duplicate precompile address: %s", addrHex)
-		}
-		hexAddresses[i] = addrHex
+		addrHex := addresses[i].String()
+		existingPrecompiles[addrHex] = true
 	}
-
-	existingLength := len(existingPrecompiles)
-	updatedPrecompiles := make([]string, existingLength+len(hexAddresses))
-	copy(updatedPrecompiles, existingPrecompiles)
-	copy(updatedPrecompiles[existingLength:], hexAddresses)
-
-	utils.SortSlice(updatedPrecompiles)
-	return updatedPrecompiles, nil
+	return existingPrecompiles
 }

@@ -8,7 +8,6 @@ import (
 
 	"github.com/cosmos/evm/precompiles/erc20"
 	"github.com/cosmos/evm/precompiles/werc20"
-	"github.com/cosmos/evm/x/erc20/types"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -21,16 +20,16 @@ func (k Keeper) GetERC20PrecompileInstance(
 	address common.Address,
 ) (contract vm.PrecompiledContract, found bool, err error) {
 	params := k.GetParams(ctx)
+	isNative := params.IsNativePrecompile(address)
+	isDynamic := params.IsDynamicPrecompile(address)
 
-	if !k.IsAvailableERC20Precompile(&params, address) {
+	if available := isNative || isDynamic; !available {
 		return nil, false, nil
 	}
 
-	isNative := params.IsNativePrecompile(address)
-
 	precompile, err := k.InstantiateERC20Precompile(ctx, address, isNative)
 	if err != nil {
-		return nil, false, errorsmod.Wrapf(err, "precompiled contract not initialized: %s", address.String())
+		return nil, false, errorsmod.Wrapf(err, "precompiled xcontract not initialized: %s", address.String())
 	}
 
 	return precompile, true, nil
@@ -57,13 +56,4 @@ func (k Keeper) InstantiateERC20Precompile(ctx sdk.Context, contractAddr common.
 	}
 
 	return erc20.NewPrecompile(pair, k.bankKeeper, k, *k.transferKeeper)
-}
-
-// IsAvailableERC20Precompile returns true if the given precompile address
-// is contained in the params of the erc20 module.
-// The available ERC-20 precompiles consist of the dynamic precompiles and the native
-// ones.
-func (k Keeper) IsAvailableERC20Precompile(params *types.Params, address common.Address) bool {
-	return params.IsNativePrecompile(address) ||
-		params.IsDynamicPrecompile(address)
 }

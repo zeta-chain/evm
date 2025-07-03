@@ -5,7 +5,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	sdktypes "cosmossdk.io/store/types"
 	"github.com/cosmos/evm/types"
 )
 
@@ -16,8 +15,8 @@ var (
 )
 
 var (
-	StoreKeyDynamicPrecompiles = sdktypes.NewKVStoreKey("DynamicPrecompiles")
-	StoreKeyNativePrecompiles  = sdktypes.NewKVStoreKey("NativePrecompiles")
+	CtxKeyDynamicPrecompiles = "DynamicPrecompiles"
+	CtxKeyNativePrecompiles  = "NativePrecompiles"
 )
 
 var (
@@ -26,8 +25,8 @@ var (
 	// [ERC-7528](https://eips.ethereum.org/EIPS/eip-7528).
 	//
 	// 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE
-	DefaultNativePrecompiles  map[string]bool
-	DefaultDynamicPrecompiles map[string]bool
+	DefaultNativePrecompiles  = make(map[string]bool)
+	DefaultDynamicPrecompiles = make(map[string]bool)
 )
 
 // NewParams creates a new Params object

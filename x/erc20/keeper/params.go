@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"slices"
+	"context"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -37,8 +37,11 @@ func (k Keeper) UpdateCodeHash(ctx sdk.Context, newParams types.Params) error {
 	if err := k.RegisterOrUnregisterERC20CodeHashes(ctx, oldDynamicPrecompiles, newParams.DynamicPrecompiles); err != nil {
 		return err
 	}
+	if err := k.RegisterOrUnregisterERC20CodeHashes(ctx, oldNativePrecompiles, newParams.NativePrecompiles); err != nil {
+		return err
+	}
 
-	return k.RegisterOrUnregisterERC20CodeHashes(ctx, oldNativePrecompiles, newParams.NativePrecompiles)
+	return nil
 }
 
 // RegisterOrUnregisterERC20CodeHashes takes two arrays of precompiles as its argument:
@@ -47,25 +50,22 @@ func (k Keeper) UpdateCodeHash(ctx sdk.Context, newParams types.Params) error {
 //
 // It then compares the two arrays and registers the code hash for all precompiles that are newly added
 // and unregisters the code hash for all precompiles that are removed from the list.
-func (k Keeper) RegisterOrUnregisterERC20CodeHashes(ctx sdk.Context, oldPrecompiles, newPrecompiles []string) error {
-	for _, precompile := range oldPrecompiles {
-		if slices.Contains(newPrecompiles, precompile) {
-			continue
-		}
-
-		if err := k.UnRegisterERC20CodeHash(ctx, common.HexToAddress(precompile)); err != nil {
-			return err
+func (k Keeper) RegisterOrUnregisterERC20CodeHashes(ctx sdk.Context, oldPrecompiles, newPrecompiles map[string]bool) error {
+	for precompile, _ := range oldPrecompiles {
+		if _, ok := newPrecompiles[precompile]; !ok {
+			if err := k.UnRegisterERC20CodeHash(ctx, common.HexToAddress(precompile)); err != nil {
+				return err
+			}
 		}
 	}
 
-	for _, precompile := range newPrecompiles {
-		if slices.Contains(oldPrecompiles, precompile) {
-			continue
+	for precompile, _ := range newPrecompiles {
+		if _, ok := oldPrecompiles[precompile]; !ok {
+			if err := k.RegisterERC20CodeHash(ctx, common.HexToAddress(precompile)); err != nil {
+				return err
+			}
 		}
 
-		if err := k.RegisterERC20CodeHash(ctx, common.HexToAddress(precompile)); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -104,30 +104,36 @@ func (k Keeper) setERC20Enabled(ctx sdk.Context, enable bool) {
 	store.Delete(types.ParamStoreKeyEnableErc20)
 }
 
-// setDynamicPrecompiles sets the DynamicPrecompiles KVStore
-func (k Keeper) setDynamicPrecompiles(ctx sdk.Context, dynamicPrecompiles map[string]byte) {
-	store := ctx.KVStore(types.StoreKeyDynamicPrecompiles))
-	for np, _ := range dynamicPrecompiles {
-		store.Set(np, nil)
-	}
+// setDynamicPrecompiles sets the DynamicPrecompiles map in context
+func (k Keeper) setDynamicPrecompiles(ctx sdk.Context, dynamicPrecompiles map[string]bool) {
+	_ = context.WithValue(ctx, types.CtxKeyDynamicPrecompiles, dynamicPrecompiles)
 }
 
-// getDynamicPrecompiles returns the DynamicPrecompiles KVStore
+// getDynamicPrecompiles returns the DynamicPrecompiles map from context
 func (k Keeper) getDynamicPrecompiles(ctx sdk.Context) map[string]bool {
-	return ctx.KVStore(types.StoreKeyDynamicPrecompiles)
-}
-
-// setNativePrecompiles sets the NativePrecompiles KVStore
-func (k Keeper) setNativePrecompiles(ctx sdk.Context, nativePrecompiles map[string]bool) {
-	store := ctx.KVStore(types.StoreKeyNativePrecompiles)
-	for np, _ := range nativePrecompiles {
-		store.Set(np, nil)
+	val := ctx.Value(types.CtxKeyDynamicPrecompiles)
+	if dynamicPrecompiles, ok := val.(map[string]bool); ok && dynamicPrecompiles != nil {
+		return dynamicPrecompiles
+	} else {
+		k.Logger(ctx).Error("dynamic precompiles map not found in ctx", "value", dynamicPrecompiles)
+		return nil
 	}
 }
 
-// getNativePrecompiles returns the NativePrecompiles KVStore
+// setNativePrecompiles sets the NativePrecompiles map in context
+func (k Keeper) setNativePrecompiles(ctx sdk.Context, nativePrecompiles map[string]bool) {
+	_ = context.WithValue(ctx, types.CtxKeyNativePrecompiles, nativePrecompiles)
+}
+
+// getNativePrecompiles returns the NativePrecompiles map from context
 func (k Keeper) getNativePrecompiles(ctx sdk.Context) map[string]bool {
-	return ctx.KVStore(types.StoreKeyNativePrecompiles)
+	val := ctx.Value(types.CtxKeyNativePrecompiles)
+	if nativePrecompiles, ok := val.(map[string]bool); ok && nativePrecompiles != nil {
+		return nativePrecompiles
+	} else {
+		k.Logger(ctx).Error("native precompiles map not found in ctx", "value", nativePrecompiles)
+		return nil
+	}
 }
 
 // isPermissionlessRegistration returns true if the module enabled permissionless
