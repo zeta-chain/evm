@@ -73,10 +73,6 @@ func (k Keeper) RegisterOrUnregisterERC20CodeHashes(ctx sdk.Context, oldPrecompi
 
 // SetParams sets the erc20 parameters to the param space.
 func (k Keeper) SetParams(ctx sdk.Context, newParams types.Params) error {
-	// sort to keep params equal between different executions
-	slices.Sort(newParams.DynamicPrecompiles)
-	slices.Sort(newParams.NativePrecompiles)
-
 	if err := newParams.Validate(); err != nil {
 		return err
 	}
@@ -108,45 +104,30 @@ func (k Keeper) setERC20Enabled(ctx sdk.Context, enable bool) {
 	store.Delete(types.ParamStoreKeyEnableErc20)
 }
 
-// setDynamicPrecompiles sets the DynamicPrecompiles param in the store
-func (k Keeper) setDynamicPrecompiles(ctx sdk.Context, dynamicPrecompiles []string) {
-	store := ctx.KVStore(k.storeKey)
-	bz := make([]byte, 0, addressLength*len(dynamicPrecompiles))
-	for _, str := range dynamicPrecompiles {
-		bz = append(bz, []byte(str)...)
+// setDynamicPrecompiles sets the DynamicPrecompiles KVStore
+func (k Keeper) setDynamicPrecompiles(ctx sdk.Context, dynamicPrecompiles map[string]byte) {
+	store := ctx.KVStore(types.StoreKeyDynamicPrecompiles))
+	for np, _ := range dynamicPrecompiles {
+		store.Set(np, nil)
 	}
-	store.Set(types.ParamStoreKeyDynamicPrecompiles, bz)
 }
 
-// getDynamicPrecompiles returns the DynamicPrecompiles param from the store
-func (k Keeper) getDynamicPrecompiles(ctx sdk.Context) (dynamicPrecompiles []string) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ParamStoreKeyDynamicPrecompiles)
-
-	for i := 0; i < len(bz); i += addressLength {
-		dynamicPrecompiles = append(dynamicPrecompiles, string(bz[i:i+addressLength]))
-	}
-	return dynamicPrecompiles
+// getDynamicPrecompiles returns the DynamicPrecompiles KVStore
+func (k Keeper) getDynamicPrecompiles(ctx sdk.Context) map[string]bool {
+	return ctx.KVStore(types.StoreKeyDynamicPrecompiles)
 }
 
-// setNativePrecompiles sets the NativePrecompiles param in the store
-func (k Keeper) setNativePrecompiles(ctx sdk.Context, nativePrecompiles []string) {
-	store := ctx.KVStore(k.storeKey)
-	bz := make([]byte, 0, addressLength*len(nativePrecompiles))
-	for _, str := range nativePrecompiles {
-		bz = append(bz, []byte(str)...)
+// setNativePrecompiles sets the NativePrecompiles KVStore
+func (k Keeper) setNativePrecompiles(ctx sdk.Context, nativePrecompiles map[string]bool) {
+	store := ctx.KVStore(types.StoreKeyNativePrecompiles)
+	for np, _ := range nativePrecompiles {
+		store.Set(np, nil)
 	}
-	store.Set(types.ParamStoreKeyNativePrecompiles, bz)
 }
 
-// getNativePrecompiles returns the NativePrecompiles param from the store
-func (k Keeper) getNativePrecompiles(ctx sdk.Context) (nativePrecompiles []string) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ParamStoreKeyNativePrecompiles)
-	for i := 0; i < len(bz); i += addressLength {
-		nativePrecompiles = append(nativePrecompiles, string(bz[i:i+addressLength]))
-	}
-	return nativePrecompiles
+// getNativePrecompiles returns the NativePrecompiles KVStore
+func (k Keeper) getNativePrecompiles(ctx sdk.Context) map[string]bool {
+	return ctx.KVStore(types.StoreKeyNativePrecompiles)
 }
 
 // isPermissionlessRegistration returns true if the module enabled permissionless
