@@ -1072,6 +1072,21 @@ func (suite *KeeperTestSuite) TestTraceTx() {
 				"" + "\"structLogs\":[{\"pc\":0,\"op\":\"PUSH1\",\"gas",
 		},
 		{
+			msg: "invalid too many predecessors",
+			getRequest: func() types.QueryTraceTxRequest {
+				return getDefaultTraceTxRequest(suite.network)
+			},
+			getPredecessors: func() []*types.MsgEthereumTx {
+				pred := make([]*types.MsgEthereumTx, 10001)
+				for i := 0; i < 10001; i++ {
+					pred[i] = &types.MsgEthereumTx{}
+				}
+
+				return pred
+			},
+			expPass: false,
+		},
+		{
 			msg: "invalid trace config - Negative Limit",
 			getRequest: func() types.QueryTraceTxRequest {
 				defaultRequest := getDefaultTraceTxRequest(suite.network)
