@@ -12,8 +12,6 @@ import (
 
 var isTrue = []byte("0x01")
 
-const addressLength = 42
-
 // GetParams returns the total set of erc20 parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	enableErc20 := k.IsERC20Enabled(ctx)
@@ -37,11 +35,7 @@ func (k Keeper) UpdateCodeHash(ctx sdk.Context, newParams types.Params) error {
 	if err := k.RegisterOrUnregisterERC20CodeHashes(ctx, oldDynamicPrecompiles, newParams.DynamicPrecompiles); err != nil {
 		return err
 	}
-	if err := k.RegisterOrUnregisterERC20CodeHashes(ctx, oldNativePrecompiles, newParams.NativePrecompiles); err != nil {
-		return err
-	}
-
-	return nil
+	return k.RegisterOrUnregisterERC20CodeHashes(ctx, oldNativePrecompiles, newParams.NativePrecompiles)
 }
 
 // RegisterOrUnregisterERC20CodeHashes takes two arrays of precompiles as its argument:
@@ -65,7 +59,6 @@ func (k Keeper) RegisterOrUnregisterERC20CodeHashes(ctx sdk.Context, oldPrecompi
 				return err
 			}
 		}
-
 	}
 
 	return nil
@@ -106,34 +99,36 @@ func (k Keeper) setERC20Enabled(ctx sdk.Context, enable bool) {
 
 // setDynamicPrecompiles sets the DynamicPrecompiles map in context
 func (k Keeper) setDynamicPrecompiles(ctx sdk.Context, dynamicPrecompiles map[string]bool) {
-	_ = context.WithValue(ctx, types.CtxKeyDynamicPrecompiles, dynamicPrecompiles)
+	_ = context.WithValue(ctx, types.CtxKeyDynamicPrecompiles, dynamicPrecompiles) //nolint:staticcheck
 }
 
 // getDynamicPrecompiles returns the DynamicPrecompiles map from context
 func (k Keeper) getDynamicPrecompiles(ctx sdk.Context) map[string]bool {
 	val := ctx.Value(types.CtxKeyDynamicPrecompiles)
-	if dynamicPrecompiles, ok := val.(map[string]bool); ok && dynamicPrecompiles != nil {
+	dynamicPrecompiles, ok := val.(map[string]bool)
+	if ok && dynamicPrecompiles != nil {
 		return dynamicPrecompiles
-	} else {
-		k.Logger(ctx).Error("dynamic precompiles map not found in ctx", "value", dynamicPrecompiles)
-		return nil
 	}
+
+	k.Logger(ctx).Error("dynamic precompiles map not found in ctx", "value", dynamicPrecompiles)
+	return nil
 }
 
 // setNativePrecompiles sets the NativePrecompiles map in context
 func (k Keeper) setNativePrecompiles(ctx sdk.Context, nativePrecompiles map[string]bool) {
-	_ = context.WithValue(ctx, types.CtxKeyNativePrecompiles, nativePrecompiles)
+	_ = context.WithValue(ctx, types.CtxKeyNativePrecompiles, nativePrecompiles) //nolint:staticcheck
 }
 
 // getNativePrecompiles returns the NativePrecompiles map from context
 func (k Keeper) getNativePrecompiles(ctx sdk.Context) map[string]bool {
 	val := ctx.Value(types.CtxKeyNativePrecompiles)
-	if nativePrecompiles, ok := val.(map[string]bool); ok && nativePrecompiles != nil {
+	nativePrecompiles, ok := val.(map[string]bool)
+	if ok && nativePrecompiles != nil {
 		return nativePrecompiles
-	} else {
-		k.Logger(ctx).Error("native precompiles map not found in ctx", "value", nativePrecompiles)
-		return nil
 	}
+
+	k.Logger(ctx).Error("native precompiles map not found in ctx", "value", nativePrecompiles)
+	return nil
 }
 
 // isPermissionlessRegistration returns true if the module enabled permissionless

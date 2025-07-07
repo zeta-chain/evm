@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"maps"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -61,7 +62,10 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	return nil
+	combined := make(map[string]bool, len(p.NativePrecompiles)+len(p.DynamicPrecompiles))
+	maps.Copy(p.NativePrecompiles, combined)
+	maps.Copy(p.DynamicPrecompiles, combined)
+	return validatePrecompilesUniqueness(combined)
 }
 
 // ValidatePrecompiles checks if the precompile addresses are valid and unique.
@@ -79,11 +83,12 @@ func validatePrecompilesUniqueness(precompiles map[string]bool) error {
 	seenPrecompiles := make(map[string]struct{})
 	for precompile := range precompiles {
 		// use address.Hex() to make sure all addresses are using EIP-55
-		if _, ok := seenPrecompiles[precompile.Hex()]; ok {
+		eip55Addr := common.HexToAddress(precompile).Hex()
+		if _, ok := seenPrecompiles[eip55Addr]; ok {
 			return fmt.Errorf("duplicate precompile %s", precompile)
 		}
 
-		seenPrecompiles[precompile.Hex()] = struct{}{}
+		seenPrecompiles[eip55Addr] = struct{}{}
 	}
 	return nil
 }

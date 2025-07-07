@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -105,38 +104,12 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"duplicate precompile",
 		},
 		{
-			"repeated address - native precompiles",
-			func() types.Params {
-				return types.NewParams(true, map[string]bool{testconstants.WEVMOSContractMainnet: true, testconstants.WEVMOSContractMainnet: true}, map[string]bool{}, true)
-			},
-			true,
-			"duplicate precompile",
-		},
-		{
-			"repeated address - dynamic precompiles",
-			func() types.Params {
-				return types.NewParams(true, map[string]bool{}, map[string]bool{testconstants.WEVMOSContractMainnet: true, testconstants.WEVMOSContractMainnet}, true)
-			},
-			true,
-			"duplicate precompile",
-		},
-		{
 			"repeated address - one EIP-55 other not",
 			func() types.Params {
-				return types.NewParams(true, map[string]bool{}, []string{"0xcc491f589b45d4a3c679016195b3fb87d7848210", "0xcc491f589B45d4a3C679016195B3FB87D7848210"}, true)
+				return types.NewParams(true, map[string]bool{}, map[string]bool{"0xcc491f589b45d4a3c679016195b3fb87d7848210": true, "0xcc491f589B45d4a3C679016195B3FB87D7848210": true}, true)
 			},
 			true,
 			"duplicate precompile",
-		},
-		{
-			"unsorted addresses",
-			func() types.Params {
-				params := types.DefaultParams()
-				params.NativePrecompiles = map[string]bool{testconstants.WEVMOSContractTestnet: true, testconstants.WEVMOSContractMainnet}
-				return params
-			},
-			true,
-			"precompiles need to be sorted",
 		},
 	}
 
@@ -175,7 +148,7 @@ func (suite *ParamsTestSuite) TestIsNativePrecompile() {
 		{
 			"EIP-55 address - is native precompile",
 			func() types.Params {
-				return types.NewParams(true, []string{"0xcc491f589B45d4a3C679016195B3FB87D7848210"}, nil, true)
+				return types.NewParams(true, map[string]bool{"0xcc491f589B45d4a3C679016195B3FB87D7848210": true}, nil, true)
 			},
 			common.HexToAddress(testconstants.WEVMOSContractTestnet),
 			true,
@@ -183,7 +156,7 @@ func (suite *ParamsTestSuite) TestIsNativePrecompile() {
 		{
 			"NOT EIP-55 address - is native precompile",
 			func() types.Params {
-				return types.NewParams(true, []string{"0xcc491f589b45d4a3c679016195b3fb87d7848210"}, nil, true)
+				return types.NewParams(true, map[string]bool{"0xcc491f589b45d4a3c679016195b3fb87d7848210": true}, nil, true)
 			},
 			common.HexToAddress(testconstants.WEVMOSContractTestnet),
 			true,
@@ -220,7 +193,7 @@ func (suite *ParamsTestSuite) TestIsDynamicPrecompile() {
 		{
 			"EIP-55 address - is dynamic precompile",
 			func() types.Params {
-				return types.NewParams(true, nil, []string{"0xcc491f589B45d4a3C679016195B3FB87D7848210"}, true)
+				return types.NewParams(true, nil, map[string]bool{"0xcc491f589B45d4a3C679016195B3FB87D7848210": true}, true)
 			},
 			common.HexToAddress(testconstants.WEVMOSContractTestnet),
 			true,
@@ -228,7 +201,7 @@ func (suite *ParamsTestSuite) TestIsDynamicPrecompile() {
 		{
 			"NOT EIP-55 address - is dynamic precompile",
 			func() types.Params {
-				return types.NewParams(true, nil, []string{"0xcc491f589b45d4a3c679016195b3fb87d7848210"}, true)
+				return types.NewParams(true, nil, map[string]bool{"0xcc491f589b45d4a3c679016195b3fb87d7848210": true}, true)
 			},
 			common.HexToAddress(testconstants.WEVMOSContractTestnet),
 			true,
@@ -243,42 +216,33 @@ func (suite *ParamsTestSuite) TestIsDynamicPrecompile() {
 	}
 }
 
-func (suite *ParamsTestSuite) TestParamsValidatePriv() {
-	suite.Require().Error(types.ValidateBool(1))
-	suite.Require().NoError(types.ValidateBool(true))
-}
-
 func TestValidatePrecompiles(t *testing.T) {
 	testCases := []struct {
 		name        string
-		precompiles []string
+		precompiles map[string]bool
 		expError    bool
 		errContains string
 	}{
 		{
 			"invalid precompile address",
-			[]string{"0xct491f589b45d4a3c679016195b3fb87d7848210", "0xcc491f589B45d4a3C679016195B3FB87D7848210"},
+			map[string]bool{"0xct491f589b45d4a3c679016195b3fb87d7848210": true, "0xcc491f589B45d4a3C679016195B3FB87D7848210": true},
 			true,
 			"invalid precompile",
 		},
 		{
 			"same address but one EIP-55 and other don't",
-			[]string{"0xcc491f589b45d4a3c679016195b3fb87d7848210", "0xcc491f589B45d4a3C679016195B3FB87D7848210"},
+			map[string]bool{"0xcc491f589b45d4a3c679016195b3fb87d7848210": true, "0xcc491f589B45d4a3C679016195B3FB87D7848210": true},
 			false,
 			"",
 		},
 	}
 	for _, tc := range testCases {
-
-		slices.Sort(tc.precompiles)
-		addrs, err := types.ValidatePrecompiles(tc.precompiles)
-
+		err := types.ValidatePrecompiles(tc.precompiles)
 		if tc.expError {
 			require.Error(t, err, tc.name)
 			require.ErrorContains(t, err, tc.errContains)
 		} else {
 			require.NoError(t, err, tc.name)
-			require.Equal(t, len(tc.precompiles), len(addrs), tc.name)
 		}
 	}
 }
