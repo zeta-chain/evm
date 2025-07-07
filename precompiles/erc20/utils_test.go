@@ -223,8 +223,7 @@ func setupNewERC20PrecompileForTokenPair(
 
 	// Update the params via gov proposal
 	params := unitNetwork.App.Erc20Keeper.GetParams(unitNetwork.GetContext())
-	params.DynamicPrecompiles = append(params.DynamicPrecompiles, precompile.Address().Hex())
-	slices.Sort(params.DynamicPrecompiles)
+	params.DynamicPrecompiles[precompile.Address().Hex()] = true
 
 	if err := params.Validate(); err != nil {
 		return nil, err

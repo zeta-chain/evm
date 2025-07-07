@@ -245,7 +245,9 @@ var _ = Describe("ERC20 Extension -", func() {
 
 		erc20Params := is.network.App.Erc20Keeper.GetParams(is.network.GetContext())
 		Expect(len(erc20Params.NativePrecompiles)).To(Equal(1))
-		Expect(common.HexToAddress(erc20Params.NativePrecompiles[0])).To(Equal(common.HexToAddress(testconstants.WEVMOSContractMainnet)))
+		b, ok := erc20Params.NativePrecompiles[testconstants.WEVMOSContractMainnet]
+		Expect(ok, true)
+		Expect(b, true)
 
 		revertContractAddr, err = is.factory.DeployContract(
 			sender.Priv,
@@ -254,7 +256,7 @@ var _ = Describe("ERC20 Extension -", func() {
 				Contract: revertCallerContract,
 				// NOTE: we're passing the precompile address to the constructor because that initiates the contract
 				// to make calls to the correct ERC20 precompile.
-				ConstructorArgs: []interface{}{common.HexToAddress(erc20Params.NativePrecompiles[0])},
+				ConstructorArgs: []interface{}{common.HexToAddress(testconstants.WEVMOSContractMainnet)},
 			},
 		)
 		Expect(err).ToNot(HaveOccurred(), "failed to deploy reverter contract")

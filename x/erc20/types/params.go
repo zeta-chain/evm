@@ -66,11 +66,24 @@ func (p Params) Validate() error {
 
 // ValidatePrecompiles checks if the precompile addresses are valid and unique.
 func ValidatePrecompiles(precompiles map[string]bool) error {
-	for precompile, _ := range precompiles {
+	for precompile := range precompiles {
 		err := types.ValidateAddress(precompile)
 		if err != nil {
 			return fmt.Errorf("invalid precompile address %s", precompile)
 		}
+	}
+	return nil
+}
+
+func validatePrecompilesUniqueness(precompiles map[string]bool) error {
+	seenPrecompiles := make(map[string]struct{})
+	for precompile := range precompiles {
+		// use address.Hex() to make sure all addresses are using EIP-55
+		if _, ok := seenPrecompiles[precompile.Hex()]; ok {
+			return fmt.Errorf("duplicate precompile %s", precompile)
+		}
+
+		seenPrecompiles[precompile.Hex()] = struct{}{}
 	}
 	return nil
 }

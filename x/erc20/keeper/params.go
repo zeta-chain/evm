@@ -51,7 +51,7 @@ func (k Keeper) UpdateCodeHash(ctx sdk.Context, newParams types.Params) error {
 // It then compares the two arrays and registers the code hash for all precompiles that are newly added
 // and unregisters the code hash for all precompiles that are removed from the list.
 func (k Keeper) RegisterOrUnregisterERC20CodeHashes(ctx sdk.Context, oldPrecompiles, newPrecompiles map[string]bool) error {
-	for precompile, _ := range oldPrecompiles {
+	for precompile := range oldPrecompiles {
 		if _, ok := newPrecompiles[precompile]; !ok {
 			if err := k.UnRegisterERC20CodeHash(ctx, common.HexToAddress(precompile)); err != nil {
 				return err
@@ -59,7 +59,7 @@ func (k Keeper) RegisterOrUnregisterERC20CodeHashes(ctx sdk.Context, oldPrecompi
 		}
 	}
 
-	for precompile, _ := range newPrecompiles {
+	for precompile := range newPrecompiles {
 		if _, ok := oldPrecompiles[precompile]; !ok {
 			if err := k.RegisterERC20CodeHash(ctx, common.HexToAddress(precompile)); err != nil {
 				return err

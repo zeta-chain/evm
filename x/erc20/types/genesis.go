@@ -82,8 +82,8 @@ func (gs GenesisState) Validate() error {
 }
 
 // validatePrecompiles checks if every precompile has a corresponding enabled token pair
-func validatePrecompiles(tokenPairs []TokenPair, precompiles []string) error {
-	for _, precompile := range precompiles {
+func validatePrecompiles(tokenPairs []TokenPair, precompiles map[string]bool) error {
+	for precompile := range precompiles {
 		if !hasActiveTokenPair(tokenPairs, precompile) {
 			return fmt.Errorf("precompile address '%s' not found in token pairs", precompile)
 		}

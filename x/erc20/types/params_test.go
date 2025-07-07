@@ -36,14 +36,14 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		},
 		{
 			"valid",
-			func() types.Params { return types.NewParams(true, []string{}, []string{}, true) },
+			func() types.Params { return types.NewParams(true, map[string]bool{}, map[string]bool{}, true) },
 			false,
 			"",
 		},
 		{
 			"valid address - dynamic precompile",
 			func() types.Params {
-				return types.NewParams(true, []string{}, []string{testconstants.WEVMOSContractMainnet}, true)
+				return types.NewParams(true, map[string]bool{}, map[string]bool{testconstants.WEVMOSContractMainnet: true}, true)
 			},
 			false,
 			"",
@@ -51,7 +51,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"valid address - native precompile",
 			func() types.Params {
-				return types.NewParams(true, []string{testconstants.WEVMOSContractMainnet}, []string{}, true)
+				return types.NewParams(true, map[string]bool{testconstants.WEVMOSContractMainnet: true}, map[string]bool{}, true)
 			},
 			false,
 			"",
@@ -60,7 +60,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"sorted address",
 			// order of creation shouldn't matter since it should be sorted when defining new param
 			func() types.Params {
-				return types.NewParams(true, []string{testconstants.WEVMOSContractTestnet, testconstants.WEVMOSContractMainnet}, []string{}, true)
+				return types.NewParams(true, map[string]bool{testconstants.WEVMOSContractTestnet: true, testconstants.WEVMOSContractMainnet: true}, map[string]bool{}, true)
 			},
 			false,
 			"",
@@ -69,7 +69,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"unsorted address",
 			// order of creation shouldn't matter since it should be sorted when defining new param
 			func() types.Params {
-				return types.NewParams(true, []string{testconstants.WEVMOSContractMainnet, testconstants.WEVMOSContractTestnet}, []string{}, true)
+				return types.NewParams(true, map[string]bool{testconstants.WEVMOSContractMainnet: true, testconstants.WEVMOSContractTestnet: true}, map[string]bool{}, true)
 			},
 			false,
 			"",
@@ -83,7 +83,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"invalid address - native precompile",
 			func() types.Params {
-				return types.NewParams(true, []string{"qq"}, []string{}, true)
+				return types.NewParams(true, map[string]bool{"qq": true}, map[string]bool{}, true)
 			},
 			true,
 			"invalid precompile",
@@ -91,7 +91,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"invalid address - dynamic precompile",
 			func() types.Params {
-				return types.NewParams(true, []string{}, []string{"0xqq"}, true)
+				return types.NewParams(true, map[string]bool{}, map[string]bool{"0xqq": true}, true)
 			},
 			true,
 			"invalid precompile",
@@ -99,7 +99,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"repeated address in different params",
 			func() types.Params {
-				return types.NewParams(true, []string{testconstants.WEVMOSContractMainnet}, []string{testconstants.WEVMOSContractMainnet}, true)
+				return types.NewParams(true, map[string]bool{testconstants.WEVMOSContractMainnet: true}, map[string]bool{testconstants.WEVMOSContractMainnet: true}, true)
 			},
 			true,
 			"duplicate precompile",
@@ -107,7 +107,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"repeated address - native precompiles",
 			func() types.Params {
-				return types.NewParams(true, []string{testconstants.WEVMOSContractMainnet, testconstants.WEVMOSContractMainnet}, []string{}, true)
+				return types.NewParams(true, map[string]bool{testconstants.WEVMOSContractMainnet: true, testconstants.WEVMOSContractMainnet: true}, map[string]bool{}, true)
 			},
 			true,
 			"duplicate precompile",
@@ -115,7 +115,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"repeated address - dynamic precompiles",
 			func() types.Params {
-				return types.NewParams(true, []string{}, []string{testconstants.WEVMOSContractMainnet, testconstants.WEVMOSContractMainnet}, true)
+				return types.NewParams(true, map[string]bool{}, map[string]bool{testconstants.WEVMOSContractMainnet: true, testconstants.WEVMOSContractMainnet}, true)
 			},
 			true,
 			"duplicate precompile",
@@ -123,7 +123,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 		{
 			"repeated address - one EIP-55 other not",
 			func() types.Params {
-				return types.NewParams(true, []string{}, []string{"0xcc491f589b45d4a3c679016195b3fb87d7848210", "0xcc491f589B45d4a3C679016195B3FB87D7848210"}, true)
+				return types.NewParams(true, map[string]bool{}, []string{"0xcc491f589b45d4a3c679016195b3fb87d7848210", "0xcc491f589B45d4a3C679016195B3FB87D7848210"}, true)
 			},
 			true,
 			"duplicate precompile",
@@ -132,7 +132,7 @@ func (suite *ParamsTestSuite) TestParamsValidate() {
 			"unsorted addresses",
 			func() types.Params {
 				params := types.DefaultParams()
-				params.NativePrecompiles = []string{testconstants.WEVMOSContractTestnet, testconstants.WEVMOSContractMainnet}
+				params.NativePrecompiles = map[string]bool{testconstants.WEVMOSContractTestnet: true, testconstants.WEVMOSContractMainnet}
 				return params
 			},
 			true,

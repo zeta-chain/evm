@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestGetERC20PrecompileInstance() {
 			"fail - precompile on params, but token pair doesn't exist",
 			func() {
 				params := types.DefaultParams()
-				params.NativePrecompiles = []string{newTokenHexAddr, nonExistendTokenHexAddr}
+				params.NativePrecompiles = map[string]bool{newTokenHexAddr: true, nonExistendTokenHexAddr: true}
 				err := suite.network.App.Erc20Keeper.SetParams(ctx, params)
 				suite.Require().NoError(err)
 			},
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestGetERC20PrecompileInstance() {
 			"success - precompile on params, and token pair exist",
 			func() {
 				params := types.DefaultParams()
-				params.NativePrecompiles = []string{tokenPair.Erc20Address}
+				params.NativePrecompiles = map[string]bool{tokenPair.Erc20Address: true}
 				err := suite.network.App.Erc20Keeper.SetParams(ctx, params)
 				suite.Require().NoError(err)
 			},
