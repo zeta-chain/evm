@@ -33,11 +33,18 @@ service Msg {
   // for the specified erc20 contract. The authority is hard-coded to the Cosmos
   // SDK x/gov module account
   rpc RegisterERC20(MsgRegisterERC20) returns (MsgRegisterERC20Response);
-  // ToggleConversion defines a governance operation for enabling/disablen a
+  // ToggleConversion defines a governance operation for enabling/disabling a
   // token pair conversion. The authority is hard-coded to the Cosmos SDK x/gov
   // module account
-  rpc ToggleConversion(MsgToggleConversion)
-      returns (MsgToggleConversionResponse);
+  rpc ToggleConversion(MsgToggleConversion) returns (MsgToggleConversionResponse);
+  // AddPrecompile defines a governance operation for idempotently adding a
+  // precompile to the set of precompiles. The authority is hard-coded to the
+  // Cosmos SDK x/gov module account
+// rpc AddPrecompile(MsgAddPrecompile) returns (MsgAddPrecompileResponse);
+  // AddPrecompile defines a governance operation for idempotently deleting a
+  // precompile to the set of precompiles. The authority is hard-coded to the
+  // Cosmos SDK x/gov module account
+// rpc DeletePrecompile(MsgDeletePrecompile) returns (MsgDeletePrecompileResponse);
 }
 
 // MsgConvertERC20 defines a Msg to convert a ERC20 token to a native Cosmos
