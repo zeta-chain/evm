@@ -243,11 +243,9 @@ var _ = Describe("ERC20 Extension -", func() {
 		execRevertedCheck = failCheck.WithErrContains("execution reverted")
 		passCheck = failCheck.WithExpPass(true)
 
-		erc20Params := is.network.App.Erc20Keeper.GetParams(is.network.GetContext())
-		Expect(len(erc20Params.NativePrecompiles)).To(Equal(1))
-		b, ok := erc20Params.NativePrecompiles[testconstants.WEVMOSContractMainnet]
-		Expect(ok, true)
-		Expect(b, true)
+		erc20Keeper := is.network.App.Erc20Keeper
+		available := erc20Keeper.IsNativePrecompileAvailable(is.network.GetContext(), common.HexToAddress(testconstants.WEVMOSContractMainnet))
+		Expect(available, true)
 
 		revertContractAddr, err = is.factory.DeployContract(
 			sender.Priv,

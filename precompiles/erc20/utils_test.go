@@ -192,7 +192,7 @@ func setupERC20PrecompileForTokenPair(
 		return nil, errorsmod.Wrapf(err, "failed to create %q erc20 precompile", tokenPair.Denom)
 	}
 
-	err = unitNetwork.App.Erc20Keeper.EnableDynamicPrecompiles(
+	err = unitNetwork.App.Erc20Keeper.EnableDynamicPrecompile(
 		unitNetwork.GetContext(),
 		precompile.Address(),
 	)
@@ -222,13 +222,11 @@ func setupNewERC20PrecompileForTokenPair(
 	}
 
 	// Update the params via gov proposal
-	params := unitNetwork.App.Erc20Keeper.GetParams(unitNetwork.GetContext())
-	params.DynamicPrecompiles[precompile.Address().Hex()] = true
-
-	if err := params.Validate(); err != nil {
+	if err := unitNetwork.App.Erc20Keeper.EnableDynamicPrecompile(unitNetwork.GetContext(), precompile.Address()); err != nil {
 		return nil, err
 	}
 
+	params := unitNetwork.App.Erc20Keeper.GetParams(unitNetwork.GetContext())
 	if err := testutils.UpdateERC20Params(testutils.UpdateParamsInput{
 		Pk:      privKey,
 		Tf:      tf,

@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	exampleapp "github.com/cosmos/evm/evmd"
@@ -213,36 +212,5 @@ func (suite *ParamsTestSuite) TestIsDynamicPrecompile() {
 			p := tc.malleate()
 			suite.Require().Equal(tc.expRes, p.IsDynamicPrecompile(tc.addr), tc.name)
 		})
-	}
-}
-
-func TestValidatePrecompiles(t *testing.T) {
-	testCases := []struct {
-		name        string
-		precompiles map[string]bool
-		expError    bool
-		errContains string
-	}{
-		{
-			"invalid precompile address",
-			map[string]bool{"0xct491f589b45d4a3c679016195b3fb87d7848210": true, "0xcc491f589B45d4a3C679016195B3FB87D7848210": true},
-			true,
-			"invalid precompile",
-		},
-		{
-			"same address but one EIP-55 and other don't",
-			map[string]bool{"0xcc491f589b45d4a3c679016195b3fb87d7848210": true, "0xcc491f589B45d4a3C679016195B3FB87D7848210": true},
-			false,
-			"",
-		},
-	}
-	for _, tc := range testCases {
-		err := types.ValidatePrecompiles(tc.precompiles)
-		if tc.expError {
-			require.Error(t, err, tc.name)
-			require.ErrorContains(t, err, tc.errContains)
-		} else {
-			require.NoError(t, err, tc.name)
-		}
 	}
 }

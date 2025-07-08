@@ -142,9 +142,9 @@ var _ = When("a user interact with the WEVMOS precompiled contract", func() {
 		// Perform some check before adding the precompile to the suite.
 
 		// Check that WEVMOS is part of the native precompiles.
-		erc20Params := is.network.App.Erc20Keeper.GetParams(ctx)
-		Expect(erc20Params.NativePrecompiles).To(
-			ContainElement(is.precompileAddrHex),
+		available := is.network.App.Erc20Keeper.IsNativePrecompileAvailable(is.network.GetContext(), common.HexToAddress(is.precompileAddrHex))
+		Expect(available, true).To(
+			BeTrue(),
 			"expected wevmos to be in the native precompiles",
 		)
 		_, found := is.network.App.BankKeeper.GetDenomMetaData(ctx, evmtypes.GetEVMCoinDenom())

@@ -84,3 +84,13 @@ func (k Keeper) RegisterCodeHash(ctx sdk.Context, new common.Address, ptype Prec
 
 	return nil
 }
+
+// EnableNativePrecompile adds the address of the given precompile to the prefix store
+func (k Keeper) EnableNativePrecompile(ctx sdk.Context, address common.Address) error {
+	k.Logger(ctx).Info("Added new precompiles", "addresses", address)
+	if err := k.RegisterCodeHash(ctx, address, PrecompileTypeNative); err != nil {
+		return err
+	}
+	k.SetNativePrecompile(ctx, address)
+	return nil
+}
