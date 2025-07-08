@@ -120,6 +120,26 @@ func (k Keeper) GetDenomMap(ctx sdk.Context, denom string) []byte {
 	return store.Get([]byte(denom))
 }
 
+func (k Keeper) IsNativePrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	return store.Has([]byte(precompile.Hex()))
+}
+
+func (k Keeper) SetNativePrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	store.Set([]byte(precompile.Hex()), isTrue)
+}
+
+func (k Keeper) IsDynamicPrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	return store.Has([]byte(precompile.Hex()))
+}
+
+func (k Keeper) SetDynamicPrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	store.Set([]byte(precompile.Hex()), isTrue)
+}
+
 // SetERC20Map sets the token pair id for the given address.
 func (k Keeper) SetERC20Map(ctx sdk.Context, erc20 common.Address, id []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByERC20)
