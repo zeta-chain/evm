@@ -120,6 +120,18 @@ func (k Keeper) GetDenomMap(ctx sdk.Context, denom string) []byte {
 	return store.Get([]byte(denom))
 }
 
+func (k Keeper) GetNativePrecompiles(ctx sdk.Context) map[string]bool {
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	defer iterator.Close()
+
+	nps := make(map[string]bool)
+	for ; iterator.Valid(); iterator.Next() {
+		nps[string(iterator.Key())] = true
+	}
+
+	return nps
+}
+
 func (k Keeper) IsNativePrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
 	return store.Has([]byte(precompile.Hex()))
@@ -130,6 +142,23 @@ func (k Keeper) SetNativePrecompile(ctx sdk.Context, precompile common.Address) 
 	store.Set([]byte(precompile.Hex()), isTrue)
 }
 
+func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) map[string]bool {
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	defer iterator.Close()
+
+	dps := make(map[string]bool)
+	for ; iterator.Valid(); iterator.Next() {
+		dps[string(iterator.Key())] = true
+	}
+
+	return dps
+}
+
+func (k Keeper) DeleteNativePrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	store.Delete([]byte(precompile.Hex()))
+}
+
 func (k Keeper) IsDynamicPrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
 	return store.Has([]byte(precompile.Hex()))
@@ -138,6 +167,11 @@ func (k Keeper) IsDynamicPrecompileAvailable(ctx sdk.Context, precompile common.
 func (k Keeper) SetDynamicPrecompile(ctx sdk.Context, precompile common.Address) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
 	store.Set([]byte(precompile.Hex()), isTrue)
+}
+
+func (k Keeper) DeleteDynamicPrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	store.Delete([]byte(precompile.Hex()))
 }
 
 // SetERC20Map sets the token pair id for the given address.

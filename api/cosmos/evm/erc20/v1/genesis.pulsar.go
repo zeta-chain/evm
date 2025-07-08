@@ -11,7 +11,6 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	io "io"
 	reflect "reflect"
-	sort "sort"
 	sync "sync"
 )
 
@@ -117,11 +116,105 @@ func (x *_GenesisState_3_list) IsValid() bool {
 	return x.list != nil
 }
 
+var _ protoreflect.List = (*_GenesisState_4_list)(nil)
+
+type _GenesisState_4_list struct {
+	list *[]string
+}
+
+func (x *_GenesisState_4_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_GenesisState_4_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfString((*x.list)[i])
+}
+
+func (x *_GenesisState_4_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_GenesisState_4_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_GenesisState_4_list) AppendMutable() protoreflect.Value {
+	panic(fmt.Errorf("AppendMutable can not be called on message GenesisState at list field NativePrecompiles as it is not of Message kind"))
+}
+
+func (x *_GenesisState_4_list) Truncate(n int) {
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_GenesisState_4_list) NewElement() protoreflect.Value {
+	v := ""
+	return protoreflect.ValueOfString(v)
+}
+
+func (x *_GenesisState_4_list) IsValid() bool {
+	return x.list != nil
+}
+
+var _ protoreflect.List = (*_GenesisState_5_list)(nil)
+
+type _GenesisState_5_list struct {
+	list *[]string
+}
+
+func (x *_GenesisState_5_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_GenesisState_5_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfString((*x.list)[i])
+}
+
+func (x *_GenesisState_5_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_GenesisState_5_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.String()
+	concreteValue := valueUnwrapped
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_GenesisState_5_list) AppendMutable() protoreflect.Value {
+	panic(fmt.Errorf("AppendMutable can not be called on message GenesisState at list field DynamicPrecompiles as it is not of Message kind"))
+}
+
+func (x *_GenesisState_5_list) Truncate(n int) {
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_GenesisState_5_list) NewElement() protoreflect.Value {
+	v := ""
+	return protoreflect.ValueOfString(v)
+}
+
+func (x *_GenesisState_5_list) IsValid() bool {
+	return x.list != nil
+}
+
 var (
-	md_GenesisState             protoreflect.MessageDescriptor
-	fd_GenesisState_params      protoreflect.FieldDescriptor
-	fd_GenesisState_token_pairs protoreflect.FieldDescriptor
-	fd_GenesisState_allowances  protoreflect.FieldDescriptor
+	md_GenesisState                    protoreflect.MessageDescriptor
+	fd_GenesisState_params             protoreflect.FieldDescriptor
+	fd_GenesisState_token_pairs        protoreflect.FieldDescriptor
+	fd_GenesisState_allowances         protoreflect.FieldDescriptor
+	fd_GenesisState_NativePrecompiles  protoreflect.FieldDescriptor
+	fd_GenesisState_DynamicPrecompiles protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -130,6 +223,8 @@ func init() {
 	fd_GenesisState_params = md_GenesisState.Fields().ByName("params")
 	fd_GenesisState_token_pairs = md_GenesisState.Fields().ByName("token_pairs")
 	fd_GenesisState_allowances = md_GenesisState.Fields().ByName("allowances")
+	fd_GenesisState_NativePrecompiles = md_GenesisState.Fields().ByName("NativePrecompiles")
+	fd_GenesisState_DynamicPrecompiles = md_GenesisState.Fields().ByName("DynamicPrecompiles")
 }
 
 var _ protoreflect.Message = (*fastReflection_GenesisState)(nil)
@@ -215,6 +310,18 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
+	if len(x.NativePrecompiles) != 0 {
+		value := protoreflect.ValueOfList(&_GenesisState_4_list{list: &x.NativePrecompiles})
+		if !f(fd_GenesisState_NativePrecompiles, value) {
+			return
+		}
+	}
+	if len(x.DynamicPrecompiles) != 0 {
+		value := protoreflect.ValueOfList(&_GenesisState_5_list{list: &x.DynamicPrecompiles})
+		if !f(fd_GenesisState_DynamicPrecompiles, value) {
+			return
+		}
+	}
 }
 
 // Has reports whether a field is populated.
@@ -236,6 +343,10 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 		return len(x.TokenPairs) != 0
 	case "cosmos.evm.erc20.v1.GenesisState.allowances":
 		return len(x.Allowances) != 0
+	case "cosmos.evm.erc20.v1.GenesisState.NativePrecompiles":
+		return len(x.NativePrecompiles) != 0
+	case "cosmos.evm.erc20.v1.GenesisState.DynamicPrecompiles":
+		return len(x.DynamicPrecompiles) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: cosmos.evm.erc20.v1.GenesisState"))
@@ -258,6 +369,10 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 		x.TokenPairs = nil
 	case "cosmos.evm.erc20.v1.GenesisState.allowances":
 		x.Allowances = nil
+	case "cosmos.evm.erc20.v1.GenesisState.NativePrecompiles":
+		x.NativePrecompiles = nil
+	case "cosmos.evm.erc20.v1.GenesisState.DynamicPrecompiles":
+		x.DynamicPrecompiles = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: cosmos.evm.erc20.v1.GenesisState"))
@@ -289,6 +404,18 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 		}
 		listValue := &_GenesisState_3_list{list: &x.Allowances}
 		return protoreflect.ValueOfList(listValue)
+	case "cosmos.evm.erc20.v1.GenesisState.NativePrecompiles":
+		if len(x.NativePrecompiles) == 0 {
+			return protoreflect.ValueOfList(&_GenesisState_4_list{})
+		}
+		listValue := &_GenesisState_4_list{list: &x.NativePrecompiles}
+		return protoreflect.ValueOfList(listValue)
+	case "cosmos.evm.erc20.v1.GenesisState.DynamicPrecompiles":
+		if len(x.DynamicPrecompiles) == 0 {
+			return protoreflect.ValueOfList(&_GenesisState_5_list{})
+		}
+		listValue := &_GenesisState_5_list{list: &x.DynamicPrecompiles}
+		return protoreflect.ValueOfList(listValue)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: cosmos.evm.erc20.v1.GenesisState"))
@@ -319,6 +446,14 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 		lv := value.List()
 		clv := lv.(*_GenesisState_3_list)
 		x.Allowances = *clv.list
+	case "cosmos.evm.erc20.v1.GenesisState.NativePrecompiles":
+		lv := value.List()
+		clv := lv.(*_GenesisState_4_list)
+		x.NativePrecompiles = *clv.list
+	case "cosmos.evm.erc20.v1.GenesisState.DynamicPrecompiles":
+		lv := value.List()
+		clv := lv.(*_GenesisState_5_list)
+		x.DynamicPrecompiles = *clv.list
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: cosmos.evm.erc20.v1.GenesisState"))
@@ -356,6 +491,18 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 		}
 		value := &_GenesisState_3_list{list: &x.Allowances}
 		return protoreflect.ValueOfList(value)
+	case "cosmos.evm.erc20.v1.GenesisState.NativePrecompiles":
+		if x.NativePrecompiles == nil {
+			x.NativePrecompiles = []string{}
+		}
+		value := &_GenesisState_4_list{list: &x.NativePrecompiles}
+		return protoreflect.ValueOfList(value)
+	case "cosmos.evm.erc20.v1.GenesisState.DynamicPrecompiles":
+		if x.DynamicPrecompiles == nil {
+			x.DynamicPrecompiles = []string{}
+		}
+		value := &_GenesisState_5_list{list: &x.DynamicPrecompiles}
+		return protoreflect.ValueOfList(value)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: cosmos.evm.erc20.v1.GenesisState"))
@@ -378,6 +525,12 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	case "cosmos.evm.erc20.v1.GenesisState.allowances":
 		list := []*Allowance{}
 		return protoreflect.ValueOfList(&_GenesisState_3_list{list: &list})
+	case "cosmos.evm.erc20.v1.GenesisState.NativePrecompiles":
+		list := []string{}
+		return protoreflect.ValueOfList(&_GenesisState_4_list{list: &list})
+	case "cosmos.evm.erc20.v1.GenesisState.DynamicPrecompiles":
+		list := []string{}
+		return protoreflect.ValueOfList(&_GenesisState_5_list{list: &list})
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: cosmos.evm.erc20.v1.GenesisState"))
@@ -463,6 +616,18 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
+		if len(x.NativePrecompiles) > 0 {
+			for _, s := range x.NativePrecompiles {
+				l = len(s)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if len(x.DynamicPrecompiles) > 0 {
+			for _, s := range x.DynamicPrecompiles {
+				l = len(s)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -491,6 +656,24 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.DynamicPrecompiles) > 0 {
+			for iNdEx := len(x.DynamicPrecompiles) - 1; iNdEx >= 0; iNdEx-- {
+				i -= len(x.DynamicPrecompiles[iNdEx])
+				copy(dAtA[i:], x.DynamicPrecompiles[iNdEx])
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.DynamicPrecompiles[iNdEx])))
+				i--
+				dAtA[i] = 0x2a
+			}
+		}
+		if len(x.NativePrecompiles) > 0 {
+			for iNdEx := len(x.NativePrecompiles) - 1; iNdEx >= 0; iNdEx-- {
+				i -= len(x.NativePrecompiles[iNdEx])
+				copy(dAtA[i:], x.NativePrecompiles[iNdEx])
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.NativePrecompiles[iNdEx])))
+				i--
+				dAtA[i] = 0x22
+			}
 		}
 		if len(x.Allowances) > 0 {
 			for iNdEx := len(x.Allowances) - 1; iNdEx >= 0; iNdEx-- {
@@ -691,6 +874,70 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NativePrecompiles", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.NativePrecompiles = append(x.NativePrecompiles, string(dAtA[iNdEx:postIndex]))
+				iNdEx = postIndex
+			case 5:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DynamicPrecompiles", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.DynamicPrecompiles = append(x.DynamicPrecompiles, string(dAtA[iNdEx:postIndex]))
+				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -726,175 +973,9 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var _ protoreflect.Map = (*_Params_3_map)(nil)
-
-type _Params_3_map struct {
-	m *map[string]bool
-}
-
-func (x *_Params_3_map) Len() int {
-	if x.m == nil {
-		return 0
-	}
-	return len(*x.m)
-}
-
-func (x *_Params_3_map) Range(f func(protoreflect.MapKey, protoreflect.Value) bool) {
-	if x.m == nil {
-		return
-	}
-	for k, v := range *x.m {
-		mapKey := (protoreflect.MapKey)(protoreflect.ValueOfString(k))
-		mapValue := protoreflect.ValueOfBool(v)
-		if !f(mapKey, mapValue) {
-			break
-		}
-	}
-}
-
-func (x *_Params_3_map) Has(key protoreflect.MapKey) bool {
-	if x.m == nil {
-		return false
-	}
-	keyUnwrapped := key.String()
-	concreteValue := keyUnwrapped
-	_, ok := (*x.m)[concreteValue]
-	return ok
-}
-
-func (x *_Params_3_map) Clear(key protoreflect.MapKey) {
-	if x.m == nil {
-		return
-	}
-	keyUnwrapped := key.String()
-	concreteKey := keyUnwrapped
-	delete(*x.m, concreteKey)
-}
-
-func (x *_Params_3_map) Get(key protoreflect.MapKey) protoreflect.Value {
-	if x.m == nil {
-		return protoreflect.Value{}
-	}
-	keyUnwrapped := key.String()
-	concreteKey := keyUnwrapped
-	v, ok := (*x.m)[concreteKey]
-	if !ok {
-		return protoreflect.Value{}
-	}
-	return protoreflect.ValueOfBool(v)
-}
-
-func (x *_Params_3_map) Set(key protoreflect.MapKey, value protoreflect.Value) {
-	if !key.IsValid() || !value.IsValid() {
-		panic("invalid key or value provided")
-	}
-	keyUnwrapped := key.String()
-	concreteKey := keyUnwrapped
-	valueUnwrapped := value.Bool()
-	concreteValue := valueUnwrapped
-	(*x.m)[concreteKey] = concreteValue
-}
-
-func (x *_Params_3_map) Mutable(key protoreflect.MapKey) protoreflect.Value {
-	panic("should not call Mutable on protoreflect.Map whose value is not of type protoreflect.Message")
-}
-
-func (x *_Params_3_map) NewValue() protoreflect.Value {
-	v := false
-	return protoreflect.ValueOfBool(v)
-}
-
-func (x *_Params_3_map) IsValid() bool {
-	return x.m != nil
-}
-
-var _ protoreflect.Map = (*_Params_4_map)(nil)
-
-type _Params_4_map struct {
-	m *map[string]bool
-}
-
-func (x *_Params_4_map) Len() int {
-	if x.m == nil {
-		return 0
-	}
-	return len(*x.m)
-}
-
-func (x *_Params_4_map) Range(f func(protoreflect.MapKey, protoreflect.Value) bool) {
-	if x.m == nil {
-		return
-	}
-	for k, v := range *x.m {
-		mapKey := (protoreflect.MapKey)(protoreflect.ValueOfString(k))
-		mapValue := protoreflect.ValueOfBool(v)
-		if !f(mapKey, mapValue) {
-			break
-		}
-	}
-}
-
-func (x *_Params_4_map) Has(key protoreflect.MapKey) bool {
-	if x.m == nil {
-		return false
-	}
-	keyUnwrapped := key.String()
-	concreteValue := keyUnwrapped
-	_, ok := (*x.m)[concreteValue]
-	return ok
-}
-
-func (x *_Params_4_map) Clear(key protoreflect.MapKey) {
-	if x.m == nil {
-		return
-	}
-	keyUnwrapped := key.String()
-	concreteKey := keyUnwrapped
-	delete(*x.m, concreteKey)
-}
-
-func (x *_Params_4_map) Get(key protoreflect.MapKey) protoreflect.Value {
-	if x.m == nil {
-		return protoreflect.Value{}
-	}
-	keyUnwrapped := key.String()
-	concreteKey := keyUnwrapped
-	v, ok := (*x.m)[concreteKey]
-	if !ok {
-		return protoreflect.Value{}
-	}
-	return protoreflect.ValueOfBool(v)
-}
-
-func (x *_Params_4_map) Set(key protoreflect.MapKey, value protoreflect.Value) {
-	if !key.IsValid() || !value.IsValid() {
-		panic("invalid key or value provided")
-	}
-	keyUnwrapped := key.String()
-	concreteKey := keyUnwrapped
-	valueUnwrapped := value.Bool()
-	concreteValue := valueUnwrapped
-	(*x.m)[concreteKey] = concreteValue
-}
-
-func (x *_Params_4_map) Mutable(key protoreflect.MapKey) protoreflect.Value {
-	panic("should not call Mutable on protoreflect.Map whose value is not of type protoreflect.Message")
-}
-
-func (x *_Params_4_map) NewValue() protoreflect.Value {
-	v := false
-	return protoreflect.ValueOfBool(v)
-}
-
-func (x *_Params_4_map) IsValid() bool {
-	return x.m != nil
-}
-
 var (
 	md_Params                             protoreflect.MessageDescriptor
 	fd_Params_enable_erc20                protoreflect.FieldDescriptor
-	fd_Params_native_precompiles          protoreflect.FieldDescriptor
-	fd_Params_dynamic_precompiles         protoreflect.FieldDescriptor
 	fd_Params_permissionless_registration protoreflect.FieldDescriptor
 )
 
@@ -902,8 +983,6 @@ func init() {
 	file_cosmos_evm_erc20_v1_genesis_proto_init()
 	md_Params = File_cosmos_evm_erc20_v1_genesis_proto.Messages().ByName("Params")
 	fd_Params_enable_erc20 = md_Params.Fields().ByName("enable_erc20")
-	fd_Params_native_precompiles = md_Params.Fields().ByName("native_precompiles")
-	fd_Params_dynamic_precompiles = md_Params.Fields().ByName("dynamic_precompiles")
 	fd_Params_permissionless_registration = md_Params.Fields().ByName("permissionless_registration")
 }
 
@@ -978,18 +1057,6 @@ func (x *fastReflection_Params) Range(f func(protoreflect.FieldDescriptor, proto
 			return
 		}
 	}
-	if len(x.NativePrecompiles) != 0 {
-		value := protoreflect.ValueOfMap(&_Params_3_map{m: &x.NativePrecompiles})
-		if !f(fd_Params_native_precompiles, value) {
-			return
-		}
-	}
-	if len(x.DynamicPrecompiles) != 0 {
-		value := protoreflect.ValueOfMap(&_Params_4_map{m: &x.DynamicPrecompiles})
-		if !f(fd_Params_dynamic_precompiles, value) {
-			return
-		}
-	}
 	if x.PermissionlessRegistration != false {
 		value := protoreflect.ValueOfBool(x.PermissionlessRegistration)
 		if !f(fd_Params_permissionless_registration, value) {
@@ -1013,10 +1080,6 @@ func (x *fastReflection_Params) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "cosmos.evm.erc20.v1.Params.enable_erc20":
 		return x.EnableErc20 != false
-	case "cosmos.evm.erc20.v1.Params.native_precompiles":
-		return len(x.NativePrecompiles) != 0
-	case "cosmos.evm.erc20.v1.Params.dynamic_precompiles":
-		return len(x.DynamicPrecompiles) != 0
 	case "cosmos.evm.erc20.v1.Params.permissionless_registration":
 		return x.PermissionlessRegistration != false
 	default:
@@ -1037,10 +1100,6 @@ func (x *fastReflection_Params) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "cosmos.evm.erc20.v1.Params.enable_erc20":
 		x.EnableErc20 = false
-	case "cosmos.evm.erc20.v1.Params.native_precompiles":
-		x.NativePrecompiles = nil
-	case "cosmos.evm.erc20.v1.Params.dynamic_precompiles":
-		x.DynamicPrecompiles = nil
 	case "cosmos.evm.erc20.v1.Params.permissionless_registration":
 		x.PermissionlessRegistration = false
 	default:
@@ -1062,18 +1121,6 @@ func (x *fastReflection_Params) Get(descriptor protoreflect.FieldDescriptor) pro
 	case "cosmos.evm.erc20.v1.Params.enable_erc20":
 		value := x.EnableErc20
 		return protoreflect.ValueOfBool(value)
-	case "cosmos.evm.erc20.v1.Params.native_precompiles":
-		if len(x.NativePrecompiles) == 0 {
-			return protoreflect.ValueOfMap(&_Params_3_map{})
-		}
-		mapValue := &_Params_3_map{m: &x.NativePrecompiles}
-		return protoreflect.ValueOfMap(mapValue)
-	case "cosmos.evm.erc20.v1.Params.dynamic_precompiles":
-		if len(x.DynamicPrecompiles) == 0 {
-			return protoreflect.ValueOfMap(&_Params_4_map{})
-		}
-		mapValue := &_Params_4_map{m: &x.DynamicPrecompiles}
-		return protoreflect.ValueOfMap(mapValue)
 	case "cosmos.evm.erc20.v1.Params.permissionless_registration":
 		value := x.PermissionlessRegistration
 		return protoreflect.ValueOfBool(value)
@@ -1099,14 +1146,6 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 	switch fd.FullName() {
 	case "cosmos.evm.erc20.v1.Params.enable_erc20":
 		x.EnableErc20 = value.Bool()
-	case "cosmos.evm.erc20.v1.Params.native_precompiles":
-		mv := value.Map()
-		cmv := mv.(*_Params_3_map)
-		x.NativePrecompiles = *cmv.m
-	case "cosmos.evm.erc20.v1.Params.dynamic_precompiles":
-		mv := value.Map()
-		cmv := mv.(*_Params_4_map)
-		x.DynamicPrecompiles = *cmv.m
 	case "cosmos.evm.erc20.v1.Params.permissionless_registration":
 		x.PermissionlessRegistration = value.Bool()
 	default:
@@ -1129,18 +1168,6 @@ func (x *fastReflection_Params) Set(fd protoreflect.FieldDescriptor, value proto
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_Params) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "cosmos.evm.erc20.v1.Params.native_precompiles":
-		if x.NativePrecompiles == nil {
-			x.NativePrecompiles = make(map[string]bool)
-		}
-		value := &_Params_3_map{m: &x.NativePrecompiles}
-		return protoreflect.ValueOfMap(value)
-	case "cosmos.evm.erc20.v1.Params.dynamic_precompiles":
-		if x.DynamicPrecompiles == nil {
-			x.DynamicPrecompiles = make(map[string]bool)
-		}
-		value := &_Params_4_map{m: &x.DynamicPrecompiles}
-		return protoreflect.ValueOfMap(value)
 	case "cosmos.evm.erc20.v1.Params.enable_erc20":
 		panic(fmt.Errorf("field enable_erc20 of message cosmos.evm.erc20.v1.Params is not mutable"))
 	case "cosmos.evm.erc20.v1.Params.permissionless_registration":
@@ -1160,12 +1187,6 @@ func (x *fastReflection_Params) NewField(fd protoreflect.FieldDescriptor) protor
 	switch fd.FullName() {
 	case "cosmos.evm.erc20.v1.Params.enable_erc20":
 		return protoreflect.ValueOfBool(false)
-	case "cosmos.evm.erc20.v1.Params.native_precompiles":
-		m := make(map[string]bool)
-		return protoreflect.ValueOfMap(&_Params_3_map{m: &m})
-	case "cosmos.evm.erc20.v1.Params.dynamic_precompiles":
-		m := make(map[string]bool)
-		return protoreflect.ValueOfMap(&_Params_4_map{m: &m})
 	case "cosmos.evm.erc20.v1.Params.permissionless_registration":
 		return protoreflect.ValueOfBool(false)
 	default:
@@ -1240,48 +1261,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 		if x.EnableErc20 {
 			n += 2
 		}
-		if len(x.NativePrecompiles) > 0 {
-			SiZeMaP := func(k string, v bool) {
-				mapEntrySize := 1 + len(k) + runtime.Sov(uint64(len(k))) + 1 + 1
-				n += mapEntrySize + 1 + runtime.Sov(uint64(mapEntrySize))
-			}
-			if options.Deterministic {
-				sortme := make([]string, 0, len(x.NativePrecompiles))
-				for k := range x.NativePrecompiles {
-					sortme = append(sortme, k)
-				}
-				sort.Strings(sortme)
-				for _, k := range sortme {
-					v := x.NativePrecompiles[k]
-					SiZeMaP(k, v)
-				}
-			} else {
-				for k, v := range x.NativePrecompiles {
-					SiZeMaP(k, v)
-				}
-			}
-		}
-		if len(x.DynamicPrecompiles) > 0 {
-			SiZeMaP := func(k string, v bool) {
-				mapEntrySize := 1 + len(k) + runtime.Sov(uint64(len(k))) + 1 + 1
-				n += mapEntrySize + 1 + runtime.Sov(uint64(mapEntrySize))
-			}
-			if options.Deterministic {
-				sortme := make([]string, 0, len(x.DynamicPrecompiles))
-				for k := range x.DynamicPrecompiles {
-					sortme = append(sortme, k)
-				}
-				sort.Strings(sortme)
-				for _, k := range sortme {
-					v := x.DynamicPrecompiles[k]
-					SiZeMaP(k, v)
-				}
-			} else {
-				for k, v := range x.DynamicPrecompiles {
-					SiZeMaP(k, v)
-				}
-			}
-		}
 		if x.PermissionlessRegistration {
 			n += 2
 		}
@@ -1323,98 +1302,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 			}
 			i--
 			dAtA[i] = 0x28
-		}
-		if len(x.DynamicPrecompiles) > 0 {
-			MaRsHaLmAp := func(k string, v bool) (protoiface.MarshalOutput, error) {
-				baseI := i
-				i--
-				if v {
-					dAtA[i] = 1
-				} else {
-					dAtA[i] = 0
-				}
-				i--
-				dAtA[i] = 0x10
-				i -= len(k)
-				copy(dAtA[i:], k)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(k)))
-				i--
-				dAtA[i] = 0xa
-				i = runtime.EncodeVarint(dAtA, i, uint64(baseI-i))
-				i--
-				dAtA[i] = 0x22
-				return protoiface.MarshalOutput{}, nil
-			}
-			if options.Deterministic {
-				keysForDynamicPrecompiles := make([]string, 0, len(x.DynamicPrecompiles))
-				for k := range x.DynamicPrecompiles {
-					keysForDynamicPrecompiles = append(keysForDynamicPrecompiles, string(k))
-				}
-				sort.Slice(keysForDynamicPrecompiles, func(i, j int) bool {
-					return keysForDynamicPrecompiles[i] < keysForDynamicPrecompiles[j]
-				})
-				for iNdEx := len(keysForDynamicPrecompiles) - 1; iNdEx >= 0; iNdEx-- {
-					v := x.DynamicPrecompiles[string(keysForDynamicPrecompiles[iNdEx])]
-					out, err := MaRsHaLmAp(keysForDynamicPrecompiles[iNdEx], v)
-					if err != nil {
-						return out, err
-					}
-				}
-			} else {
-				for k := range x.DynamicPrecompiles {
-					v := x.DynamicPrecompiles[k]
-					out, err := MaRsHaLmAp(k, v)
-					if err != nil {
-						return out, err
-					}
-				}
-			}
-		}
-		if len(x.NativePrecompiles) > 0 {
-			MaRsHaLmAp := func(k string, v bool) (protoiface.MarshalOutput, error) {
-				baseI := i
-				i--
-				if v {
-					dAtA[i] = 1
-				} else {
-					dAtA[i] = 0
-				}
-				i--
-				dAtA[i] = 0x10
-				i -= len(k)
-				copy(dAtA[i:], k)
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(k)))
-				i--
-				dAtA[i] = 0xa
-				i = runtime.EncodeVarint(dAtA, i, uint64(baseI-i))
-				i--
-				dAtA[i] = 0x1a
-				return protoiface.MarshalOutput{}, nil
-			}
-			if options.Deterministic {
-				keysForNativePrecompiles := make([]string, 0, len(x.NativePrecompiles))
-				for k := range x.NativePrecompiles {
-					keysForNativePrecompiles = append(keysForNativePrecompiles, string(k))
-				}
-				sort.Slice(keysForNativePrecompiles, func(i, j int) bool {
-					return keysForNativePrecompiles[i] < keysForNativePrecompiles[j]
-				})
-				for iNdEx := len(keysForNativePrecompiles) - 1; iNdEx >= 0; iNdEx-- {
-					v := x.NativePrecompiles[string(keysForNativePrecompiles[iNdEx])]
-					out, err := MaRsHaLmAp(keysForNativePrecompiles[iNdEx], v)
-					if err != nil {
-						return out, err
-					}
-				}
-			} else {
-				for k := range x.NativePrecompiles {
-					v := x.NativePrecompiles[k]
-					out, err := MaRsHaLmAp(k, v)
-					if err != nil {
-						return out, err
-					}
-				}
-			}
 		}
 		if x.EnableErc20 {
 			i--
@@ -1495,236 +1382,6 @@ func (x *fastReflection_Params) ProtoMethods() *protoiface.Methods {
 					}
 				}
 				x.EnableErc20 = bool(v != 0)
-			case 3:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NativePrecompiles", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if x.NativePrecompiles == nil {
-					x.NativePrecompiles = make(map[string]bool)
-				}
-				var mapkey string
-				var mapvalue bool
-				for iNdEx < postIndex {
-					entryPreIndex := iNdEx
-					var wire uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-						}
-						if iNdEx >= l {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						wire |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					fieldNum := int32(wire >> 3)
-					if fieldNum == 1 {
-						var stringLenmapkey uint64
-						for shift := uint(0); ; shift += 7 {
-							if shift >= 64 {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-							}
-							if iNdEx >= l {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-							}
-							b := dAtA[iNdEx]
-							iNdEx++
-							stringLenmapkey |= uint64(b&0x7F) << shift
-							if b < 0x80 {
-								break
-							}
-						}
-						intStringLenmapkey := int(stringLenmapkey)
-						if intStringLenmapkey < 0 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-						}
-						postStringIndexmapkey := iNdEx + intStringLenmapkey
-						if postStringIndexmapkey < 0 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-						}
-						if postStringIndexmapkey > l {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-						iNdEx = postStringIndexmapkey
-					} else if fieldNum == 2 {
-						var mapvaluetemp int
-						for shift := uint(0); ; shift += 7 {
-							if shift >= 64 {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-							}
-							if iNdEx >= l {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-							}
-							b := dAtA[iNdEx]
-							iNdEx++
-							mapvaluetemp |= int(b&0x7F) << shift
-							if b < 0x80 {
-								break
-							}
-						}
-						mapvalue = bool(mapvaluetemp != 0)
-					} else {
-						iNdEx = entryPreIndex
-						skippy, err := runtime.Skip(dAtA[iNdEx:])
-						if err != nil {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-						}
-						if (skippy < 0) || (iNdEx+skippy) < 0 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-						}
-						if (iNdEx + skippy) > postIndex {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						iNdEx += skippy
-					}
-				}
-				x.NativePrecompiles[mapkey] = mapvalue
-				iNdEx = postIndex
-			case 4:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field DynamicPrecompiles", wireType)
-				}
-				var msglen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					msglen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if msglen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + msglen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if x.DynamicPrecompiles == nil {
-					x.DynamicPrecompiles = make(map[string]bool)
-				}
-				var mapkey string
-				var mapvalue bool
-				for iNdEx < postIndex {
-					entryPreIndex := iNdEx
-					var wire uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-						}
-						if iNdEx >= l {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						wire |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					fieldNum := int32(wire >> 3)
-					if fieldNum == 1 {
-						var stringLenmapkey uint64
-						for shift := uint(0); ; shift += 7 {
-							if shift >= 64 {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-							}
-							if iNdEx >= l {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-							}
-							b := dAtA[iNdEx]
-							iNdEx++
-							stringLenmapkey |= uint64(b&0x7F) << shift
-							if b < 0x80 {
-								break
-							}
-						}
-						intStringLenmapkey := int(stringLenmapkey)
-						if intStringLenmapkey < 0 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-						}
-						postStringIndexmapkey := iNdEx + intStringLenmapkey
-						if postStringIndexmapkey < 0 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-						}
-						if postStringIndexmapkey > l {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-						iNdEx = postStringIndexmapkey
-					} else if fieldNum == 2 {
-						var mapvaluetemp int
-						for shift := uint(0); ; shift += 7 {
-							if shift >= 64 {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-							}
-							if iNdEx >= l {
-								return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-							}
-							b := dAtA[iNdEx]
-							iNdEx++
-							mapvaluetemp |= int(b&0x7F) << shift
-							if b < 0x80 {
-								break
-							}
-						}
-						mapvalue = bool(mapvaluetemp != 0)
-					} else {
-						iNdEx = entryPreIndex
-						skippy, err := runtime.Skip(dAtA[iNdEx:])
-						if err != nil {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
-						}
-						if (skippy < 0) || (iNdEx+skippy) < 0 {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-						}
-						if (iNdEx + skippy) > postIndex {
-							return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-						}
-						iNdEx += skippy
-					}
-				}
-				x.DynamicPrecompiles[mapkey] = mapvalue
-				iNdEx = postIndex
 			case 5:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field PermissionlessRegistration", wireType)
@@ -1804,7 +1461,9 @@ type GenesisState struct {
 	// token_pairs is a slice of the registered token pairs at genesis
 	TokenPairs []*TokenPair `protobuf:"bytes,2,rep,name=token_pairs,json=tokenPairs,proto3" json:"token_pairs,omitempty"`
 	// allowances is a slice of the registered allowances at genesis
-	Allowances []*Allowance `protobuf:"bytes,3,rep,name=allowances,proto3" json:"allowances,omitempty"`
+	Allowances         []*Allowance `protobuf:"bytes,3,rep,name=allowances,proto3" json:"allowances,omitempty"`
+	NativePrecompiles  []string     `protobuf:"bytes,4,rep,name=NativePrecompiles,proto3" json:"NativePrecompiles,omitempty"`
+	DynamicPrecompiles []string     `protobuf:"bytes,5,rep,name=DynamicPrecompiles,proto3" json:"DynamicPrecompiles,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -1848,6 +1507,20 @@ func (x *GenesisState) GetAllowances() []*Allowance {
 	return nil
 }
 
+func (x *GenesisState) GetNativePrecompiles() []string {
+	if x != nil {
+		return x.NativePrecompiles
+	}
+	return nil
+}
+
+func (x *GenesisState) GetDynamicPrecompiles() []string {
+	if x != nil {
+		return x.DynamicPrecompiles
+	}
+	return nil
+}
+
 // Params defines the erc20 module params
 type Params struct {
 	state         protoimpl.MessageState
@@ -1857,13 +1530,6 @@ type Params struct {
 	// enable_erc20 is the parameter to enable the conversion of Cosmos coins <-->
 	// ERC20 tokens.
 	EnableErc20 bool `protobuf:"varint,1,opt,name=enable_erc20,json=enableErc20,proto3" json:"enable_erc20,omitempty"`
-	// native_precompiles defines the map of hex addresses of the
-	// active precompiles that are used to interact with native staking coins as
-	// ERC20s
-	NativePrecompiles map[string]bool `protobuf:"bytes,3,rep,name=native_precompiles,json=nativePrecompiles,proto3" json:"native_precompiles,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
-	// dynamic_precompiles defines the map of hex addresses of the
-	// active precompiles that are used to interact with Bank coins as ERC20s
-	DynamicPrecompiles map[string]bool `protobuf:"bytes,4,rep,name=dynamic_precompiles,json=dynamicPrecompiles,proto3" json:"dynamic_precompiles,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
 	// permissionless_registration is the parameter that allows ERC20s to be
 	// permissionlessly registered to be converted to bank tokens and vice versa
 	PermissionlessRegistration bool `protobuf:"varint,5,opt,name=permissionless_registration,json=permissionlessRegistration,proto3" json:"permissionless_registration,omitempty"`
@@ -1896,20 +1562,6 @@ func (x *Params) GetEnableErc20() bool {
 	return false
 }
 
-func (x *Params) GetNativePrecompiles() map[string]bool {
-	if x != nil {
-		return x.NativePrecompiles
-	}
-	return nil
-}
-
-func (x *Params) GetDynamicPrecompiles() map[string]bool {
-	if x != nil {
-		return x.DynamicPrecompiles
-	}
-	return nil
-}
-
 func (x *Params) GetPermissionlessRegistration() bool {
 	if x != nil {
 		return x.PermissionlessRegistration
@@ -1928,7 +1580,7 @@ var file_cosmos_evm_erc20_v1_genesis_proto_rawDesc = []byte{
 	0x6d, 0x6f, 0x73, 0x2f, 0x65, 0x76, 0x6d, 0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31,
 	0x2f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x14, 0x67, 0x6f,
 	0x67, 0x6f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x67, 0x6f, 0x67, 0x6f, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x22, 0xe5, 0x01, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74,
+	0x74, 0x6f, 0x22, 0xd9, 0x02, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74,
 	0x61, 0x74, 0x65, 0x12, 0x3e, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x1b, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x65, 0x76, 0x6d,
 	0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73,
@@ -1942,49 +1594,35 @@ var file_cosmos_evm_erc20_v1_genesis_proto_rawDesc = []byte{
 	0x03, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x65, 0x76, 0x6d,
 	0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x61,
 	0x6e, 0x63, 0x65, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x00, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0a,
-	0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x22, 0xc8, 0x03, 0x0a, 0x06, 0x50,
-	0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x5f,
-	0x65, 0x72, 0x63, 0x32, 0x30, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x65, 0x6e, 0x61,
-	0x62, 0x6c, 0x65, 0x45, 0x72, 0x63, 0x32, 0x30, 0x12, 0x61, 0x0a, 0x12, 0x6e, 0x61, 0x74, 0x69,
-	0x76, 0x65, 0x5f, 0x70, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x03,
-	0x20, 0x03, 0x28, 0x0b, 0x32, 0x32, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x65, 0x76,
-	0x6d, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d,
-	0x73, 0x2e, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x50, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69,
-	0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x11, 0x6e, 0x61, 0x74, 0x69, 0x76, 0x65,
-	0x50, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x12, 0x64, 0x0a, 0x13, 0x64,
-	0x79, 0x6e, 0x61, 0x6d, 0x69, 0x63, 0x5f, 0x70, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c,
-	0x65, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x33, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
-	0x73, 0x2e, 0x65, 0x76, 0x6d, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x2e, 0x50,
-	0x61, 0x72, 0x61, 0x6d, 0x73, 0x2e, 0x44, 0x79, 0x6e, 0x61, 0x6d, 0x69, 0x63, 0x50, 0x72, 0x65,
-	0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x12, 0x64,
-	0x79, 0x6e, 0x61, 0x6d, 0x69, 0x63, 0x50, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65,
-	0x73, 0x12, 0x3f, 0x0a, 0x1b, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x6c,
-	0x65, 0x73, 0x73, 0x5f, 0x72, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x18, 0x05, 0x20, 0x01, 0x28, 0x08, 0x52, 0x1a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69,
-	0x6f, 0x6e, 0x6c, 0x65, 0x73, 0x73, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x1a, 0x44, 0x0a, 0x16, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x50, 0x72, 0x65, 0x63,
-	0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03,
-	0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14,
-	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x76,
-	0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x1a, 0x45, 0x0a, 0x17, 0x44, 0x79, 0x6e, 0x61,
-	0x6d, 0x69, 0x63, 0x50, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x45, 0x6e,
-	0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x08, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x4a,
-	0x04, 0x08, 0x02, 0x10, 0x03, 0x42, 0xc4, 0x01, 0x0a, 0x17, 0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f,
-	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x65, 0x76, 0x6d, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76,
-	0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
-	0x01, 0x5a, 0x2c, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x65, 0x76, 0x6d, 0x2f, 0x65,
-	0x72, 0x63, 0x32, 0x30, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2,
-	0x02, 0x03, 0x43, 0x45, 0x45, 0xaa, 0x02, 0x13, 0x43, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x45,
-	0x76, 0x6d, 0x2e, 0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x13, 0x43, 0x6f,
-	0x73, 0x6d, 0x6f, 0x73, 0x5c, 0x45, 0x76, 0x6d, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56,
-	0x31, 0xe2, 0x02, 0x1f, 0x43, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5c, 0x45, 0x76, 0x6d, 0x5c, 0x45,
-	0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64,
-	0x61, 0x74, 0x61, 0xea, 0x02, 0x16, 0x43, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x3a, 0x3a, 0x45, 0x76,
-	0x6d, 0x3a, 0x3a, 0x45, 0x72, 0x63, 0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x61, 0x6e, 0x63, 0x65, 0x73, 0x12, 0x37, 0x0a, 0x11, 0x4e, 0x61,
+	0x74, 0x69, 0x76, 0x65, 0x50, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x18,
+	0x04, 0x20, 0x03, 0x28, 0x09, 0x42, 0x09, 0xc8, 0xde, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01,
+	0x52, 0x11, 0x4e, 0x61, 0x74, 0x69, 0x76, 0x65, 0x50, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69,
+	0x6c, 0x65, 0x73, 0x12, 0x39, 0x0a, 0x12, 0x44, 0x79, 0x6e, 0x61, 0x6d, 0x69, 0x63, 0x50, 0x72,
+	0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x09, 0x42,
+	0x09, 0xc8, 0xde, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x12, 0x44, 0x79, 0x6e, 0x61,
+	0x6d, 0x69, 0x63, 0x50, 0x72, 0x65, 0x63, 0x6f, 0x6d, 0x70, 0x69, 0x6c, 0x65, 0x73, 0x22, 0x72,
+	0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x21, 0x0a, 0x0c, 0x65, 0x6e, 0x61, 0x62,
+	0x6c, 0x65, 0x5f, 0x65, 0x72, 0x63, 0x32, 0x30, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b,
+	0x65, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x45, 0x72, 0x63, 0x32, 0x30, 0x12, 0x3f, 0x0a, 0x1b, 0x70,
+	0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x6c, 0x65, 0x73, 0x73, 0x5f, 0x72, 0x65,
+	0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x08,
+	0x52, 0x1a, 0x70, 0x65, 0x72, 0x6d, 0x69, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x6c, 0x65, 0x73, 0x73,
+	0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4a, 0x04, 0x08, 0x02,
+	0x10, 0x03, 0x42, 0xc4, 0x01, 0x0a, 0x17, 0x63, 0x6f, 0x6d, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
+	0x73, 0x2e, 0x65, 0x76, 0x6d, 0x2e, 0x65, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x76, 0x31, 0x42, 0x0c,
+	0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x2c,
+	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69,
+	0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x65, 0x76, 0x6d, 0x2f, 0x65, 0x72, 0x63, 0x32,
+	0x30, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x72, 0x63, 0x32, 0x30, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x43,
+	0x45, 0x45, 0xaa, 0x02, 0x13, 0x43, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x45, 0x76, 0x6d, 0x2e,
+	0x45, 0x72, 0x63, 0x32, 0x30, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x13, 0x43, 0x6f, 0x73, 0x6d, 0x6f,
+	0x73, 0x5c, 0x45, 0x76, 0x6d, 0x5c, 0x45, 0x72, 0x63, 0x32, 0x30, 0x5c, 0x56, 0x31, 0xe2, 0x02,
+	0x1f, 0x43, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x5c, 0x45, 0x76, 0x6d, 0x5c, 0x45, 0x72, 0x63, 0x32,
+	0x30, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61,
+	0xea, 0x02, 0x16, 0x43, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x3a, 0x3a, 0x45, 0x76, 0x6d, 0x3a, 0x3a,
+	0x45, 0x72, 0x63, 0x32, 0x30, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -1999,26 +1637,22 @@ func file_cosmos_evm_erc20_v1_genesis_proto_rawDescGZIP() []byte {
 	return file_cosmos_evm_erc20_v1_genesis_proto_rawDescData
 }
 
-var file_cosmos_evm_erc20_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_cosmos_evm_erc20_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_cosmos_evm_erc20_v1_genesis_proto_goTypes = []interface{}{
 	(*GenesisState)(nil), // 0: cosmos.evm.erc20.v1.GenesisState
 	(*Params)(nil),       // 1: cosmos.evm.erc20.v1.Params
-	nil,                  // 2: cosmos.evm.erc20.v1.Params.NativePrecompilesEntry
-	nil,                  // 3: cosmos.evm.erc20.v1.Params.DynamicPrecompilesEntry
-	(*TokenPair)(nil),    // 4: cosmos.evm.erc20.v1.TokenPair
-	(*Allowance)(nil),    // 5: cosmos.evm.erc20.v1.Allowance
+	(*TokenPair)(nil),    // 2: cosmos.evm.erc20.v1.TokenPair
+	(*Allowance)(nil),    // 3: cosmos.evm.erc20.v1.Allowance
 }
 var file_cosmos_evm_erc20_v1_genesis_proto_depIdxs = []int32{
 	1, // 0: cosmos.evm.erc20.v1.GenesisState.params:type_name -> cosmos.evm.erc20.v1.Params
-	4, // 1: cosmos.evm.erc20.v1.GenesisState.token_pairs:type_name -> cosmos.evm.erc20.v1.TokenPair
-	5, // 2: cosmos.evm.erc20.v1.GenesisState.allowances:type_name -> cosmos.evm.erc20.v1.Allowance
-	2, // 3: cosmos.evm.erc20.v1.Params.native_precompiles:type_name -> cosmos.evm.erc20.v1.Params.NativePrecompilesEntry
-	3, // 4: cosmos.evm.erc20.v1.Params.dynamic_precompiles:type_name -> cosmos.evm.erc20.v1.Params.DynamicPrecompilesEntry
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	2, // 1: cosmos.evm.erc20.v1.GenesisState.token_pairs:type_name -> cosmos.evm.erc20.v1.TokenPair
+	3, // 2: cosmos.evm.erc20.v1.GenesisState.allowances:type_name -> cosmos.evm.erc20.v1.Allowance
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_cosmos_evm_erc20_v1_genesis_proto_init() }
@@ -2059,7 +1693,7 @@ func file_cosmos_evm_erc20_v1_genesis_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_cosmos_evm_erc20_v1_genesis_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

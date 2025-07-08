@@ -23,10 +23,7 @@ func (k Keeper) RegisterERC20Extension(ctx sdk.Context, denom string) (*types.To
 	}
 
 	// Add to existing EVM extensions
-	err = k.EnableDynamicPrecompiles(ctx, pair.GetERC20Contract())
-	if err != nil {
-		return nil, err
-	}
+	k.EnableDynamicPrecompile(ctx, pair.GetERC20Contract())
 
 	return &pair, err
 }
@@ -84,28 +81,12 @@ func (k Keeper) UnRegisterERC20CodeHash(ctx sdk.Context, erc20Addr common.Addres
 	})
 }
 
-// EnableDynamicPrecompiles appends the addresses of the given Precompiles to the list
-// of active dynamic precompiles.
-func (k Keeper) EnableDynamicPrecompiles(ctx sdk.Context, addresses ...common.Address) error {
-	// Get the current params and append the new precompiles
-	params := k.GetParams(ctx)
-	activePrecompiles := params.DynamicPrecompiles
-
-	// Append and sort the new precompiles
-	updatedPrecompiles := addPrecompiles(activePrecompiles, addresses...)
-
-	// Update params
-	params.DynamicPrecompiles = updatedPrecompiles
-	k.Logger(ctx).Info("Added new precompiles", "addresses", addresses)
-	return k.SetParams(ctx, params)
-}
-
-// addPrecompiles append addresses to the existingPrecompiles and sort the resulting slice.
-// The function returns an error is the two sets are overlapping.
-func addPrecompiles(existingPrecompiles map[string]bool, addresses ...common.Address) map[string]bool {
-	for i := range addresses {
-		addrHex := addresses[i].String()
-		existingPrecompiles[addrHex] = true
+// EnableDynamicPrecompile adds the address of the given precompile to the prefix store
+func (k Keeper) EnableDynamicPrecompile(ctx sdk.Context, address common.Address) error {
+	k.Logger(ctx).Info("Added new precompiles", "addresses", address)
+	if err := k.RegisterCodeHash(ctx, address, PrecompileTypeDynamic); err != nil {
+		return err
 	}
-	return existingPrecompiles
+	k.SetDynamicPrecompile(ctx, address)
+	return nil
 }

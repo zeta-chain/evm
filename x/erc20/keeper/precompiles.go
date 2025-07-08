@@ -14,14 +14,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+type PrecompileType int
+
+const (
+	PrecompileTypeNative PrecompileType = iota
+	PrecompileTypeDynamic
+)
+
 // GetERC20PrecompileInstance returns the precompile instance for the given address.
 func (k Keeper) GetERC20PrecompileInstance(
 	ctx sdk.Context,
 	address common.Address,
 ) (contract vm.PrecompiledContract, found bool, err error) {
-	params := k.GetParams(ctx)
-	isNative := params.IsNativePrecompile(address)
-	isDynamic := params.IsDynamicPrecompile(address)
+	isNative := k.IsNativePrecompileAvailable(ctx, address)
+	isDynamic := k.IsDynamicPrecompileAvailable(ctx, address)
 
 	if available := isNative || isDynamic; !available {
 		return nil, false, nil
@@ -56,4 +62,25 @@ func (k Keeper) InstantiateERC20Precompile(ctx sdk.Context, contractAddr common.
 	}
 
 	return erc20.NewPrecompile(pair, k.bankKeeper, k, *k.transferKeeper)
+}
+
+// RegisterCodeHash checks if a new precompile already exists and registers the code hash it is not
+func (k Keeper) RegisterCodeHash(ctx sdk.Context, new common.Address, ptype PrecompileType) error {
+	shouldRegister := false
+	switch ptype {
+	case PrecompileTypeNative:
+		shouldRegister = !k.IsNativePrecompileAvailable(ctx, new)
+	case PrecompileTypeDynamic:
+		shouldRegister = !k.IsDynamicPrecompileAvailable(ctx, new)
+	default:
+		return fmt.Errorf("invalid precompile type: %v", ptype)
+	}
+
+	if shouldRegister {
+		if err := k.RegisterERC20CodeHash(ctx, new); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
