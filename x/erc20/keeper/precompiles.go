@@ -65,15 +65,15 @@ func (k Keeper) InstantiateERC20Precompile(ctx sdk.Context, contractAddr common.
 }
 
 // RegisterCodeHash checks if a new precompile already exists and registers the code hash it is not
-func (k Keeper) RegisterCodeHash(ctx sdk.Context, addr common.Address, ptype PrecompileType) error {
+func (k Keeper) RegisterCodeHash(ctx sdk.Context, addr common.Address, pType PrecompileType) error {
 	shouldRegister := false
-	switch ptype {
+	switch pType {
 	case PrecompileTypeNative:
 		shouldRegister = !k.IsNativePrecompileAvailable(ctx, addr)
 	case PrecompileTypeDynamic:
 		shouldRegister = !k.IsDynamicPrecompileAvailable(ctx, addr)
 	default:
-		return fmt.Errorf("invalid precompile type: %v", ptype)
+		return fmt.Errorf("invalid precompile type: %v", pType)
 	}
 
 	if shouldRegister {
