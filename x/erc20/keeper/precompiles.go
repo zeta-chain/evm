@@ -35,7 +35,7 @@ func (k Keeper) GetERC20PrecompileInstance(
 
 	precompile, err := k.InstantiateERC20Precompile(ctx, address, isNative)
 	if err != nil {
-		return nil, false, errorsmod.Wrapf(err, "precompiled xcontract not initialized: %s", address.String())
+		return nil, false, errorsmod.Wrapf(err, "precompiled contract not initialized: %s", address.String())
 	}
 
 	return precompile, true, nil
