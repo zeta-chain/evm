@@ -3,6 +3,7 @@ package erc20
 import (
 	"fmt"
 	"maps"
+	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -64,17 +65,8 @@ func InitGenesis(
 
 // ExportGenesis export module status
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	npMap := k.GetNativePrecompiles(ctx)
-	nps := make([]string, 0, len(npMap))
-	for precompile := range maps.Keys(npMap) {
-		nps = append(nps, precompile)
-	}
-
-	dpMap := k.GetDynamicPrecompiles(ctx)
-	dps := make([]string, 0, len(dpMap))
-	for precompile := range maps.Keys(dpMap) {
-		dps = append(dps, precompile)
-	}
+	nps := slices.Collect(maps.Keys(k.GetNativePrecompiles(ctx)))
+	dps := slices.Collect(maps.Keys(k.GetDynamicPrecompiles(ctx)))
 
 	return &types.GenesisState{
 		Params:             k.GetParams(ctx),
