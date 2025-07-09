@@ -23,7 +23,9 @@ func (k Keeper) RegisterERC20Extension(ctx sdk.Context, denom string) (*types.To
 	}
 
 	// Add to existing EVM extensions
-	k.EnableDynamicPrecompile(ctx, pair.GetERC20Contract())
+	if err := k.EnableDynamicPrecompile(ctx, pair.GetERC20Contract()); err != nil {
+		return nil, err
+	}
 
 	return &pair, err
 }

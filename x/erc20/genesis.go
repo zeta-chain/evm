@@ -63,9 +63,23 @@ func InitGenesis(
 
 // ExportGenesis export module status
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
+	npMap := k.GetNativePrecompiles(ctx)
+	nps := make([]string, 0, len(npMap))
+	for precompile := range npMap {
+		nps = append(nps, precompile)
+	}
+
+	dpMap := k.GetDynamicPrecompiles(ctx)
+	dps := make([]string, 0, len(dpMap))
+	for precompile := range dpMap {
+		dps = append(dps, precompile)
+	}
+
 	return &types.GenesisState{
-		Params:     k.GetParams(ctx),
-		TokenPairs: k.GetTokenPairs(ctx),
-		Allowances: k.GetAllowances(ctx),
+		Params:             k.GetParams(ctx),
+		TokenPairs:         k.GetTokenPairs(ctx),
+		Allowances:         k.GetAllowances(ctx),
+		NativePrecompiles:  nps,
+		DynamicPrecompiles: dps,
 	}
 }

@@ -65,19 +65,19 @@ func (k Keeper) InstantiateERC20Precompile(ctx sdk.Context, contractAddr common.
 }
 
 // RegisterCodeHash checks if a new precompile already exists and registers the code hash it is not
-func (k Keeper) RegisterCodeHash(ctx sdk.Context, new common.Address, ptype PrecompileType) error {
+func (k Keeper) RegisterCodeHash(ctx sdk.Context, addr common.Address, ptype PrecompileType) error {
 	shouldRegister := false
 	switch ptype {
 	case PrecompileTypeNative:
-		shouldRegister = !k.IsNativePrecompileAvailable(ctx, new)
+		shouldRegister = !k.IsNativePrecompileAvailable(ctx, addr)
 	case PrecompileTypeDynamic:
-		shouldRegister = !k.IsDynamicPrecompileAvailable(ctx, new)
+		shouldRegister = !k.IsDynamicPrecompileAvailable(ctx, addr)
 	default:
 		return fmt.Errorf("invalid precompile type: %v", ptype)
 	}
 
 	if shouldRegister {
-		if err := k.RegisterERC20CodeHash(ctx, new); err != nil {
+		if err := k.RegisterERC20CodeHash(ctx, addr); err != nil {
 			return err
 		}
 	}
@@ -86,11 +86,11 @@ func (k Keeper) RegisterCodeHash(ctx sdk.Context, new common.Address, ptype Prec
 }
 
 // EnableNativePrecompile adds the address of the given precompile to the prefix store
-func (k Keeper) EnableNativePrecompile(ctx sdk.Context, address common.Address) error {
-	k.Logger(ctx).Info("Added new precompiles", "addresses", address)
-	if err := k.RegisterCodeHash(ctx, address, PrecompileTypeNative); err != nil {
+func (k Keeper) EnableNativePrecompile(ctx sdk.Context, addr common.Address) error {
+	k.Logger(ctx).Info("Added new precompiles", "addresses", addr)
+	if err := k.RegisterCodeHash(ctx, addr, PrecompileTypeNative); err != nil {
 		return err
 	}
-	k.SetNativePrecompile(ctx, address)
+	k.SetNativePrecompile(ctx, addr)
 	return nil
 }
