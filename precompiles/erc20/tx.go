@@ -14,7 +14,6 @@ import (
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
@@ -119,8 +118,8 @@ func (p *Precompile) transfer(
 		}
 	}
 
-	msgSrv := bankkeeper.NewMsgServerImpl(p.BankKeeper)
-	if _, err = msgSrv.Send(ctx, msg); err != nil {
+	msgSrv := NewMsgServerImpl(p.BankKeeper)
+	if err = msgSrv.Send(ctx, msg); err != nil {
 		// This should return an error to avoid the contract from being executed and an event being emitted
 		return nil, ConvertErrToERC20Error(err)
 	}

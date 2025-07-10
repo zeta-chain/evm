@@ -14,8 +14,6 @@ import (
 	erc20 "github.com/cosmos/evm/precompiles/erc20"
 	erc20types "github.com/cosmos/evm/x/erc20/types"
 	transferkeeper "github.com/cosmos/evm/x/ibc/transfer/keeper"
-
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 )
 
 // abiPath defines the path to the WERC-20 precompile ABI JSON file.
@@ -51,7 +49,7 @@ func LoadABI() (abi.ABI, error) {
 // instance to provide additional methods.
 func NewPrecompile(
 	tokenPair erc20types.TokenPair,
-	bankKeeper bankkeeper.Keeper,
+	bankKeeper cmn.BankKeeper,
 	erc20Keeper Erc20Keeper,
 	transferKeeper transferkeeper.Keeper,
 ) (*Precompile, error) {
