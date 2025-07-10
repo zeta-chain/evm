@@ -98,6 +98,12 @@ const (
 	// DefaultAllowUnprotectedTxs value is false
 	DefaultAllowUnprotectedTxs = false
 
+	// DefaultBatchRequestLimit is the default maximum batch request limit.
+	DefaultBatchRequestLimit = 1000
+
+	// DefaultBatchResponseMaxSize is the default maximum batch response size.
+	DefaultBatchResponseMaxSize = 25 * 1000 * 1000
+
 	// DefaultMaxOpenConnections represents the amount of open connections (unlimited = 0)
 	DefaultMaxOpenConnections = 0
 
@@ -163,6 +169,10 @@ type JSONRPCConfig struct {
 	// AllowUnprotectedTxs restricts unprotected (non EIP155 signed) transactions to be submitted via
 	// the node's RPC when global parameter is disabled.
 	AllowUnprotectedTxs bool `mapstructure:"allow-unprotected-txs"`
+	// BatchRequestLimit is the maximum number of requests in a batch.
+	BatchRequestLimit int `mapstructure:"batch-request-limit"`
+	// BatchResponseMaxSize is the maximum number of bytes returned from a batched rpc call.
+	BatchResponseMaxSize int `mapstructure:"batch-response-max-size"`
 	// MaxOpenConnections sets the maximum number of simultaneous connections
 	// for the server listener.
 	MaxOpenConnections int `mapstructure:"max-open-connections"`
@@ -229,6 +239,8 @@ func DefaultJSONRPCConfig() *JSONRPCConfig {
 		HTTPTimeout:              DefaultHTTPTimeout,
 		HTTPIdleTimeout:          DefaultHTTPIdleTimeout,
 		AllowUnprotectedTxs:      DefaultAllowUnprotectedTxs,
+		BatchRequestLimit:        DefaultBatchRequestLimit,
+		BatchResponseMaxSize:     DefaultBatchResponseMaxSize,
 		MaxOpenConnections:       DefaultMaxOpenConnections,
 		EnableIndexer:            false,
 		MetricsAddress:           DefaultJSONRPCMetricsAddress,
@@ -272,6 +284,14 @@ func (c JSONRPCConfig) Validate() error {
 
 	if c.HTTPIdleTimeout < 0 {
 		return errors.New("JSON-RPC HTTP idle timeout duration cannot be negative")
+	}
+
+	if c.BatchRequestLimit < 0 {
+		return errors.New("JSON-RPC batch request limit cannot be negative")
+	}
+
+	if c.BatchResponseMaxSize < 0 {
+		return errors.New("JSON-RPC batch response max size cannot be negative")
 	}
 
 	// check for duplicates

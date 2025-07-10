@@ -194,6 +194,8 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().Duration(srvflags.JSONRPCHTTPTimeout, cosmosevmserverconfig.DefaultHTTPTimeout, "Sets a read/write timeout for json-rpc http server (0=infinite)")
 	cmd.Flags().Duration(srvflags.JSONRPCHTTPIdleTimeout, cosmosevmserverconfig.DefaultHTTPIdleTimeout, "Sets a idle timeout for json-rpc http server (0=infinite)")
 	cmd.Flags().Bool(srvflags.JSONRPCAllowUnprotectedTxs, cosmosevmserverconfig.DefaultAllowUnprotectedTxs, "Allow for unprotected (non EIP155 signed) transactions to be submitted via the node's RPC when the global parameter is disabled") //nolint:lll
+	cmd.Flags().Int(srvflags.JSONRPCBatchRequestLimit, cosmosevmserverconfig.DefaultBatchRequestLimit, "Maximum number of requests in a batch")
+	cmd.Flags().Int(srvflags.JSONRPCBatchResponseMaxSize, cosmosevmserverconfig.DefaultBatchResponseMaxSize, "Maximum size of server response")
 	cmd.Flags().Int32(srvflags.JSONRPCLogsCap, cosmosevmserverconfig.DefaultLogsCap, "Sets the max number of results can be returned from single `eth_getLogs` query")
 	cmd.Flags().Int32(srvflags.JSONRPCBlockRangeCap, cosmosevmserverconfig.DefaultBlockRangeCap, "Sets the max block range allowed for `eth_getLogs` query")
 	cmd.Flags().Int(srvflags.JSONRPCMaxOpenConnections, cosmosevmserverconfig.DefaultMaxOpenConnections, "Sets the maximum number of simultaneous connections for the server listener") //nolint:lll
