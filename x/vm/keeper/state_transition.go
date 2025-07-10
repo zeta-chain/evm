@@ -227,20 +227,25 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 			return nil, errorsmod.Wrap(err, "failed to extract sender address from ethereum transaction")
 		}
 
+		eventsLen := len(tmpCtx.EventManager().Events())
+
 		// Note: PostTxProcessing hooks currently do not charge for gas
 		// and function similar to EndBlockers in abci, but for EVM transactions
 		if err = k.PostTxProcessing(tmpCtx, signerAddr, *msg, receipt); err != nil {
 			// If hooks returns an error, revert the whole tx.
 			res.VmError = errorsmod.Wrap(err, "failed to execute post transaction processing").Error()
 			k.Logger(ctx).Error("tx post processing failed", "error", err)
-			// If the tx failed in post processing hooks, we should clear the logs
+			// If the tx failed in postprocessing hooks, we should clear the logs
 			res.Logs = nil
 		} else if commitFn != nil {
 			commitFn()
 
 			// Since the post-processing can alter the log, we need to update the result
 			res.Logs = types.NewLogsFromEth(receipt.Logs)
-			ctx.EventManager().EmitEvents(tmpCtx.EventManager().Events())
+			events := tmpCtx.EventManager().Events()
+			if len(events) > eventsLen {
+				ctx.EventManager().EmitEvents(events[eventsLen:])
+			}
 		}
 	}
 
