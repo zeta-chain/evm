@@ -136,6 +136,18 @@ func (k Keeper) OnRecvPacket(
 			return ack
 		}
 
+		pair, err := k.MintingEnabled(ctx, sender, recipient, coin.Denom)
+		if err != nil {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent("erc20_callback_failure",
+					sdk.NewAttribute(types.TypeMsgConvertCoin, "mint_failure"),
+					sdk.NewAttribute(types.AttributeKeyCosmosCoin, coin.Denom),
+					sdk.NewAttribute(types.AttributeKeyReceiver, recipient.String()),
+				),
+			)
+			return channeltypes.NewErrorAcknowledgement(err)
+		}
+
 		if err := k.ConvertCoinNativeERC20(ctx, pair, coin.Amount, common.BytesToAddress(recipient.Bytes()), recipient); err != nil {
 			return channeltypes.NewErrorAcknowledgement(err)
 		}
