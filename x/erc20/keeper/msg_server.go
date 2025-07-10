@@ -145,11 +145,6 @@ func (k Keeper) convertERC20IntoCoinsForNativeToken(
 		)
 	}
 
-	// Check for unexpected `Approval` event in logs
-	if err := k.monitorApprovalEvent(res); err != nil {
-		return nil, err
-	}
-
 	defer func() {
 		telemetry.IncrCounterWithLabels(
 			[]string{"tx", "msg", "convert", "erc20", "total"},
@@ -295,8 +290,7 @@ func (k Keeper) ConvertCoinNativeERC20(
 		return sdkerrors.Wrap(err, "failed to burn coins")
 	}
 
-	// Check for unexpected `Approval` event in logs
-	return k.monitorApprovalEvent(res)
+	return nil
 }
 
 // UpdateParams implements the gRPC MsgServer interface. After a successful governance vote

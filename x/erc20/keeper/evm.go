@@ -7,11 +7,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/evm/contracts"
 	"github.com/cosmos/evm/x/erc20/types"
-	evmtypes "github.com/cosmos/evm/x/vm/types"
-
-	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -130,25 +128,4 @@ func (k Keeper) BalanceOf(
 	}
 
 	return balance
-}
-
-// monitorApprovalEvent returns an error if the given transactions logs include
-// an unexpected `Approval` event
-func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error {
-	if res == nil || len(res.Logs) == 0 {
-		return nil
-	}
-
-	logApprovalSig := []byte("Approval(address,address,uint256)")
-	logApprovalSigHash := crypto.Keccak256Hash(logApprovalSig)
-
-	for _, log := range res.Logs {
-		if log.Topics[0] == logApprovalSigHash.Hex() {
-			return errorsmod.Wrapf(
-				types.ErrUnexpectedEvent, "unexpected Approval event",
-			)
-		}
-	}
-
-	return nil
 }
