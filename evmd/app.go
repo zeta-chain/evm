@@ -511,6 +511,7 @@ func NewExampleApp(
 		app.PreciseBankKeeper,
 		app.StakingKeeper,
 		app.FeeMarketKeeper,
+		&app.ConsensusParamsKeeper,
 		&app.Erc20Keeper,
 		tracer,
 	)

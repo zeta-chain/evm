@@ -23,6 +23,7 @@ import (
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 )
 
 // NewEVM generates a go-ethereum VM from the provided Message fields and the chain parameters
@@ -40,6 +41,7 @@ func (k *Keeper) NewEVM(
 	tracer *tracing.Hooks,
 	stateDB vm.StateDB,
 ) *vm.EVM {
+	ctx = k.SetConsensusParamsInCtx(ctx)
 	blockCtx := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
@@ -459,4 +461,19 @@ func (k *Keeper) ApplyMessageWithConfig(
 		Logs:    types.NewLogsFromEth(stateDB.Logs()),
 		Hash:    txConfig.TxHash.Hex(),
 	}, nil
+}
+
+// SetConsensusParamsInCtx will return the original context if consensus params already exist in it, otherwise, it will
+// query the consensus params from the consensus params keeper and then set it in context.
+func (k *Keeper) SetConsensusParamsInCtx(ctx sdk.Context) sdk.Context {
+	cp := ctx.ConsensusParams()
+	if cp.Block != nil {
+		return ctx
+	}
+
+	res, err := k.consensusKeeper.Params(ctx, &consensustypes.QueryParamsRequest{})
+	if err != nil {
+		return ctx
+	}
+	return ctx.WithConsensusParams(*res.Params)
 }

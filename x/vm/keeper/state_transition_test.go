@@ -31,8 +31,53 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
+
+func (suite *KeeperTestSuite) TestContextSetConsensusParams() {
+	// set new value of max gas in consensus params
+	maxGas := int64(123456789)
+	res, err := s.network.App.ConsensusParamsKeeper.Params(s.network.GetContext(), &consensustypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	consParams := res.Params
+	consParams.Block.MaxGas = maxGas
+	_, err = s.network.App.ConsensusParamsKeeper.UpdateParams(s.network.GetContext(), &consensustypes.MsgUpdateParams{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Block:     consParams.Block,
+		Evidence:  consParams.Evidence,
+		Validator: consParams.Validator,
+		Abci:      consParams.Abci,
+	})
+	s.Require().NoError(err)
+
+	queryContext := s.network.GetQueryContext()
+	proposerAddress := queryContext.BlockHeader().ProposerAddress
+	cfg, err := s.network.App.EVMKeeper.EVMConfig(queryContext, proposerAddress)
+	s.Require().NoError(err)
+
+	sender := suite.keyring.GetKey(0)
+	recipient := suite.keyring.GetAddr(1)
+	msg, err := suite.factory.GenerateGethCoreMsg(sender.Priv, types.EvmTxArgs{
+		To:     &recipient,
+		Amount: big.NewInt(100),
+	})
+	suite.Require().NoError(err)
+
+	// evm should query the max gas from consensus keeper, yielding the number set above.
+	vm := s.network.App.EVMKeeper.NewEVM(queryContext, *msg, cfg, nil, s.network.GetStateDB())
+	//nolint:gosec
+	s.Require().Equal(vm.Context.GasLimit, uint64(maxGas))
+
+	// if we explicitly set the consensus params in context, like when Cosmos builds a transaction context,
+	// we should use that value, and not query the consensus params from the keeper.
+	consParams.Block.MaxGas = 54321
+	queryContext = queryContext.WithConsensusParams(*consParams)
+	vm = s.network.App.EVMKeeper.NewEVM(queryContext, *msg, cfg, nil, s.network.GetStateDB())
+	//nolint:gosec
+	s.Require().Equal(vm.Context.GasLimit, uint64(consParams.Block.MaxGas))
+}
 
 func (suite *KeeperTestSuite) TestGetHashFn() {
 	suite.SetupTest()

@@ -18,6 +18,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/consensus/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
@@ -83,4 +84,9 @@ type BankWrapper interface {
 
 	MintAmountToAccount(ctx context.Context, recipientAddr sdk.AccAddress, amt *big.Int) error
 	BurnAmountFromAccount(ctx context.Context, account sdk.AccAddress, amt *big.Int) error
+}
+
+// ConsensusParamsKeeper defines the expected consensus params keeper.
+type ConsensusParamsKeeper interface {
+	Params(context.Context, *types.QueryParamsRequest) (*types.QueryParamsResponse, error)
 }
