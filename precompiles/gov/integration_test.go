@@ -1766,6 +1766,8 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 	})
 
 	Context("testCancel with transfer (multiple deposits & refund)", func() {
+		var cancelDest sdk.AccAddress
+
 		BeforeEach(func() {
 			// Submit a proposal with deposit from depositor0
 			denom := s.network.GetBaseDenom()
@@ -1813,6 +1815,7 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 			params, err := s.network.App.GovKeeper.Params.Get(s.network.GetContext())
 			Expect(err).To(BeNil())
 			rate := math.LegacyMustNewDecFromStr(params.ProposalCancelRatio)
+			cancelDest = sdk.MustAccAddressFromBech32(params.ProposalCancelDest)
 			proposalDeposits, err := s.network.App.GovKeeper.GetDeposits(s.network.GetContext(), proposalID)
 			Expect(err).To(BeNil())
 			Expect(proposalDeposits).To(HaveLen(2))
@@ -1857,6 +1860,7 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 				contractBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), contractAccAddr, baseDenom)
 				depositor1Bal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), depositor1, baseDenom)
 				txSenderBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), txSenderAddr.Bytes(), baseDenom)
+				cancelDestBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), cancelDest, baseDenom)
 
 				res, evmRes, err := s.factory.CallContractAndCheckLogs(txSenderKey, txArgs, callArgs, eventCheck)
 				Expect(err).To(BeNil())
@@ -1870,6 +1874,7 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 				afterContractBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), contractAccAddr, baseDenom)
 				afterDepositor1Bal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), depositor1, baseDenom)
 				afterTxSenderBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), txSenderAddr.Bytes(), baseDenom)
+				afterCancelDestBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), cancelDest, baseDenom)
 				amtFromContract := math.ZeroInt()
 				for _, transferred := range []bool{tc.before, tc.after} {
 					if transferred {
@@ -1886,6 +1891,11 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 				Expect(afterDepositor1Bal.Amount).To(Equal(
 					depositor1Bal.Amount.
 						Add(remainingFees[depositor1.String()]),
+				))
+				Expect(afterCancelDestBal.Amount).To(Equal(
+					cancelDestBal.Amount.
+						Add(cancelFees[depositor1.String()]).
+						Add(cancelFees[contractAccAddr.String()]),
 				))
 				Expect(afterContractBal.Amount).To(Equal(
 					contractBal.Amount.

@@ -6,7 +6,6 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/cosmos/evm/x/vm/statedb"
 	"github.com/cosmos/evm/x/vm/types"
@@ -15,9 +14,8 @@ import (
 )
 
 var (
-	_             statedb.Keeper = &MockKeeper{}
-	errAddress    common.Address = common.BigToAddress(big.NewInt(100))
-	emptyCodeHash                = crypto.Keccak256(nil)
+	_          statedb.Keeper = &MockKeeper{}
+	errAddress common.Address = common.BigToAddress(big.NewInt(100))
 )
 
 type MockAcount struct {
