@@ -66,7 +66,7 @@ func (suite *StateDBTestSuite) TestAccount() {
 			suite.Require().Equal(common.BytesToHash(emptyCodeHash), db.GetCodeHash(address))
 			suite.Require().Equal(uint64(0), db.GetNonce(address))
 		}},
-		{"suicide", func(db *statedb.StateDB) {
+		{"self-destruct", func(db *statedb.StateDB) {
 			// non-exist account.
 			db.SelfDestruct(address)
 			suite.Require().False(db.HasSelfDestructed(address))
@@ -75,11 +75,12 @@ func (suite *StateDBTestSuite) TestAccount() {
 			db.CreateAccount(address)
 			db.SetCode(address, []byte("hello world"))
 			db.AddBalance(address, uint256.NewInt(100), tracing.BalanceChangeUnspecified)
+			db.CreateContract(address)
 			db.SetState(address, key1, value1)
 			db.SetState(address, key2, value2)
 			suite.Require().NoError(db.Commit())
 
-			// suicide
+			// SelfDestruct
 			db = statedb.New(sdk.Context{}, db.Keeper(), emptyTxConfig)
 			suite.Require().False(db.HasSelfDestructed(address))
 			db.SelfDestruct(address)
@@ -102,6 +103,82 @@ func (suite *StateDBTestSuite) TestAccount() {
 			keeper := db.Keeper().(*MockKeeper)
 			suite.Require().Empty(keeper.accounts)
 			suite.Require().Empty(keeper.codes)
+		}},
+		{"self-destruct-6780 same tx", func(db *statedb.StateDB) {
+			// non-exist account.
+			db.SelfDestruct(address)
+			suite.Require().False(db.HasSelfDestructed(address))
+
+			// create a contract account
+			db.CreateAccount(address)
+			db.SetCode(address, []byte("hello world"))
+			db.AddBalance(address, uint256.NewInt(100), tracing.BalanceChangeUnspecified)
+			db.CreateContract(address)
+			db.SetState(address, key1, value1)
+			db.SetState(address, key2, value2)
+
+			// SelfDestruct
+			suite.Require().False(db.HasSelfDestructed(address))
+			_, _ = db.SelfDestruct6780(address)
+
+			// check dirty state
+			suite.Require().True(db.HasSelfDestructed(address))
+			// balance is cleared
+			suite.Require().Equal(common.U2560, db.GetBalance(address))
+			// but code and state are still accessible in dirty state
+			suite.Require().Equal(value1, db.GetState(address, key1))
+			suite.Require().Equal([]byte("hello world"), db.GetCode(address))
+
+			suite.Require().NoError(db.Commit())
+
+			// not accessible from StateDB anymore
+			db = statedb.New(sdk.Context{}, db.Keeper(), emptyTxConfig)
+			suite.Require().False(db.Exist(address))
+
+			// and cleared in keeper too
+			keeper := db.Keeper().(*MockKeeper)
+			suite.Require().Empty(keeper.accounts)
+			suite.Require().Empty(keeper.codes)
+		}},
+		{"self-destruct-6780 different tx", func(db *statedb.StateDB) {
+			// non-exist account.
+			db.SelfDestruct(address)
+			suite.Require().False(db.HasSelfDestructed(address))
+
+			// create a contract account
+			db.CreateAccount(address)
+			db.SetCode(address, []byte("hello world"))
+			db.AddBalance(address, uint256.NewInt(100), tracing.BalanceChangeUnspecified)
+			db.CreateContract(address)
+			db.SetState(address, key1, value1)
+			db.SetState(address, key2, value2)
+			suite.Require().NoError(db.Commit())
+
+			// SelfDestruct
+			db = statedb.New(sdk.Context{}, db.Keeper(), emptyTxConfig)
+			suite.Require().False(db.HasSelfDestructed(address))
+			_, _ = db.SelfDestruct6780(address)
+
+			// Same-tx is not marked as self-destructed
+			suite.Require().False(db.HasSelfDestructed(address))
+			// code and state are still accessible in dirty state
+			suite.Require().Equal(value1, db.GetState(address, key1))
+			suite.Require().Equal([]byte("hello world"), db.GetCode(address))
+
+			suite.Require().NoError(db.Commit())
+
+			// Same-tx maintains state
+			db = statedb.New(sdk.Context{}, db.Keeper(), emptyTxConfig)
+			suite.Require().True(db.Exist(address))
+			suite.Require().False(db.HasSelfDestructed(address))
+			// but code and state are still accessible in dirty state
+			suite.Require().Equal(value1, db.GetState(address, key1))
+			suite.Require().Equal([]byte("hello world"), db.GetCode(address))
+
+			// and not cleared in keeper too
+			keeper := db.Keeper().(*MockKeeper)
+			suite.Require().NotEmpty(keeper.accounts)
+			suite.Require().NotEmpty(keeper.codes)
 		}},
 	}
 	for _, tc := range testCases {
