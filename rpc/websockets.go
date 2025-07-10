@@ -34,6 +34,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 )
 
+const (
+	maxMessageSize = 1 << 20 // 1 MiB is the max message size for the websocket server
+)
+
 type WebsocketsServer interface {
 	Start()
 }
@@ -102,7 +106,7 @@ func (s *websocketsServer) Start() {
 		}
 
 		if err != nil {
-			if err == http.ErrServerClosed {
+			if errors.Is(err, http.ErrServerClosed) {
 				return
 			}
 
@@ -124,10 +128,14 @@ func (s *websocketsServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.readLoop(&wsConn{
+	conn.SetReadLimit(maxMessageSize)
+
+	ws := &wsConn{
 		mux:  new(sync.Mutex),
 		conn: conn,
-	})
+	}
+
+	s.readLoop(ws)
 }
 
 func (s *websocketsServer) sendErrResponse(wsConn *wsConn, msg string) {
