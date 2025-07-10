@@ -48,14 +48,13 @@ func (b *Backend) GetProof(address common.Address, storageKeys []string, blockNr
 		return nil, err
 	}
 
-	height := blockNum.Int64()
+	height := int64(blockNum)
 
 	_, err = b.TendermintBlockByNumber(blockNum)
 	if err != nil {
 		// the error message imitates geth behavior
 		return nil, errors.New("header not found")
 	}
-	ctx := rpctypes.ContextWithHeight(height)
 
 	// if the height is equal to zero, meaning the query condition of the block is either "pending" or "latest"
 	if height == 0 {
@@ -71,6 +70,7 @@ func (b *Backend) GetProof(address common.Address, storageKeys []string, blockNr
 		height = int64(bn) //#nosec G115 -- checked for int overflow already
 	}
 
+	ctx := rpctypes.ContextWithHeight(height)
 	clientCtx := b.clientCtx.WithHeight(height)
 
 	// query storage proofs
