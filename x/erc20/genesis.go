@@ -65,8 +65,8 @@ func InitGenesis(
 
 // ExportGenesis export module status
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	nps := slices.Collect(maps.Keys(k.GetNativePrecompiles(ctx)))
-	dps := slices.Collect(maps.Keys(k.GetDynamicPrecompiles(ctx)))
+	nps := slices.Sorted(maps.Keys(k.GetNativePrecompiles(ctx)))
+	dps := slices.Sorted(maps.Keys(k.GetDynamicPrecompiles(ctx)))
 
 	return &types.GenesisState{
 		Params:             k.GetParams(ctx),
