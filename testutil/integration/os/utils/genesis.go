@@ -54,7 +54,7 @@ func CreateGenesisWithTokenPairs(keyring testkeyring.Keyring, denoms ...string) 
 		constants.ExampleTokenPairs...,
 	)
 
-	dynPrecAddr := []string{}
+	dynPrecAddr := make([]string, 0, len(denoms))
 	for _, denom := range denoms {
 		addr := utiltx.GenerateAddress().Hex()
 		tp := erc20types.TokenPair{
