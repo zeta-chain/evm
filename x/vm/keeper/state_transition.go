@@ -20,6 +20,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -130,6 +131,29 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 	}
 }
 
+func (k *Keeper) initializeBloomFromLogs(ctx sdk.Context, ethLogs []*ethtypes.Log) (bloom *big.Int, bloomReceipt ethtypes.Bloom) {
+	// Compute block bloom filter
+	if len(ethLogs) > 0 {
+		bloom = k.GetBlockBloomTransient(ctx)
+		bloom.Or(bloom, big.NewInt(0).SetBytes(ethtypes.CreateBloom(&ethtypes.Receipt{Logs: ethLogs}).Bytes()))
+		bloomReceipt = ethtypes.BytesToBloom(bloom.Bytes())
+	}
+
+	return
+}
+
+func calculateCumulativeGasFromEthResponse(meter storetypes.GasMeter, res *types.MsgEthereumTxResponse) uint64 {
+	cumulativeGasUsed := res.GasUsed
+	if meter != nil {
+		limit := meter.Limit()
+		cumulativeGasUsed += meter.GasConsumed()
+		if cumulativeGasUsed > limit {
+			cumulativeGasUsed = limit
+		}
+	}
+	return cumulativeGasUsed
+}
+
 // ApplyTransaction runs and attempts to perform a state transition with the given transaction (i.e Message), that will
 // only be persisted (committed) to the underlying KVStore if the transaction does not fail.
 //
@@ -141,19 +165,14 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 // result.
 //
 // Prior to the execution, the starting tx gas meter is saved and replaced with an infinite gas meter in a new context
-// in order to ignore the SDK gas consumption config values (read, write, has, delete).
+// to ignore the SDK gas consumption config values (read, write, has, delete).
 // After the execution, the gas used from the message execution will be added to the starting gas consumed, taking into
 // consideration the amount of gas returned. Finally, the context is updated with the EVM gas consumed value prior to
 // returning.
 //
 // For relevant discussion see: https://github.com/cosmos/cosmos-sdk/discussions/9072
 func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*types.MsgEthereumTxResponse, error) {
-	var (
-		bloom        *big.Int
-		bloomReceipt ethtypes.Bloom
-	)
-
-	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress))
+	cfg, err := k.EVMConfig(ctx, ctx.BlockHeader().ProposerAddress)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}
@@ -169,7 +188,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	// Create a cache context to revert state. The cache context is only committed when both tx and hooks executed successfully.
 	// Didn't use `Snapshot` because the context stack has exponential complexity on certain operations,
 	// thus restricted to be used only inside `ApplyMessage`.
-	tmpCtx, commit := ctx.CacheContext()
+	tmpCtx, commitFn := ctx.CacheContext()
 
 	// pass true to commit the StateDB
 	res, err := k.ApplyMessageWithConfig(tmpCtx, *msg, nil, true, cfg, txConfig)
@@ -180,14 +199,8 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		return nil, errorsmod.Wrap(err, "failed to apply ethereum core message")
 	}
 
-	logs := types.LogsToEthereum(res.Logs)
-
-	// Compute block bloom filter
-	if len(logs) > 0 {
-		bloom = k.GetBlockBloomTransient(ctx)
-		bloom.Or(bloom, big.NewInt(0).SetBytes(ethtypes.CreateBloom(&ethtypes.Receipt{Logs: logs}).Bytes()))
-		bloomReceipt = ethtypes.BytesToBloom(bloom.Bytes())
-	}
+	ethLogs := types.LogsToEthereum(res.Logs)
+	bloom, bloomReceipt := k.initializeBloomFromLogs(ctx, ethLogs)
 
 	if !res.Failed() {
 		var contractAddr common.Address
@@ -195,21 +208,12 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 			contractAddr = crypto.CreateAddress(msg.From, msg.Nonce)
 		}
 
-		cumulativeGasUsed := res.GasUsed
-		if ctx.BlockGasMeter() != nil {
-			limit := ctx.BlockGasMeter().Limit()
-			cumulativeGasUsed += ctx.BlockGasMeter().GasConsumed()
-			if cumulativeGasUsed > limit {
-				cumulativeGasUsed = limit
-			}
-		}
-
 		receipt := &ethtypes.Receipt{
 			Type:              tx.Type(),
 			PostState:         nil,
-			CumulativeGasUsed: cumulativeGasUsed,
+			CumulativeGasUsed: calculateCumulativeGasFromEthResponse(ctx.GasMeter(), res),
 			Bloom:             bloomReceipt,
-			Logs:              logs,
+			Logs:              ethLogs,
 			TxHash:            txConfig.TxHash,
 			ContractAddress:   contractAddr,
 			GasUsed:           res.GasUsed,
@@ -231,8 +235,8 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 			k.Logger(ctx).Error("tx post processing failed", "error", err)
 			// If the tx failed in post processing hooks, we should clear the logs
 			res.Logs = nil
-		} else if commit != nil {
-			commit()
+		} else if commitFn != nil {
+			commitFn()
 
 			// Since the post-processing can alter the log, we need to update the result
 			res.Logs = types.NewLogsFromEth(receipt.Logs)
@@ -240,21 +244,22 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		}
 	}
 
-	evmDenom := types.GetEVMCoinDenom()
+	// update logs for full view if post processing updated them
+	ethLogs = types.LogsToEthereum(res.Logs)
 
-	// refund gas in order to match the Ethereum gas consumption instead of the default SDK one.
+	// refund gas to match the Ethereum gas consumption instead of the default SDK one.
 	remainingGas := uint64(0)
 	if msg.GasLimit > res.GasUsed {
 		remainingGas = msg.GasLimit - res.GasUsed
 	}
-	if err = k.RefundGas(ctx, *msg, remainingGas, evmDenom); err != nil {
+	if err = k.RefundGas(ctx, *msg, remainingGas, types.GetEVMCoinDenom()); err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to refund gas leftover gas to sender %s", msg.From)
 	}
 
-	if len(logs) > 0 {
+	if len(ethLogs) > 0 {
 		// Update transient block bloom filter
 		k.SetBlockBloomTransient(ctx, bloom)
-		k.SetLogSizeTransient(ctx, uint64(txConfig.LogIndex)+uint64(len(logs)))
+		k.SetLogSizeTransient(ctx, uint64(txConfig.LogIndex)+uint64(len(ethLogs)))
 	}
 
 	k.SetTxIndexTransient(ctx, uint64(txConfig.TxIndex)+1)
@@ -273,7 +278,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer *tracing.Hooks,
 	commit bool,
 ) (*types.MsgEthereumTxResponse, error) {
-	cfg, err := k.EVMConfig(ctx, sdk.ConsAddress(ctx.BlockHeader().ProposerAddress))
+	cfg, err := k.EVMConfig(ctx, ctx.BlockHeader().ProposerAddress)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}
