@@ -153,3 +153,15 @@ func Uint256FromBigInt(i *big.Int) (*uint256.Int, error) {
 	}
 	return result, nil
 }
+
+// Bytes32ToString converts a bytes32 value to string by trimming null bytes
+func Bytes32ToString(data [32]byte) string {
+	// Find the first null byte
+	var i int
+	for i = 0; i < len(data); i++ {
+		if data[i] == 0 {
+			break
+		}
+	}
+	return string(data[:i])
+}
