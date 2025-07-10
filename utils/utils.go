@@ -144,6 +144,9 @@ func SortSlice[T constraints.Ordered](slice []T) {
 }
 
 func Uint256FromBigInt(i *big.Int) (*uint256.Int, error) {
+	if i.Sign() < 0 {
+		return nil, fmt.Errorf("trying to convert negative *big.Int (%d) to uint256.Int", i)
+	}
 	result, overflow := uint256.FromBig(i)
 	if overflow {
 		return nil, fmt.Errorf("overflow trying to convert *big.Int (%d) to uint256.Int (%s)", i, result)

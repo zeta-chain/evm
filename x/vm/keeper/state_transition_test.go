@@ -895,3 +895,47 @@ func (suite *KeeperTestSuite) TestGetProposerAddress() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestApplyMessageWithNegativeAmount() {
+	suite.enableFeemarket = true
+	defer func() { suite.enableFeemarket = false }()
+	suite.SetupTest()
+
+	// Generate a transfer tx message
+	sender := suite.keyring.GetKey(0)
+	recipient := suite.keyring.GetAddr(1)
+	amt, _ := big.NewInt(0).SetString("-115792089237316195423570985008687907853269984665640564039457584007913129639935", 10)
+	transferArgs := types.EvmTxArgs{
+		To:     &recipient,
+		Amount: amt,
+	}
+	coreMsg, err := suite.factory.GenerateGethCoreMsg(
+		sender.Priv,
+		transferArgs,
+	)
+	suite.Require().NoError(err)
+
+	tracer := suite.network.App.EVMKeeper.Tracer(
+		suite.network.GetContext(),
+		*coreMsg,
+		types.GetEthChainConfig(),
+	)
+
+	ctx := suite.network.GetContext()
+	balance0Before := suite.network.App.BankKeeper.GetBalance(ctx, suite.keyring.GetAccAddr(0), "aatom")
+	balance1Before := suite.network.App.BankKeeper.GetBalance(ctx, suite.keyring.GetAccAddr(1), "aatom")
+	res, err := suite.network.App.EVMKeeper.ApplyMessage(
+		suite.network.GetContext(),
+		*coreMsg,
+		tracer,
+		true,
+	)
+	suite.Require().Nil(res)
+	suite.Require().Error(err)
+
+	balance0After := suite.network.App.BankKeeper.GetBalance(ctx, suite.keyring.GetAccAddr(0), "aatom")
+	balance1After := suite.network.App.BankKeeper.GetBalance(ctx, suite.keyring.GetAccAddr(1), "aatom")
+
+	suite.Require().Equal(balance0Before, balance0After)
+	suite.Require().Equal(balance1Before, balance1After)
+}
