@@ -109,6 +109,9 @@ const (
 
 	// DefaultGasAdjustment value to use as default in gas-adjustment flag
 	DefaultGasAdjustment = 1.2
+
+	// DefaultWSOrigins is the default origin for WebSocket connections
+	DefaultWSOrigins = "127.0.0.1"
 )
 
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}
@@ -182,6 +185,8 @@ type JSONRPCConfig struct {
 	MetricsAddress string `mapstructure:"metrics-address"`
 	// FixRevertGasRefundHeight defines the upgrade height for fix of revert gas refund logic when transaction reverted
 	FixRevertGasRefundHeight int64 `mapstructure:"fix-revert-gas-refund-height"`
+	// WSOrigins defines the allowed origins for WebSocket connections
+	WSOrigins []string `mapstructure:"ws-origins"`
 }
 
 // TLSConfig defines the certificate and matching private key for the server.
@@ -221,6 +226,11 @@ func GetAPINamespaces() []string {
 	return []string{"web3", "eth", "personal", "net", "txpool", "debug", "miner"}
 }
 
+// GetDefaultWSOrigins returns the default WebSocket origins.
+func GetDefaultWSOrigins() []string {
+	return []string{DefaultWSOrigins, "localhost"}
+}
+
 // DefaultJSONRPCConfig returns an EVM config with the JSON-RPC API enabled by default
 func DefaultJSONRPCConfig() *JSONRPCConfig {
 	return &JSONRPCConfig{
@@ -245,6 +255,7 @@ func DefaultJSONRPCConfig() *JSONRPCConfig {
 		EnableIndexer:            false,
 		MetricsAddress:           DefaultJSONRPCMetricsAddress,
 		FixRevertGasRefundHeight: DefaultFixRevertGasRefundHeight,
+		WSOrigins:                GetDefaultWSOrigins(),
 	}
 }
 
