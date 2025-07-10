@@ -46,7 +46,7 @@ func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
 		return 0, fmt.Errorf("failed to parse block height: %w", err)
 	}
 
-	if height > math.MaxInt64 {
+	if height > math.MaxUint64 {
 		return 0, fmt.Errorf("block height %d is greater than max uint64", height)
 	}
 
