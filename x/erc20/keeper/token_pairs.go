@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"slices"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/evm/utils"
@@ -120,15 +122,16 @@ func (k Keeper) GetDenomMap(ctx sdk.Context, denom string) []byte {
 	return store.Get([]byte(denom))
 }
 
-func (k Keeper) GetNativePrecompiles(ctx sdk.Context) map[string]bool {
+func (k Keeper) GetNativePrecompiles(ctx sdk.Context) []string {
 	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
 	defer iterator.Close()
 
-	nps := make(map[string]bool)
+	nps := make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
-		nps[string(iterator.Key())] = true
+		nps = append(nps, string(iterator.Key()))
 	}
 
+	slices.Sort(nps)
 	return nps
 }
 
@@ -142,15 +145,16 @@ func (k Keeper) SetNativePrecompile(ctx sdk.Context, precompile common.Address) 
 	store.Set([]byte(precompile.Hex()), isTrue)
 }
 
-func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) map[string]bool {
+func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) []string {
 	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
 	defer iterator.Close()
 
-	dps := make(map[string]bool)
+	dps := make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
-		dps[string(iterator.Key())] = true
+		dps = append(dps, string(iterator.Key()))
 	}
 
+	slices.Sort(dps)
 	return dps
 }
 

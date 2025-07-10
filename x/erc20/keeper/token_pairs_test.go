@@ -324,3 +324,19 @@ func (suite *KeeperTestSuite) TestGetTokenDenom() {
 		})
 	}
 }
+
+func (suite *KeeperTestSuite) TestGetNativePrecompiles() {}
+
+func (suite *KeeperTestSuite) TestGetDynamicPrecompiles() {}
+
+func (suite *KeeperTestSuite) TestSetNativePrecompile() {}
+
+func (suite *KeeperTestSuite) TestSetDynamicPrecompile() {}
+
+func (suite *KeeperTestSuite) TestDeleteNativePrecompile() {}
+
+func (suite *KeeperTestSuite) TestDeleteDynamicPrecompile() {}
+
+func (suite *KeeperTestSuite) TestIsNativePrecompileAvailable() {}
+
+func (suite *KeeperTestSuite) TestIsDynamicPrecompileAvailable() {}
