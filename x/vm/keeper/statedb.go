@@ -263,11 +263,17 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 		return err
 	}
 
+	var keys []common.Hash
+
 	// clear storage
 	k.ForEachStorage(ctx, addr, func(key, _ common.Hash) bool {
-		k.DeleteState(ctx, addr, key)
+		keys = append(keys, key)
 		return true
 	})
+
+	for _, key := range keys {
+		k.DeleteState(ctx, addr, key)
+	}
 
 	// clear code hash
 	k.DeleteCodeHash(ctx, addr)
