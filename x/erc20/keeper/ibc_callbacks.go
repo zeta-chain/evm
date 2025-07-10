@@ -171,6 +171,10 @@ func (k Keeper) OnRecvPacket(
 // acknowledgement written on the receiving chain. If the acknowledgement was a
 // success then nothing occurs. If the acknowledgement failed, then the sender
 // is refunded and then the IBC Coins are converted to ERC20.
+// If the ERC20 conversion fails for whatever reason, such as an attempt to call
+// a self-destructed ERC20 contract or an invalid function, OnAcknowledgementPacket
+// still succeeds, but the user receives the corresponding bank token from the
+// TokenPair instead. A user may then manually re-attempt the conversion.
 func (k Keeper) OnAcknowledgementPacket(
 	ctx sdk.Context, _ channeltypes.Packet,
 	data transfertypes.FungibleTokenPacketData,
@@ -189,6 +193,10 @@ func (k Keeper) OnAcknowledgementPacket(
 
 // OnTimeoutPacket converts the IBC coin to ERC20 after refunding the sender
 // since the original packet sent was never received and has been timed out.
+// If the ERC20 conversion fails for whatever reason, such as an attempt to call
+// a self-destructed ERC20 contract or an invalid function, OnTimeoutPacket still
+// succeeds, but the user receives the corresponding bank token from the TokenPair
+// instead. A user may then manually re-attempt the conversion.
 func (k Keeper) OnTimeoutPacket(ctx sdk.Context, _ channeltypes.Packet, data transfertypes.FungibleTokenPacketData) error {
 	return k.ConvertCoinToERC20FromPacket(ctx, data)
 }
@@ -243,8 +251,17 @@ func (k Keeper) ConvertCoinToERC20FromPacket(ctx sdk.Context, data transfertypes
 			defer func() {
 				telemetry.IncrCounter(1, types.ModuleName, "ibc", "error", "total")
 			}()
-
-			return err
+			ctx.EventManager().EmitEvents(
+				sdk.Events{
+					sdk.NewEvent(
+						types.EventTypeFailedConvertERC20,
+						sdk.NewAttribute(types.AttributeCoinSourceChannel, pair.Denom),
+						sdk.NewAttribute(types.AttributeKeyERC20Token, pair.Erc20Address),
+						sdk.NewAttribute("error", err.Error()),
+					),
+				},
+			)
+			return nil
 		}
 	}
 
