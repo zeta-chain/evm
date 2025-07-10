@@ -396,8 +396,7 @@ func (k Keeper) EstimateGasInternal(c context.Context, req *types.EthCallRequest
 				return true, nil, err
 			}
 			// resetting the gasMeter after increasing the sequence to have an accurate gas estimation on EVM extensions transactions
-			gasMeter := cosmosevmtypes.NewInfiniteGasMeterWithLimit(msg.GasLimit)
-			tmpCtx = evmante.BuildEvmExecutionCtx(tmpCtx).WithGasMeter(gasMeter)
+			tmpCtx = buildTraceCtx(tmpCtx, msg.GasLimit)
 		}
 		// pass false to not commit StateDB
 		rsp, err = k.ApplyMessageWithConfig(tmpCtx, msg, nil, false, cfg, txConfig)
@@ -442,7 +441,7 @@ func (k Keeper) EstimateGasInternal(c context.Context, req *types.EthCallRequest
 
 // TraceTx configures a new tracer according to the provided configuration, and
 // executes the given message in the provided environment. The return value will
-// be tracer dependent.
+// be tracer-dependent.
 func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*types.QueryTraceTxResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
@@ -496,9 +495,8 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		}
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i) //nolint:gosec // G115 // won't exceed uint64
-		// reset gas meter for each transaction
-		ctx = evmante.BuildEvmExecutionCtx(ctx).
-			WithGasMeter(cosmosevmtypes.NewInfiniteGasMeterWithLimit(msg.GasLimit))
+
+		ctx = buildTraceCtx(ctx, msg.GasLimit)
 		rsp, err := k.ApplyMessageWithConfig(ctx, *msg, nil, true, cfg, txConfig)
 		if err != nil {
 			continue
@@ -615,7 +613,7 @@ func (k *Keeper) traceTx(
 	traceConfig *types.TraceConfig,
 	commitMessage bool,
 	tracerJSONConfig json.RawMessage,
-) (*interface{}, uint, error) {
+) (*any, uint, error) {
 	// Assemble the structured logger or the JavaScript tracer
 	var (
 		tracer    *tracers.Tracer
@@ -684,8 +682,7 @@ func (k *Keeper) traceTx(
 	}()
 
 	// Build EVM execution context
-	ctx = evmante.BuildEvmExecutionCtx(ctx).
-		WithGasMeter(cosmosevmtypes.NewInfiniteGasMeterWithLimit(msg.GasLimit))
+	ctx = buildTraceCtx(ctx, msg.GasLimit)
 	res, err := k.ApplyMessageWithConfig(ctx, *msg, tracer.Hooks, commitMessage, cfg, txConfig)
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
@@ -729,4 +726,12 @@ func (k Keeper) Config(_ context.Context, _ *types.QueryConfigRequest) (*types.Q
 	config.Decimals = uint64(types.GetEVMCoinDecimals())
 
 	return &types.QueryConfigResponse{Config: config}, nil
+}
+
+// buildTraceCtx builds a context for simulating or tracing transactions by:
+// 1. assigning a new infinite gas meter with the provided gasLimit
+// 2. calling BuildEvmExecutionCtx to set up gas configs consistent with Ethereum transaction execution.
+func buildTraceCtx(ctx sdk.Context, gasLimit uint64) sdk.Context {
+	return evmante.BuildEvmExecutionCtx(ctx).
+		WithGasMeter(cosmosevmtypes.NewInfiniteGasMeterWithLimit(gasLimit))
 }
