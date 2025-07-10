@@ -231,7 +231,7 @@ func (suite *MiddlewareTestSuite) TestOnRecvPacketNativeErc20() {
 	path := suite.pathAToB
 	chainBAccount := suite.chainB.SenderAccount.GetAddress()
 
-	sendAmt := math.NewIntFromBigInt(nativeErc20.InitialBal)
+	sendAmt := math.NewIntFromBigInt(nativeErc20.InitialBal).Quo(math.NewInt(2))
 	senderEthAddr := nativeErc20.Account
 	sender := sdk.AccAddress(senderEthAddr.Bytes())
 
@@ -241,6 +241,7 @@ func (suite *MiddlewareTestSuite) TestOnRecvPacketNativeErc20() {
 		sender.String(), chainBAccount.String(),
 		timeoutHeight, 0, "",
 	)
+
 	_, err := suite.evmChainA.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
@@ -249,6 +250,16 @@ func (suite *MiddlewareTestSuite) TestOnRecvPacketNativeErc20() {
 		new(big.Int).Sub(nativeErc20.InitialBal, sendAmt.BigInt()).String(),
 		balAfterTransfer.String(),
 	)
+
+	convertMsg := types.MsgConvertERC20{
+		ContractAddress: nativeErc20.ContractAddr.String(),
+		Amount:          sendAmt,
+		Receiver:        sender.String(),
+		Sender:          senderEthAddr.String(),
+	}
+
+	_, err = suite.evmChainA.SendMsgs(&convertMsg)
+	suite.Require().NoError(err) // message committed
 
 	// Check native erc20 token is escrowed on evmChainA for sending to chainB.
 	escrowAddr := transfertypes.GetEscrowAddress(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID)
@@ -300,9 +311,9 @@ func (suite *MiddlewareTestSuite) TestOnRecvPacketNativeErc20() {
 	escrowedBal = evmApp.BankKeeper.GetBalance(evmCtx, escrowAddr, nativeErc20.Denom)
 	suite.Require().True(escrowedBal.IsZero(), "escrowed balance should be un-escrowed after receiving the packet")
 	balAfterUnescrow := evmApp.Erc20Keeper.BalanceOf(evmCtx, nativeErc20.ContractAbi, nativeErc20.ContractAddr, senderEthAddr)
-	suite.Require().Equal(nativeErc20.InitialBal.String(), balAfterUnescrow.String())
+	suite.Require().Equal(math.NewIntFromBigInt(nativeErc20.InitialBal).Quo(math.NewInt(2)).String(), balAfterUnescrow.String())
 	bankBalAfterUnescrow := evmApp.BankKeeper.GetBalance(evmCtx, sender, nativeErc20.Denom)
-	suite.Require().True(bankBalAfterUnescrow.IsZero(), "no duplicate state in the bank balance")
+	suite.Require().Equal(bankBalAfterUnescrow.Amount, math.NewIntFromBigInt(nativeErc20.InitialBal).Quo(math.NewInt(2)), "no duplicate state in the bank balance")
 }
 
 func (suite *MiddlewareTestSuite) TestOnAcknowledgementPacket() {

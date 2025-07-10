@@ -136,8 +136,7 @@ func (k Keeper) OnRecvPacket(
 			return ack
 		}
 
-		balance := k.bankKeeper.GetBalance(ctx, recipient, coin.Denom)
-		if err := k.ConvertCoinNativeERC20(ctx, pair, balance.Amount, common.BytesToAddress(recipient.Bytes()), recipient); err != nil {
+		if err := k.ConvertCoinNativeERC20(ctx, pair, coin.Amount, common.BytesToAddress(recipient.Bytes()), recipient); err != nil {
 			return channeltypes.NewErrorAcknowledgement(err)
 		}
 
