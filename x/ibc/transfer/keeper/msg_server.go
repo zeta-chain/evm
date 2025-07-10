@@ -43,7 +43,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 	}()
 
 	// use native denom or contract address
-	denom := strings.TrimPrefix(msg.Token.Denom, erc20types.ModuleName+"/")
+	denom := strings.TrimPrefix(msg.Token.Denom, erc20types.Erc20NativeCoinDenomPrefix)
 
 	pairID := k.erc20Keeper.GetTokenPairID(ctx, denom)
 	if len(pairID) == 0 {
