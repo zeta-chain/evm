@@ -433,9 +433,9 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		return nil, errorsmod.Wrapf(types.ErrGasOverflow, "message gas limit < leftover gas (%d < %d)", msg.GasLimit, leftoverGas)
 	}
 
-	gasUsed := math.LegacyMaxDec(minimumGasUsed, math.LegacyNewDec(int64(temporaryGasUsed))).TruncateInt().Uint64() //#nosec G115 -- int overflow is not a concern here
-	if internal {
-		gasUsed = math.LegacyNewDec(int64(temporaryGasUsed)).TruncateInt().Uint64() //#nosec G115 -- int overflow is not a concern here
+	gasUsed = math.LegacyNewDec(int64(temporaryGasUsed)).TruncateInt().Uint64() //#nosec G115 -- int overflow is not a concern here
+	if !internal {
+		gasUsed = math.LegacyMaxDec(gasUsed, minimumGasUsed)
 	}
 	// reset leftoverGas, to be used by the tracer
 	leftoverGas = msg.GasLimit - gasUsed
