@@ -147,7 +147,7 @@ func (f *Filter) Logs(_ context.Context, logLimit int, blockLimit int64) ([]*eth
 
 	// check bounds
 	if f.criteria.FromBlock.Int64() > head {
-		return []*ethtypes.Log{}, nil
+		return nil, fmt.Errorf("invalid block range params: from block [%d] is greater than head block [%d]", f.criteria.FromBlock.Int64(), head)
 	} else if f.criteria.ToBlock.Int64() > head+maxToOverhang {
 		f.criteria.ToBlock = big.NewInt(head + maxToOverhang)
 	}
