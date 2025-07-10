@@ -31,7 +31,10 @@ func InitGenesis(
 	}
 
 	for _, pair := range data.TokenPairs {
-		k.SetToken(ctx, pair)
+		err := k.SetToken(ctx, pair)
+		if err != nil {
+			return
+		}
 	}
 
 	for _, allowance := range data.Allowances {

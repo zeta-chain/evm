@@ -10,8 +10,10 @@ import (
 	"github.com/cosmos/evm/contracts"
 	"github.com/cosmos/evm/crypto/ethsecp256k1"
 	"github.com/cosmos/evm/testutil"
+	"github.com/cosmos/evm/utils"
 	"github.com/cosmos/evm/x/erc20/keeper"
 	"github.com/cosmos/evm/x/erc20/types"
+	"github.com/cosmos/evm/x/vm/statedb"
 	evmtypes "github.com/cosmos/evm/x/vm/types"
 	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types"
@@ -29,7 +31,7 @@ import (
 
 var erc20Denom = "erc20:0xdac17f958d2ee523a2206206994597c13d831ec7"
 
-func (suite *KeeperTestSuite) TestOnRecvPacket() {
+func (suite *KeeperTestSuite) TestOnRecvPacketRegistered() {
 	var ctx sdk.Context
 	// secp256k1 account
 	secpPk := secp256k1.GenPrivKey()
@@ -197,6 +199,62 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			checkBalances: true,
 		},
 		{
+			name: "error - pair is not registered but erc20 registered",
+			malleate: func() {
+				transfer := transfertypes.NewFungibleTokenPacketData(erc20Denom, "100", secpAddrCosmos, ethsecpAddrEvmos, "")
+				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
+				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, cosmosEVMChannel, timeoutHeight, 0)
+				collidedAddr, err := utils.GetIBCDenomAddress(transfertypes.NewDenom(erc20Denom, hop).IBCDenom())
+				suite.Require().NoError(err)
+				suite.network.App.Erc20Keeper.SetERC20Map(ctx, collidedAddr, []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+				suite.Require().True(suite.network.App.Erc20Keeper.IsERC20Registered(ctx, collidedAddr))
+			},
+			ackSuccess:    false,
+			receiver:      secpAddr,
+			expErc20s:     big.NewInt(0),
+			expCoins:      coins,
+			checkBalances: false,
+		},
+		{
+			name: "error - pair is not registered but denom registered",
+			malleate: func() {
+				transfer := transfertypes.NewFungibleTokenPacketData(erc20Denom, "100", secpAddrCosmos, ethsecpAddrEvmos, "")
+				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
+				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, cosmosEVMChannel, timeoutHeight, 0)
+				collidedDenom := transfertypes.NewDenom(erc20Denom, hop).IBCDenom()
+				suite.network.App.Erc20Keeper.SetDenomMap(ctx, collidedDenom, []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})
+				suite.Require().True(suite.network.App.Erc20Keeper.IsDenomRegistered(ctx, collidedDenom))
+			},
+			ackSuccess:    false,
+			receiver:      secpAddr,
+			expErc20s:     big.NewInt(0),
+			expCoins:      coins,
+			checkBalances: false,
+		},
+		{
+			name: "error - pair is not registered but address has code",
+			malleate: func() {
+				transfer := transfertypes.NewFungibleTokenPacketData(erc20Denom, "100", secpAddrCosmos, ethsecpAddrEvmos, "")
+				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
+				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, cosmosEVMChannel, timeoutHeight, 0)
+				collidedAddr, err := utils.GetIBCDenomAddress(transfertypes.NewDenom(erc20Denom, hop).IBCDenom())
+				suite.Require().NoError(err)
+				suite.Require().False(suite.network.App.Erc20Keeper.IsERC20Registered(ctx, collidedAddr))
+				err = suite.network.App.EVMKeeper.SetAccount(ctx, collidedAddr, statedb.Account{
+					Nonce:    0,
+					Balance:  nil,
+					CodeHash: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+				})
+				suite.Require().NoError(err)
+				suite.Require().True(suite.network.App.EVMKeeper.IsContract(ctx, collidedAddr))
+			},
+			ackSuccess:    false,
+			receiver:      secpAddr,
+			expErc20s:     big.NewInt(0),
+			expCoins:      coins,
+			checkBalances: false,
+		},
+		{
 			name: "no-op - pair disabled",
 			malleate: func() {
 				pk1 := secp256k1.GenPrivKey()
@@ -224,8 +282,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 			suite.mintFeeCollector = true
 			suite.SetupTest() // reset
 			ctx = suite.network.GetContext()
-
-			tc.malleate()
 
 			// Register Token Pair for testing
 			contractAddr, err := suite.setupRegisterERC20Pair(contractMinterBurner)
@@ -282,6 +338,8 @@ func (suite *KeeperTestSuite) TestOnRecvPacket() {
 				})
 				suite.Require().NoError(err)
 			}
+
+			tc.malleate()
 
 			// Perform IBC callback
 			ack := suite.network.App.Erc20Keeper.OnRecvPacket(ctx, packet, expAck)

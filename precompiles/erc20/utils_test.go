@@ -143,14 +143,17 @@ func (s *PrecompileTestSuite) requireAllowance(erc20Addr, owner, spender common.
 // setupERC20Precompile is a helper function to set up an instance of the ERC20 precompile for
 // a given token denomination, set the token pair in the ERC20 keeper and adds the precompile
 // to the available and active precompiles.
-func (s *PrecompileTestSuite) setupERC20Precompile(denom string) *erc20.Precompile {
+func (s *PrecompileTestSuite) setupERC20Precompile(denom string) (*erc20.Precompile, error) {
 	tokenPair := erc20types.NewTokenPair(utiltx.GenerateAddress(), denom, erc20types.OWNER_MODULE)
-	s.network.App.Erc20Keeper.SetToken(s.network.GetContext(), tokenPair)
+	err := s.network.App.Erc20Keeper.SetToken(s.network.GetContext(), tokenPair)
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to set token")
+	}
 
 	precompile, err := setupERC20PrecompileForTokenPair(*s.network, tokenPair)
 	s.Require().NoError(err, "failed to set up %q erc20 precompile", tokenPair.Denom)
 
-	return precompile
+	return precompile, nil
 }
 
 // setupERC20Precompile is a helper function to set up an instance of the ERC20 precompile for
