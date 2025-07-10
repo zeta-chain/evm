@@ -21,16 +21,14 @@ const (
 	// abiPath defines the path to the ERC-20 precompile ABI JSON file.
 	abiPath = "abi.json"
 
-	GasTransfer          = 3_000_000
-	GasApprove           = 30_956
-	GasIncreaseAllowance = 34_605
-	GasDecreaseAllowance = 34_519
-	GasName              = 3_421
-	GasSymbol            = 3_464
-	GasDecimals          = 427
-	GasTotalSupply       = 2_477
-	GasBalanceOf         = 2_851
-	GasAllowance         = 3_246
+	GasTransfer    = 3_000_000
+	GasApprove     = 30_956
+	GasName        = 3_421
+	GasSymbol      = 3_464
+	GasDecimals    = 427
+	GasTotalSupply = 2_477
+	GasBalanceOf   = 2_851
+	GasAllowance   = 3_246
 )
 
 // Embed abi json file to the executable binary. Needed when importing as dependency.
@@ -103,10 +101,6 @@ func (p Precompile) RequiredGas(input []byte) uint64 {
 		return GasTransfer
 	case ApproveMethod:
 		return GasApprove
-	case IncreaseAllowanceMethod:
-		return GasIncreaseAllowance
-	case DecreaseAllowanceMethod:
-		return GasDecreaseAllowance
 	// ERC-20 queries
 	case NameMethod:
 		return GasName
@@ -167,9 +161,7 @@ func (Precompile) IsTransaction(method *abi.Method) bool {
 	switch method.Name {
 	case TransferMethod,
 		TransferFromMethod,
-		ApproveMethod,
-		IncreaseAllowanceMethod,
-		DecreaseAllowanceMethod:
+		ApproveMethod:
 		return true
 	default:
 		return false
@@ -192,10 +184,6 @@ func (p *Precompile) HandleMethod(
 		bz, err = p.TransferFrom(ctx, contract, stateDB, method, args)
 	case ApproveMethod:
 		bz, err = p.Approve(ctx, contract, stateDB, method, args)
-	case IncreaseAllowanceMethod:
-		bz, err = p.IncreaseAllowance(ctx, contract, stateDB, method, args)
-	case DecreaseAllowanceMethod:
-		bz, err = p.DecreaseAllowance(ctx, contract, stateDB, method, args)
 	// ERC-20 queries
 	case NameMethod:
 		bz, err = p.Name(ctx, contract, stateDB, method, args)
