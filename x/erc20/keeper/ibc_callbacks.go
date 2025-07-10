@@ -55,22 +55,9 @@ func (k Keeper) OnRecvPacket(
 		WithKVGasConfig(storetypes.GasConfig{}).
 		WithTransientKVGasConfig(storetypes.GasConfig{})
 
-	sender, recipient, _, _, err := ibc.GetTransferSenderRecipient(data)
+	_, recipient, _, _, err := ibc.GetTransferSenderRecipient(data)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
-	evmParams := k.evmKeeper.GetParams(ctx)
-
-	// If we received an IBC message from a non-EVM channel,
-	// the sender and receiver accounts should be different.
-	//
-	// If its the same, users can have their funds stuck since they don't have access
-	// to the same priv key. Return an error to prevent this from happening.
-	//
-	// This is an assumption to prevent possibly wrong transactions.
-	if sender.Equals(recipient) && !evmParams.IsEVMChannel(packet.DestinationChannel) {
-		return channeltypes.NewErrorAcknowledgement(types.ErrInvalidIBC)
 	}
 
 	receiverAcc := k.accountKeeper.GetAccount(ctx, recipient)

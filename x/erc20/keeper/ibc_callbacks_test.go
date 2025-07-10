@@ -141,19 +141,6 @@ func (suite *KeeperTestSuite) TestOnRecvPacketRegistered() {
 			expCoins:      coins,
 		},
 		{
-			name: "error - sender == receiver, not from Evm channel",
-			malleate: func() {
-				transfer := transfertypes.NewFungibleTokenPacketData(registeredDenom, "100", ethsecpAddrEvmos, ethsecpAddrCosmos, "")
-				bz := transfertypes.ModuleCdc.MustMarshalJSON(&transfer)
-				packet = channeltypes.NewPacket(bz, 1, transfertypes.PortID, sourceChannel, transfertypes.PortID, "channel-100", timeoutHeight, 0)
-			},
-			ackSuccess:    false,
-			receiver:      secpAddr,
-			expErc20s:     big.NewInt(0),
-			expCoins:      coins,
-			checkBalances: false,
-		},
-		{
 			name: "no-op - receiver is module account",
 			malleate: func() {
 				secpAddr = suite.network.App.AccountKeeper.GetModuleAccount(ctx, "erc20").GetAddress()
