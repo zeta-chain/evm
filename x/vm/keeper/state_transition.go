@@ -239,7 +239,6 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 			k.Logger(ctx).Error("tx post processing failed", "error", err)
 			// If the tx failed in post processing hooks, we should clear all log-related data
 			// to match EVM behavior where transaction reverts clear all effects including logs
-			ethLogs = nil
 			res.Logs = nil
 			receipt.Logs = nil
 			receipt.Bloom = ethtypes.Bloom{} // Clear bloom filter

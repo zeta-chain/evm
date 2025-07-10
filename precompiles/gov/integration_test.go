@@ -1962,7 +1962,6 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 			Expect(deposits).To(HaveLen(2))
 			Expect(deposits[0].Amount[0].Amount).To(Equal(math.NewInt(100)))
 			Expect(deposits[1].Amount[0].Amount).To(Equal(math.NewInt(100)))
-
 		})
 
 		Describe("test transferCancelFund",
