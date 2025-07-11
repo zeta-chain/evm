@@ -1,6 +1,7 @@
 package erc20_test
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"slices"
@@ -15,13 +16,13 @@ import (
 	"github.com/cosmos/evm/precompiles/testutil"
 	"github.com/cosmos/evm/testutil/integration/os/factory"
 	network "github.com/cosmos/evm/testutil/integration/os/network"
-	testutils "github.com/cosmos/evm/testutil/integration/os/utils"
 	utiltx "github.com/cosmos/evm/testutil/tx"
 	erc20types "github.com/cosmos/evm/x/erc20/types"
 	evmtypes "github.com/cosmos/evm/x/vm/types"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -206,34 +207,31 @@ func setupERC20PrecompileForTokenPair(
 // setupNewERC20PrecompileForTokenPair is a helper function to set up an instance of the ERC20 precompile for
 // a given token pair and adds the precompile to the available and active precompiles.
 // This function should be used for integration tests
-func setupNewERC20PrecompileForTokenPair(
-	privKey cryptotypes.PrivKey,
-	unitNetwork *network.UnitTestNetwork,
-	tf factory.TxFactory, tokenPair erc20types.TokenPair,
+func (is *IntegrationTestSuite) setupNewERC20PrecompileForTokenPair(
+	tokenPair erc20types.TokenPair,
 ) (*erc20.Precompile, error) {
 	precompile, err := erc20.NewPrecompile(
 		tokenPair,
-		unitNetwork.App.BankKeeper,
-		unitNetwork.App.Erc20Keeper,
-		unitNetwork.App.TransferKeeper,
+		is.network.App.BankKeeper,
+		is.network.App.Erc20Keeper,
+		is.network.App.TransferKeeper,
 	)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "failed to create %q erc20 precompile", tokenPair.Denom)
 	}
 
 	// Update the params via gov proposal
-	if err := unitNetwork.App.Erc20Keeper.EnableDynamicPrecompile(unitNetwork.GetContext(), precompile.Address()); err != nil {
+	if err := is.network.App.Erc20Keeper.EnableDynamicPrecompile(is.network.GetContext(), precompile.Address()); err != nil {
 		return nil, err
 	}
 
-	params := unitNetwork.App.Erc20Keeper.GetParams(unitNetwork.GetContext())
-	if err := testutils.UpdateERC20Params(testutils.UpdateParamsInput{
-		Pk:      privKey,
-		Tf:      tf,
-		Network: unitNetwork,
-		Params:  params,
-	}); err != nil {
-		return nil, errorsmod.Wrapf(err, "failed to add %q erc20 precompile to EVM extensions", tokenPair.Denom)
+	// We must directly commit keeper calls to state, otherwise they get
+	// fully wiped when the next block finalizes.
+	store := is.network.GetContext().MultiStore()
+	if cms, ok := store.(storetypes.CacheMultiStore); ok {
+		cms.Write()
+	} else {
+		return nil, errors.New("store is not a CacheMultiStore")
 	}
 
 	return precompile, nil

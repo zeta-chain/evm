@@ -1879,7 +1879,7 @@ var _ = Describe("ERC20 Extension -", func() {
 				Expect(tokenPairs).To(HaveLen(1))
 
 				// overwrite the other precompile with this one, so that the test utils like is.getTxAndCallArgs still work.
-				is.precompile, err = setupNewERC20PrecompileForTokenPair(is.keyring.GetPrivKey(0), is.network, is.factory, tokenPairs[0])
+				is.precompile, err = is.setupNewERC20PrecompileForTokenPair(tokenPairs[0])
 				Expect(err).ToNot(HaveOccurred(), "failed to set up erc20 precompile")
 
 				// commit changes to chain state
