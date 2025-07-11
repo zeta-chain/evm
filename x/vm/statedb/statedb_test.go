@@ -67,7 +67,11 @@ func (suite *StateDBTestSuite) TestAccount() {
 			suite.Require().Equal(common.BytesToHash(mocks.EmptyCodeHash), db.GetCodeHash(address))
 			suite.Require().Equal(uint64(0), db.GetNonce(address))
 		}},
+<<<<<<< HEAD
 		{"self-destruct", func(ctx sdk.Context, db *statedb.StateDB) {
+=======
+		{"suicide", func(ctx sdk.Context, db *statedb.StateDB) {
+>>>>>>> origin/fix/multistore-snapshot
 			// non-exist account.
 			db.SelfDestruct(address)
 			suite.Require().False(db.HasSelfDestructed(address))
@@ -103,6 +107,7 @@ func (suite *StateDBTestSuite) TestAccount() {
 			// and cleared in keeper too
 			keeper := db.Keeper().(*mocks.EVMKeeper)
 			keeper.ForEachStorage(ctx, address, func(key, value common.Hash) bool {
+<<<<<<< HEAD
 				suite.Require().Equal(0, len(value.Bytes()))
 				return true
 			})
@@ -187,6 +192,9 @@ func (suite *StateDBTestSuite) TestAccount() {
 			keeper.ForEachStorage(ctx, address, func(key, value common.Hash) bool {
 				suite.Require().Greater(len(value.Bytes()), 0)
 				return true
+=======
+				return len(value) == 0
+>>>>>>> origin/fix/multistore-snapshot
 			})
 		}},
 	}

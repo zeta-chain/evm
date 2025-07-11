@@ -84,7 +84,7 @@ func TestParseHexAddress(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-			require.Equal(t, common.Address(accAddr.Bytes()), addr)
+			require.Equal(t, common.BytesToAddress(accAddr), addr)
 		})
 	}
 }
@@ -149,8 +149,8 @@ func TestAfterBalanceChange(t *testing.T) {
 	require.NoError(t, err)
 	spenderAcc := addrs[0]
 	receiverAcc := addrs[1]
-	spender := common.Address(spenderAcc.Bytes())
-	receiver := common.Address(receiverAcc.Bytes())
+	spender := common.BytesToAddress(spenderAcc)
+	receiver := common.BytesToAddress(receiverAcc)
 
 	// initial balance for spender
 	stateDB.AddBalance(spender, uint256.NewInt(5), tracing.BalanceChangeUnspecified)

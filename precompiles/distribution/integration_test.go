@@ -2279,7 +2279,7 @@ var _ = Describe("Calling distribution precompile from contract", Ordered, func(
 
 			// set gas such that the internal keeper function called by the precompile fails out mid-execution
 			txArgs.GasLimit = 80_000
-			_, _, err = s.factory.CallContractAndCheckLogs(
+			_, txRes, err := s.factory.CallContractAndCheckLogs(
 				s.keyring.GetPrivKey(0),
 				txArgs,
 				callArgs,
@@ -2291,7 +2291,7 @@ var _ = Describe("Calling distribution precompile from contract", Ordered, func(
 			balRes, err := s.grpcHandler.GetBalanceFromBank(s.keyring.GetAccAddr(0), s.bondDenom)
 			Expect(err).To(BeNil())
 			finalBalance := balRes.Balance
-			expectedGasCost := math.NewInt(79_416_000_000_000)
+			expectedGasCost := math.NewIntFromUint64(txRes.GasUsed).Mul(math.NewIntFromBigInt(txArgs.GasPrice))
 			Expect(finalBalance.Amount.Equal(initialBalance.Amount.Sub(expectedGasCost))).To(BeTrue(), "expected final balance must be initial balance minus any gas spent")
 
 			res, err = s.grpcHandler.GetDelegationTotalRewards(s.keyring.GetAccAddr(0).String())
