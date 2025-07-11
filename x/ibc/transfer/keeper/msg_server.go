@@ -71,7 +71,7 @@ func (k Keeper) Transfer(goCtx context.Context, msg *types.MsgTransfer) (*types.
 		return k.Keeper.Transfer(ctx, msg)
 	}
 	// if the user has enough balance of the Cosmos representation, then we don't need to Convert
-	balance := k.bankKeeper.GetBalance(ctx, sender, pair.Denom)
+	balance := k.bankKeeper.SpendableCoin(ctx, sender, pair.Denom)
 	if balance.Amount.GTE(msg.Token.Amount) {
 
 		defer func() {

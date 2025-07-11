@@ -75,7 +75,7 @@ func (p Precompile) Withdraw(ctx sdk.Context, contract *vm.Contract, stateDB vm.
 
 	caller := contract.Caller()
 	callerAccAddress := sdk.AccAddress(caller.Bytes())
-	nativeBalance := p.BankKeeper.GetBalance(ctx, callerAccAddress, evmtypes.GetEVMCoinDenom())
+	nativeBalance := p.BankKeeper.SpendableCoin(ctx, callerAccAddress, evmtypes.GetEVMCoinDenom())
 	if nativeBalance.Amount.LT(amountInt) {
 		return nil, fmt.Errorf("account balance %v is lower than withdraw balance %v", nativeBalance.Amount, amountInt)
 	}

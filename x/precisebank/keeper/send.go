@@ -392,7 +392,7 @@ func (k Keeper) updateInsufficientFundsError(
 	}
 
 	// Check balance is sufficient
-	bal := k.GetBalance(ctx, addr, types.ExtendedCoinDenom())
+	bal := k.SpendableCoin(ctx, addr, types.ExtendedCoinDenom())
 	coin := sdk.NewCoin(types.ExtendedCoinDenom(), amt)
 
 	// TODO: This checks spendable coins and returns error with spendable
