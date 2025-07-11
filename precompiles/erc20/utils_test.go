@@ -122,7 +122,7 @@ func (s *PrecompileTestSuite) requireOut(
 		if ok {
 			bigOut, ok := out[0].(*big.Int)
 			s.Require().True(ok, "expected output to be a big.Int")
-			s.Require().Equal(bigExp.String(), bigOut.String(), "expected different value")
+			s.Require().Zero(bigExp.Cmp(bigOut), "expected different value")
 		} else {
 			s.Require().Equal(expValue, out[0], "expected different value")
 		}
