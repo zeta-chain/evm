@@ -567,13 +567,9 @@ func (suite *KeeperTestSuite) TestIsNativePrecompileAvailable() {
 			ctx = suite.network.GetContext()
 			tc.malleate()
 
-			for _, addr := range tc.addrs {
-				suite.network.App.Erc20Keeper.SetNativePrecompile(ctx, addr)
-			}
-
-			res := make([]bool, 0, len(tc.expRes))
-			for _, addr := range tc.addrs {
-				res = append(res, suite.network.App.Erc20Keeper.IsNativePrecompileAvailable(ctx, addr))
+			res := make([]bool, 0)
+			for _, x := range tc.addrs {
+				res = append(res, suite.network.App.Erc20Keeper.IsNativePrecompileAvailable(ctx, x))
 			}
 
 			suite.Require().ElementsMatch(res, tc.expRes, tc.name)
@@ -743,4 +739,56 @@ func (suite *KeeperTestSuite) TestDeleteDynamicPrecompile() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestIsDynamicPrecompileAvailable() {}
+func (suite *KeeperTestSuite) TestIsDynamicPrecompileAvailable() {
+	var ctx sdk.Context
+	testAddr := utiltx.GenerateAddress()
+	unavailableAddr := common.HexToAddress("unavailable")
+
+	testCases := []struct {
+		name     string
+		addrs    []common.Address
+		malleate func()
+		expRes   []bool
+	}{
+		{
+			"new dynamic precompile is available",
+			[]common.Address{testAddr},
+			func() {
+				suite.network.App.Erc20Keeper.SetDynamicPrecompile(ctx, testAddr)
+			},
+			[]bool{true},
+		},
+		{
+			"unavailable dynamic precompile is unavailable",
+			[]common.Address{unavailableAddr},
+			func() {},
+			[]bool{false},
+		},
+		{
+			"non-eip55 dynamic precompiles are available",
+			[]common.Address{
+				testAddr,
+				common.HexToAddress(strings.ToLower(testAddr.Hex())),
+				common.HexToAddress(strings.ToUpper(testAddr.Hex())),
+			},
+			func() {
+				suite.network.App.Erc20Keeper.SetDynamicPrecompile(ctx, testAddr)
+			},
+			[]bool{true, true, true},
+		},
+	}
+	for _, tc := range testCases {
+		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			suite.SetupTest()
+			ctx = suite.network.GetContext()
+			tc.malleate()
+
+			res := make([]bool, 0)
+			for _, x := range tc.addrs {
+				res = append(res, suite.network.App.Erc20Keeper.IsDynamicPrecompileAvailable(ctx, x))
+			}
+
+			suite.Require().ElementsMatch(res, tc.expRes, tc.name)
+		})
+	}
+}
