@@ -55,7 +55,7 @@ func (k Keeper) RegisterERC20CodeHash(ctx sdk.Context, erc20Addr common.Address)
 		balance = common.U2560
 	)
 	// keep balance and nonce if account exists
-	if acc := k.evmKeeper.GetAccount(ctx, erc20Addr); acc != nil { // can use spendable or total
+	if acc := k.evmKeeper.GetAccount(ctx, erc20Addr); acc != nil {
 		nonce = acc.Nonce
 		balance = acc.Balance
 	}
@@ -81,7 +81,7 @@ func (k Keeper) UnRegisterERC20CodeHash(ctx sdk.Context, erc20Addr common.Addres
 		balance = acc.Balance
 	}
 
-	return k.evmKeeper.SetAccount(ctx, erc20Addr, statedb.Account{ // can use spendable or total
+	return k.evmKeeper.SetAccount(ctx, erc20Addr, statedb.Account{
 		CodeHash: emptyCodeHash,
 		Nonce:    nonce,
 		Balance:  balance,
