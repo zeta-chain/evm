@@ -376,6 +376,7 @@ func (suite *KeeperTestSuite) TestGetDynamicPrecompiles() {
 		})
 	}
 }
+
 func (suite *KeeperTestSuite) TestSetDynamicPrecompile() {
 	var ctx sdk.Context
 	testAddr := utiltx.GenerateAddress()
