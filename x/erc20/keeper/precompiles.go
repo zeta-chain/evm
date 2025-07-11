@@ -2,14 +2,18 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/cosmos/evm/precompiles/erc20"
 	"github.com/cosmos/evm/precompiles/werc20"
+	"github.com/cosmos/evm/x/erc20/types"
 
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -93,4 +97,62 @@ func (k Keeper) EnableNativePrecompile(ctx sdk.Context, addr common.Address) err
 	}
 	k.SetNativePrecompile(ctx, addr)
 	return nil
+}
+
+func (k Keeper) GetNativePrecompiles(ctx sdk.Context) []string {
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	defer iterator.Close()
+
+	nps := make([]string, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		key := iterator.Key()[len(types.KeyPrefixNativePrecompiles):]
+		nps = append(nps, string(key))
+	}
+
+	slices.Sort(nps)
+	return nps
+}
+
+func (k Keeper) IsNativePrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	return store.Has([]byte(precompile.Hex()))
+}
+
+func (k Keeper) SetNativePrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	store.Set([]byte(precompile.Hex()), isTrue)
+}
+
+func (k Keeper) DeleteNativePrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
+	store.Delete([]byte(precompile.Hex()))
+}
+
+func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) []string {
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	defer iterator.Close()
+
+	dps := make([]string, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		key := iterator.Key()[len(types.KeyPrefixDynamicPrecompiles):]
+		dps = append(dps, string(key))
+	}
+
+	slices.Sort(dps)
+	return dps
+}
+
+func (k Keeper) IsDynamicPrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	return store.Has([]byte(precompile.Hex()))
+}
+
+func (k Keeper) SetDynamicPrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	store.Set([]byte(precompile.Hex()), isTrue)
+}
+
+func (k Keeper) DeleteDynamicPrecompile(ctx sdk.Context, precompile common.Address) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
+	store.Delete([]byte(precompile.Hex()))
 }

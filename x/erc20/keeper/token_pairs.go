@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"slices"
-
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/cosmos/evm/utils"
@@ -120,64 +118,6 @@ func (k Keeper) GetERC20Map(ctx sdk.Context, erc20 common.Address) []byte {
 func (k Keeper) GetDenomMap(ctx sdk.Context, denom string) []byte {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixTokenPairByDenom)
 	return store.Get([]byte(denom))
-}
-
-func (k Keeper) GetNativePrecompiles(ctx sdk.Context) []string {
-	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
-	defer iterator.Close()
-
-	nps := make([]string, 0)
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()[len(types.KeyPrefixNativePrecompiles):]
-		nps = append(nps, string(key))
-	}
-
-	slices.Sort(nps)
-	return nps
-}
-
-func (k Keeper) IsNativePrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
-	return store.Has([]byte(precompile.Hex()))
-}
-
-func (k Keeper) SetNativePrecompile(ctx sdk.Context, precompile common.Address) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
-	store.Set([]byte(precompile.Hex()), isTrue)
-}
-
-func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) []string {
-	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
-	defer iterator.Close()
-
-	dps := make([]string, 0)
-	for ; iterator.Valid(); iterator.Next() {
-		key := iterator.Key()[len(types.KeyPrefixDynamicPrecompiles):]
-		dps = append(dps, string(key))
-	}
-
-	slices.Sort(dps)
-	return dps
-}
-
-func (k Keeper) DeleteNativePrecompile(ctx sdk.Context, precompile common.Address) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
-	store.Delete([]byte(precompile.Hex()))
-}
-
-func (k Keeper) IsDynamicPrecompileAvailable(ctx sdk.Context, precompile common.Address) bool {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
-	return store.Has([]byte(precompile.Hex()))
-}
-
-func (k Keeper) SetDynamicPrecompile(ctx sdk.Context, precompile common.Address) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
-	store.Set([]byte(precompile.Hex()), isTrue)
-}
-
-func (k Keeper) DeleteDynamicPrecompile(ctx sdk.Context, precompile common.Address) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
-	store.Delete([]byte(precompile.Hex()))
 }
 
 // SetERC20Map sets the token pair id for the given address.
