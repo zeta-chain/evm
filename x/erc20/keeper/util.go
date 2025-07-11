@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"cosmossdk.io/errors"
 	types2 "github.com/cosmos/evm/x/erc20/types"
 	"github.com/cosmos/evm/x/vm/types"
+
+	"cosmossdk.io/errors"
 )
 
 // monitorApprovalEvent returns an error if the given transactions logs include

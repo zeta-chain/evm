@@ -1,9 +1,11 @@
 package keeper
 
 import (
-	"github.com/cosmos/evm/x/vm/types"
 	"testing"
+
 	"github.com/stretchr/testify/require"
+
+	"github.com/cosmos/evm/x/vm/types"
 )
 
 func TestMonitorApprovalEvent(t *testing.T) {
