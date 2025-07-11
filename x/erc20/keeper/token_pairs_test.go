@@ -214,7 +214,7 @@ func (suite *KeeperTestSuite) TestIsERC20Registered() {
 	}
 	for _, tc := range testCases {
 		suite.SetupTest()
-		ctx := suite.network.GetContext()
+		ctx = suite.network.GetContext()
 
 		suite.network.App.Erc20Keeper.SetToken(ctx, pair)
 
