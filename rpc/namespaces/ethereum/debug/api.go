@@ -3,10 +3,9 @@ package debug
 import (
 	"bytes"
 	"errors"
-	"github.com/cosmos/evm/server/config"
 	"io"
 	"os"
-	"runtime" // #nosec G702
+	"runtime"
 	"runtime/debug"
 	"runtime/pprof"
 	"sync"
@@ -20,6 +19,7 @@ import (
 
 	"github.com/cosmos/evm/rpc/backend"
 	rpctypes "github.com/cosmos/evm/rpc/types"
+	"github.com/cosmos/evm/server/config"
 	evmtypes "github.com/cosmos/evm/x/vm/types"
 
 	"cosmossdk.io/log"

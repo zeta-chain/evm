@@ -1,12 +1,13 @@
 package debug
 
 import (
-	"github.com/cosmos/evm/server/config"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime/pprof"
 	"strings"
+
+	"github.com/cosmos/evm/server/config"
 
 	"cosmossdk.io/log"
 

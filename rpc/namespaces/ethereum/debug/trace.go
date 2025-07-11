@@ -21,11 +21,12 @@ package debug
 
 import (
 	"errors"
-	rpctypes "github.com/cosmos/evm/rpc/types"
 	"os"
 	"runtime/trace"
 
 	stderrors "github.com/pkg/errors"
+
+	rpctypes "github.com/cosmos/evm/rpc/types"
 )
 
 // StartGoTrace turns on tracing, writing to the given file.
