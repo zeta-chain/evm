@@ -7,14 +7,20 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/evm/contracts"
 	"github.com/cosmos/evm/x/erc20/types"
-	evmtypes "github.com/cosmos/evm/x/vm/types"
-
-	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+)
+
+var (
+	logTransferSig     = []byte("Transfer(address,address,uint256)")
+	logTransferSigHash = crypto.Keccak256Hash(logTransferSig)
+
+	logApprovalSig     = []byte("Approval(address,address,uint256)")
+	logApprovalSigHash = crypto.Keccak256Hash(logApprovalSig)
 )
 
 // DeployERC20Contract creates and deploys an ERC20 contract on the EVM with the
@@ -130,48 +136,4 @@ func (k Keeper) BalanceOf(
 	}
 
 	return balance
-}
-
-// monitorApprovalEvent returns an error if the given transactions logs include
-// an unexpected `Approval` event
-func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error {
-	if res == nil || len(res.Logs) == 0 {
-		return nil
-	}
-
-	logApprovalSig := []byte("Approval(address,address,uint256)")
-	logApprovalSigHash := crypto.Keccak256Hash(logApprovalSig)
-
-	for _, log := range res.Logs {
-		if log.Topics[0] == logApprovalSigHash.Hex() {
-			return errorsmod.Wrapf(
-				types.ErrUnexpectedEvent, "unexpected Approval event",
-			)
-		}
-	}
-
-	return nil
-}
-
-// monitorApprovalEvent returns an error if the given transactions logs DO NOT include
-// an expected `Transfer` event
-func (k Keeper) monitorTransferEvent(res *evmtypes.MsgEthereumTxResponse) error {
-	if res == nil || len(res.Logs) == 0 {
-		return errorsmod.Wrapf(
-			types.ErrExpectedEvent, "expected Transfer event",
-		)
-	}
-
-	logTransferSig := []byte("Transfer(address,address,uint256)")
-	logTransferSigHash := crypto.Keccak256Hash(logTransferSig)
-
-	for _, log := range res.Logs {
-		if log.Topics[0] == logTransferSigHash.Hex() {
-			return nil
-		}
-	}
-
-	return errorsmod.Wrapf(
-		types.ErrExpectedEvent, "expected Transfer event",
-	)
 }
