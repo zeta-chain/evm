@@ -128,7 +128,8 @@ func (k Keeper) GetNativePrecompiles(ctx sdk.Context) []string {
 
 	nps := make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
-		nps = append(nps, string(iterator.Key()))
+		key := iterator.Key()[len(types.KeyPrefixNativePrecompiles):]
+		nps = append(nps, string(key))
 	}
 
 	slices.Sort(nps)
@@ -151,7 +152,8 @@ func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) []string {
 
 	dps := make([]string, 0)
 	for ; iterator.Valid(); iterator.Next() {
-		dps = append(dps, string(iterator.Key()))
+		key := iterator.Key()[len(types.KeyPrefixDynamicPrecompiles):]
+		dps = append(dps, string(key))
 	}
 
 	slices.Sort(dps)
