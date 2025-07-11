@@ -104,8 +104,8 @@ const (
 	// DefaultGasAdjustment value to use as default in gas-adjustment flag
 	DefaultGasAdjustment = 1.2
 
-	// DefaultTracesOnly disables every function except for traces in the `debug` namespace of the JSON RPC
-	DefaultTracesOnly = true
+	// DefaultEnableProfiling toggles whether profiling is enabled in the `debug` namespace
+	DefaultEnableProfiling = false
 )
 
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}
@@ -175,8 +175,8 @@ type JSONRPCConfig struct {
 	MetricsAddress string `mapstructure:"metrics-address"`
 	// FixRevertGasRefundHeight defines the upgrade height for fix of revert gas refund logic when transaction reverted
 	FixRevertGasRefundHeight int64 `mapstructure:"fix-revert-gas-refund-height"`
-	// TracesOnly enables the traces in the `debug` namespace while disabling all profiling
-	TracesOnly bool `mapstructure:"traces-only"`
+	// EnableProfiling enables the profiling in the `debug` namespace. SHOULD NOT be used on public tracing nodes
+	EnableProfiling bool `mapstructure:"enable-profiling"`
 }
 
 // TLSConfig defines the certificate and matching private key for the server.
@@ -238,7 +238,7 @@ func DefaultJSONRPCConfig() *JSONRPCConfig {
 		EnableIndexer:            false,
 		MetricsAddress:           DefaultJSONRPCMetricsAddress,
 		FixRevertGasRefundHeight: DefaultFixRevertGasRefundHeight,
-		TracesOnly:               DefaultTracesOnly,
+		EnableProfiling:          DefaultEnableProfiling,
 	}
 }
 

@@ -1,13 +1,12 @@
 package debug
 
 import (
+	"github.com/cosmos/evm/server/config"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime/pprof"
 	"strings"
-
-	"github.com/cosmos/evm/server/flags"
 
 	"cosmossdk.io/log"
 
@@ -25,8 +24,8 @@ func isCPUProfileConfigurationActivated(ctx *server.Context) bool {
 	return false
 }
 
-func isTracesOnly(ctx *server.Context) bool {
-	return ctx.Viper.GetBool(flags.JSONTracesOnly)
+func profilingEnabled(cfg config.Config) bool {
+	return cfg.JSONRPC.EnableProfiling
 }
 
 // ExpandHome expands home directory in file paths.
