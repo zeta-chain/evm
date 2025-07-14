@@ -122,7 +122,7 @@ func (s *PrecompileTestSuite) requireOut(
 		if ok {
 			bigOut, ok := out[0].(*big.Int)
 			s.Require().True(ok, "expected output to be a big.Int")
-			s.Require().Equal(bigExp.Int64(), bigOut.Int64(), "expected different value")
+			s.Require().Zero(bigExp.Cmp(bigOut), "expected different value")
 		} else {
 			s.Require().Equal(expValue, out[0], "expected different value")
 		}
@@ -137,7 +137,7 @@ func (s *PrecompileTestSuite) requireOut(
 func (s *PrecompileTestSuite) requireAllowance(erc20Addr, owner, spender common.Address, amount *big.Int) {
 	allowance, err := s.network.App.Erc20Keeper.GetAllowance(s.network.GetContext(), erc20Addr, owner, spender)
 	s.Require().NoError(err, "expected no error unpacking the allowance")
-	s.Require().Equal(allowance.Int64(), amount.Int64(), "expected different allowance")
+	s.Require().Equal(allowance.String(), amount.String(), "expected different allowance")
 }
 
 // setupERC20Precompile is a helper function to set up an instance of the ERC20 precompile for
