@@ -27,7 +27,7 @@ import (
 
 func (*API) StartGoTrace(string file) error {
 	a.logger.Debug("debug_stopGoTrace", "file", file)
-	if !profilingEnabled(a.ctx) {
+	if !profilingEnabled(a.cfg) {
 		return rpctypes.ErrProfilingDisabled
 	}
 	return errors.New("tracing is not supported on Go < 1.5")
@@ -35,7 +35,7 @@ func (*API) StartGoTrace(string file) error {
 
 func (*API) StopGoTrace() error {
 	a.logger.Debug("debug_stopGoTrace")
-	if !profilingEnabled(a.ctx) {
+	if !profilingEnabled(a.cfg) {
 		return rpctypes.ErrProfilingDisabled
 	}
 	return errors.New("tracing is not supported on Go < 1.5")
