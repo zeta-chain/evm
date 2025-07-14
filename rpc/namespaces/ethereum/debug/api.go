@@ -19,7 +19,6 @@ import (
 
 	"github.com/cosmos/evm/rpc/backend"
 	rpctypes "github.com/cosmos/evm/rpc/types"
-	"github.com/cosmos/evm/server/config"
 	evmtypes "github.com/cosmos/evm/x/vm/types"
 
 	"cosmossdk.io/log"
@@ -38,25 +37,25 @@ type HandlerT struct {
 
 // API is the collection of tracing APIs exposed over the private debugging endpoint.
 type API struct {
-	ctx     *server.Context
-	logger  log.Logger
-	cfg     config.Config
-	backend backend.EVMBackend
-	handler *HandlerT
+	ctx              *server.Context
+	logger           log.Logger
+	profilingEnabled bool
+	backend          backend.EVMBackend
+	handler          *HandlerT
 }
 
 // NewAPI creates a new API definition for the tracing methods of the Ethereum service.
 func NewAPI(
 	ctx *server.Context,
 	backend backend.EVMBackend,
-	cfg config.Config,
+	profilingEnabled bool,
 ) *API {
 	return &API{
-		ctx:     ctx,
-		logger:  ctx.Logger.With("module", "debug"),
-		backend: backend,
-		cfg:     cfg,
-		handler: new(HandlerT),
+		ctx:              ctx,
+		logger:           ctx.Logger.With("module", "debug"),
+		backend:          backend,
+		profilingEnabled: profilingEnabled,
+		handler:          new(HandlerT),
 	}
 }
 
@@ -108,7 +107,7 @@ func (a *API) TraceBlockByHash(hash common.Hash, config *evmtypes.TraceConfig) (
 // desired, set the rate and write the profile manually.
 func (a *API) BlockProfile(file string, nsec uint) error {
 	a.logger.Debug("debug_blockProfile", "file", file, "nsec", nsec)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	runtime.SetBlockProfileRate(1)
@@ -122,7 +121,7 @@ func (a *API) BlockProfile(file string, nsec uint) error {
 // profile data to file.
 func (a *API) CpuProfile(file string, nsec uint) error { //nolint: revive
 	a.logger.Debug("debug_cpuProfile", "file", file, "nsec", nsec)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	if err := a.StartCPUProfile(file); err != nil {
@@ -135,7 +134,7 @@ func (a *API) CpuProfile(file string, nsec uint) error { //nolint: revive
 // GcStats returns GC statistics.
 func (a *API) GcStats() (*debug.GCStats, error) {
 	a.logger.Debug("debug_gcStats")
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return nil, rpctypes.ErrProfilingDisabled
 	}
 	s := new(debug.GCStats)
@@ -147,7 +146,7 @@ func (a *API) GcStats() (*debug.GCStats, error) {
 // trace data to file.
 func (a *API) GoTrace(file string, nsec uint) error {
 	a.logger.Debug("debug_goTrace", "file", file, "nsec", nsec)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	if err := a.StartGoTrace(file); err != nil {
@@ -160,7 +159,7 @@ func (a *API) GoTrace(file string, nsec uint) error {
 // MemStats returns detailed runtime memory statistics.
 func (a *API) MemStats() (*runtime.MemStats, error) {
 	a.logger.Debug("debug_memStats")
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return nil, rpctypes.ErrProfilingDisabled
 	}
 	s := new(runtime.MemStats)
@@ -172,7 +171,7 @@ func (a *API) MemStats() (*runtime.MemStats, error) {
 // rate 0 disables block profiling.
 func (a *API) SetBlockProfileRate(rate int) error {
 	a.logger.Debug("debug_setBlockProfileRate", "rate", rate)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	runtime.SetBlockProfileRate(rate)
@@ -182,7 +181,7 @@ func (a *API) SetBlockProfileRate(rate int) error {
 // Stacks returns a printed representation of the stacks of all goroutines.
 func (a *API) Stacks() (string, error) {
 	a.logger.Debug("debug_stacks")
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return "", rpctypes.ErrProfilingDisabled
 	}
 	buf := new(bytes.Buffer)
@@ -196,7 +195,7 @@ func (a *API) Stacks() (string, error) {
 // StartCPUProfile turns on CPU profiling, writing to the given file.
 func (a *API) StartCPUProfile(file string) error {
 	a.logger.Debug("debug_startCPUProfile", "file", file)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	a.handler.mu.Lock()
@@ -239,7 +238,7 @@ func (a *API) StartCPUProfile(file string) error {
 // StopCPUProfile stops an ongoing CPU profile.
 func (a *API) StopCPUProfile() error {
 	a.logger.Debug("debug_stopCPUProfile")
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	a.handler.mu.Lock()
@@ -268,7 +267,7 @@ func (a *API) StopCPUProfile() error {
 // WriteBlockProfile writes a goroutine blocking profile to the given file.
 func (a *API) WriteBlockProfile(file string) error {
 	a.logger.Debug("debug_writeBlockProfile", "file", file)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	return writeProfile("block", file, a.logger)
@@ -279,7 +278,7 @@ func (a *API) WriteBlockProfile(file string) error {
 // it must be set on the command line.
 func (a *API) WriteMemProfile(file string) error {
 	a.logger.Debug("debug_writeMemProfile", "file", file)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	return writeProfile("heap", file, a.logger)
@@ -290,7 +289,7 @@ func (a *API) WriteMemProfile(file string) error {
 // desired, set the rate and write the profile manually.
 func (a *API) MutexProfile(file string, nsec uint) error {
 	a.logger.Debug("debug_mutexProfile", "file", file, "nsec", nsec)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	runtime.SetMutexProfileFraction(1)
@@ -302,7 +301,7 @@ func (a *API) MutexProfile(file string, nsec uint) error {
 // SetMutexProfileFraction sets the rate of mutex profiling.
 func (a *API) SetMutexProfileFraction(rate int) error {
 	a.logger.Debug("debug_setMutexProfileFraction", "rate", rate)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	runtime.SetMutexProfileFraction(rate)
@@ -312,7 +311,7 @@ func (a *API) SetMutexProfileFraction(rate int) error {
 // WriteMutexProfile writes a goroutine blocking profile to the given file.
 func (a *API) WriteMutexProfile(file string) error {
 	a.logger.Debug("debug_writeMutexProfile", "file", file)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	return writeProfile("mutex", file, a.logger)
@@ -321,7 +320,7 @@ func (a *API) WriteMutexProfile(file string) error {
 // FreeOSMemory forces a garbage collection.
 func (a *API) FreeOSMemory() error {
 	a.logger.Debug("debug_freeOSMemory")
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	debug.FreeOSMemory()
@@ -332,7 +331,7 @@ func (a *API) FreeOSMemory() error {
 // setting. A negative value disables GC.
 func (a *API) SetGCPercent(v int) (int, error) {
 	a.logger.Debug("debug_setGCPercent", "percent", v)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return 0, rpctypes.ErrProfilingDisabled
 	}
 	return debug.SetGCPercent(v), nil
@@ -340,7 +339,7 @@ func (a *API) SetGCPercent(v int) (int, error) {
 
 // GetHeaderRlp retrieves the RLP encoded for of a single header.
 func (a *API) GetHeaderRlp(number uint64) (hexutil.Bytes, error) {
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return nil, rpctypes.ErrProfilingDisabled
 	}
 	header, err := a.backend.HeaderByNumber(rpctypes.BlockNumber(number)) //#nosec G115 -- int overflow is not a concern here -- block number is not likely to exceed int64 max value
@@ -353,7 +352,7 @@ func (a *API) GetHeaderRlp(number uint64) (hexutil.Bytes, error) {
 
 // GetBlockRlp retrieves the RLP encoded for of a single block.
 func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return nil, rpctypes.ErrProfilingDisabled
 	}
 	block, err := a.backend.EthBlockByNumber(rpctypes.BlockNumber(number)) //#nosec G115 -- int overflow is not a concern here -- block number is not likely to exceed int64 max value
@@ -366,7 +365,7 @@ func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
 
 // PrintBlock retrieves a block and returns its pretty printed form.
 func (a *API) PrintBlock(number uint64) (string, error) {
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return "", rpctypes.ErrProfilingDisabled
 	}
 	block, err := a.backend.EthBlockByNumber(rpctypes.BlockNumber(number)) //#nosec G115 -- int overflow is not a concern here -- block number is not likely to exceed int64 max value
@@ -381,7 +380,7 @@ func (a *API) PrintBlock(number uint64) (string, error) {
 // of intermediate roots: the stateroot after each transaction.
 func (a *API) IntermediateRoots(hash common.Hash, _ *evmtypes.TraceConfig) ([]common.Hash, error) {
 	a.logger.Debug("debug_intermediateRoots", "hash", hash)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return nil, rpctypes.ErrProfilingDisabled
 	}
 	return ([]common.Hash)(nil), nil

@@ -7,8 +7,6 @@ import (
 	"runtime/pprof"
 	"strings"
 
-	"github.com/cosmos/evm/server/config"
-
 	"cosmossdk.io/log"
 
 	"github.com/cosmos/cosmos-sdk/server"
@@ -23,10 +21,6 @@ func isCPUProfileConfigurationActivated(ctx *server.Context) bool {
 		return true
 	}
 	return false
-}
-
-func profilingEnabled(cfg config.Config) bool {
-	return cfg.JSONRPC.EnableProfiling
 }
 
 // ExpandHome expands home directory in file paths.

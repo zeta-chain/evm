@@ -32,7 +32,7 @@ import (
 // StartGoTrace turns on tracing, writing to the given file.
 func (a *API) StartGoTrace(file string) error {
 	a.logger.Debug("debug_startGoTrace", "file", file)
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	a.handler.mu.Lock()
@@ -70,7 +70,7 @@ func (a *API) StartGoTrace(file string) error {
 // StopGoTrace stops an ongoing trace.
 func (a *API) StopGoTrace() error {
 	a.logger.Debug("debug_stopGoTrace")
-	if !profilingEnabled(a.cfg) {
+	if !a.profilingEnabled {
 		return rpctypes.ErrProfilingDisabled
 	}
 	a.handler.mu.Lock()
