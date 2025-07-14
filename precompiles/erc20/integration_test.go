@@ -377,7 +377,9 @@ var _ = Describe("ERC20 Extension -", func() {
 				// Transfer tokens
 				txArgs, transferArgs := is.getTxAndCallArgs(callType, contractsData, erc20.TransferMethod, receiver, transferAmount)
 
-				_, ethRes, err := is.factory.CallContractAndCheckLogs(sender.Priv, txArgs, transferArgs, execRevertedCheck)
+				revertReasonCheck := execRevertedCheck.WithErrNested(erc20.ErrTransferAmountExceedsBalance.Error())
+
+				_, ethRes, err := is.factory.CallContractAndCheckLogs(sender.Priv, txArgs, transferArgs, revertReasonCheck)
 				Expect(err).ToNot(HaveOccurred(), "unexpected result calling contract")
 				Expect(ethRes).To(BeNil(), "expected empty result")
 			},
@@ -497,7 +499,9 @@ var _ = Describe("ERC20 Extension -", func() {
 					}
 					txArgs.Amount = amountToSend
 
-					res, _, err := is.factory.CallContractAndCheckLogs(sender.Priv, txArgs, args, execRevertedCheck)
+					revertReasonCheck := execRevertedCheck.WithErrNested("revert here")
+
+					res, _, err := is.factory.CallContractAndCheckLogs(sender.Priv, txArgs, args, revertReasonCheck)
 					Expect(err).To(BeNil())
 					Expect(is.network.NextBlock()).To(BeNil())
 
@@ -589,7 +593,9 @@ var _ = Describe("ERC20 Extension -", func() {
 					}
 					txArgs.Amount = big.NewInt(300)
 
-					res, _, err := is.factory.CallContractAndCheckLogs(sender.Priv, txArgs, args, execRevertedCheck)
+					revertReasonCheck := execRevertedCheck.WithErrNested("revert here")
+
+					res, _, err := is.factory.CallContractAndCheckLogs(sender.Priv, txArgs, args, revertReasonCheck)
 					Expect(err).To(BeNil())
 					Expect(is.network.NextBlock()).To(BeNil())
 					fees := math.NewIntFromBigInt(gasPrice).MulRaw(res.GasUsed)
@@ -1085,7 +1091,9 @@ var _ = Describe("ERC20 Extension -", func() {
 						from.Addr, receiver, transferAmount,
 					)
 
-					_, ethRes, err := is.factory.CallContractAndCheckLogs(from.Priv, txArgs, transferArgs, execRevertedCheck)
+					revertReasonCheck := execRevertedCheck.WithErrNested(erc20.ErrInsufficientAllowance.Error())
+
+					_, ethRes, err := is.factory.CallContractAndCheckLogs(from.Priv, txArgs, transferArgs, revertReasonCheck)
 					Expect(err).ToNot(HaveOccurred(), "unexpected result calling contract")
 					Expect(ethRes).To(BeNil(), "expected empty result")
 
