@@ -15,6 +15,7 @@ const (
 	Transport    = "transport"
 	TraceStore   = "trace-store"
 	CPUProfile   = "cpu-profile"
+
 	// The type of database for application and snapshots databases
 	AppDBBackend = "app-db-backend"
 )
@@ -55,6 +56,7 @@ const (
 	JSONRPCEnableIndexer        = "json-rpc.enable-indexer"
 	JSONRPCBatchRequestLimit    = "json-rpc.batch-request-limit"
 	JSONRPCBatchResponseMaxSize = "json-rpc.batch-response-max-size"
+	JSONRPCEnableProfiling      = "json-rpc.enable-profiling"
 	// JSONRPCEnableMetrics enables EVM RPC metrics server.
 	// Set to `metrics` which is hardcoded flag from go-ethereum.
 	// https://github.com/ethereum/go-ethereum/blob/master/metrics/metrics.go#L35-L55

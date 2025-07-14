@@ -90,6 +90,9 @@ metrics-address = "{{ .JSONRPC.MetricsAddress }}"
 # Upgrade height for fix of revert gas refund logic when transaction reverted.
 fix-revert-gas-refund-height = {{ .JSONRPC.FixRevertGasRefundHeight }}
 
+# Enabled profiling in the debug namespace
+enable-profiling = {{ .JSONRPC.EnableProfiling }}
+
 ###############################################################################
 ###                             TLS Configuration                           ###
 ###############################################################################

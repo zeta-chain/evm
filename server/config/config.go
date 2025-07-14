@@ -112,6 +112,9 @@ const (
 
 	// DefaultWSOrigins is the default origin for WebSocket connections
 	DefaultWSOrigins = "127.0.0.1"
+
+	// DefaultEnableProfiling toggles whether profiling is enabled in the `debug` namespace
+	DefaultEnableProfiling = false
 )
 
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}
@@ -187,6 +190,8 @@ type JSONRPCConfig struct {
 	FixRevertGasRefundHeight int64 `mapstructure:"fix-revert-gas-refund-height"`
 	// WSOrigins defines the allowed origins for WebSocket connections
 	WSOrigins []string `mapstructure:"ws-origins"`
+	// EnableProfiling enables the profiling in the `debug` namespace. SHOULD NOT be used on public tracing nodes
+	EnableProfiling bool `mapstructure:"enable-profiling"`
 }
 
 // TLSConfig defines the certificate and matching private key for the server.
@@ -256,6 +261,7 @@ func DefaultJSONRPCConfig() *JSONRPCConfig {
 		MetricsAddress:           DefaultJSONRPCMetricsAddress,
 		FixRevertGasRefundHeight: DefaultFixRevertGasRefundHeight,
 		WSOrigins:                GetDefaultWSOrigins(),
+		EnableProfiling:          DefaultEnableProfiling,
 	}
 }
 
