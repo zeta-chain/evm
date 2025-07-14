@@ -54,6 +54,7 @@ var (
 )
 
 const (
+	testDepositFromContract        = "testDepositFromContract"
 	testSubmitProposalFromContract = "testSubmitProposalFromContract"
 )
 
@@ -1195,7 +1196,8 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 	})
 
 	Context("deposit as contract proposer", func() {
-		BeforeEach(func() { callArgs.MethodName = "testDepositFromContract" })
+		BeforeEach(func() { callArgs.MethodName = testDepositFromContract })
+
 		It("should deposit successfully", func() {
 			// submit a proposal
 			toAddr := s.keyring.GetAccAddr(1)
@@ -1225,7 +1227,7 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 			Expect(err).To(BeNil())
 
 			// Deposit it
-			callArgs.MethodName = "testDepositFromContract"
+			callArgs.MethodName = testDepositFromContract
 			callArgs.Args = []interface{}{
 				proposal.Id,
 				minimalDeposit(s.network.GetBaseDenom(), big.NewInt(100)),
@@ -1948,7 +1950,7 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 			// 2. Deposit to gov prop from contract 2
 			txArgs.To = &contractAddrDupe
 			txArgs.GasLimit = 1_000_000_000
-			callArgs.MethodName = "testDepositFromContract"
+			callArgs.MethodName = testDepositFromContract
 			callArgs.Args = []interface{}{
 				contractProposalID,
 				minimalDeposit(s.network.GetBaseDenom(), big.NewInt(100)),
