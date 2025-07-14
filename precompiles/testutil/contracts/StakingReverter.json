@@ -11,6 +11,24 @@
     {
       "inputs": [
         {
+          "internalType": "uint256",
+          "name": "numTimes",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "validatorAddress",
+          "type": "string"
+        }
+      ],
+      "name": "callPrecompileBeforeAndAfterRevert",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "string",
           "name": "validatorAddress",
           "type": "string"
