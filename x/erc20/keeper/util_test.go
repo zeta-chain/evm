@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/evm/x/vm/types"
