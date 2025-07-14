@@ -98,7 +98,7 @@ func (k Keeper) convertERC20IntoCoinsForNativeToken(
 	var unpackedRet types.ERC20BoolResponse
 	if len(res.Ret) == 0 {
 		// if the token does not return a value, check for the transfer event in logs
-		if err := k.monitorTransferEvent(res); err != nil {
+		if err := validateTransferEventExists(res.Logs, contract); err != nil {
 			return nil, err
 		}
 	} else {
@@ -152,7 +152,7 @@ func (k Keeper) convertERC20IntoCoinsForNativeToken(
 	}
 
 	// Check for unexpected `Approval` event in logs
-	if err := k.monitorApprovalEvent(res); err != nil {
+	if err := validateApprovalEventDoesNotExist(res.Logs); err != nil {
 		return nil, err
 	}
 
@@ -274,7 +274,7 @@ func (k Keeper) ConvertCoinNativeERC20(
 	var unpackedRet types.ERC20BoolResponse
 	if len(res.Ret) == 0 {
 		// if the token does not return a value, check for the transfer event in logs
-		if err := k.monitorTransferEvent(res); err != nil {
+		if err := validateTransferEventExists(res.Logs, contract); err != nil {
 			return err
 		}
 	} else {
@@ -308,7 +308,7 @@ func (k Keeper) ConvertCoinNativeERC20(
 	}
 
 	// Check for unexpected `Approval` event in logs
-	return k.monitorApprovalEvent(res)
+	return validateApprovalEventDoesNotExist(res.Logs)
 }
 
 // UpdateParams implements the gRPC MsgServer interface. After a successful governance vote
