@@ -651,7 +651,7 @@ func (mr *MockBankWrapperMockRecorder) BurnCoins(ctx, moduleName, amt interface{
 // GetBalance mocks base method.
 func (m *MockBankWrapper) GetBalance(ctx context.Context, addr types.AccAddress, denom string) types.Coin {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBalance", ctx, addr, denom)
+	ret := m.ctrl.Call(m, "SpendableCoin", ctx, addr, denom)
 	ret0, _ := ret[0].(types.Coin)
 	return ret0
 }
@@ -659,7 +659,7 @@ func (m *MockBankWrapper) GetBalance(ctx context.Context, addr types.AccAddress,
 // GetBalance indicates an expected call of GetBalance.
 func (mr *MockBankWrapperMockRecorder) GetBalance(ctx, addr, denom interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockBankWrapper)(nil).GetBalance), ctx, addr, denom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoin", reflect.TypeOf((*MockBankWrapper)(nil).GetBalance), ctx, addr, denom)
 }
 
 // GetDenomMetaData mocks base method.
@@ -814,4 +814,18 @@ func (m *MockBankWrapper) SetDenomMetaData(ctx context.Context, denomMetaData ty
 func (mr *MockBankWrapperMockRecorder) SetDenomMetaData(ctx, denomMetaData interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDenomMetaData", reflect.TypeOf((*MockBankWrapper)(nil).SetDenomMetaData), ctx, denomMetaData)
+}
+
+// SpendableCoin mocks base method.
+func (m *MockBankWrapper) SpendableCoin(ctx context.Context, addr types.AccAddress, denom string) types.Coin {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpendableCoin", ctx, addr, denom)
+	ret0, _ := ret[0].(types.Coin)
+	return ret0
+}
+
+// SpendableCoin indicates an expected call of SpendableCoin.
+func (mr *MockBankWrapperMockRecorder) SpendableCoin(ctx, addr, denom interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoin", reflect.TypeOf((*MockBankWrapper)(nil).SpendableCoin), ctx, addr, denom)
 }
