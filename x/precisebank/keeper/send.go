@@ -31,7 +31,7 @@ func (k Keeper) IsSendEnabledCoins(ctx context.Context, coins ...sdk.Coin) error
 	}
 
 	for _, coin := range coins {
-		if k.IsSendEnabledCoin(ctx, coin) {
+		if !k.IsSendEnabledCoin(ctx, coin) {
 			return banktypes.ErrSendDisabled.Wrapf("%s transfers are currently disabled", coin.Denom)
 		}
 	}
