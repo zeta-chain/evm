@@ -128,6 +128,16 @@ func (k Keeper) DeleteNativePrecompile(ctx sdk.Context, precompile common.Addres
 	store.Delete([]byte(precompile.Hex()))
 }
 
+// EnableDynamicPrecompile adds the address of the given precompile to the prefix store
+func (k Keeper) EnableDynamicPrecompile(ctx sdk.Context, address common.Address) error {
+	k.Logger(ctx).Info("Added new precompiles", "addresses", address)
+	if err := k.RegisterCodeHash(ctx, address, PrecompileTypeDynamic); err != nil {
+		return err
+	}
+	k.SetDynamicPrecompile(ctx, address)
+	return nil
+}
+
 func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) []string {
 	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
 	defer iterator.Close()

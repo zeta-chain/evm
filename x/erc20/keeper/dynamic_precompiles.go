@@ -82,13 +82,3 @@ func (k Keeper) UnRegisterERC20CodeHash(ctx sdk.Context, erc20Addr common.Addres
 		Balance:  balance,
 	})
 }
-
-// EnableDynamicPrecompile adds the address of the given precompile to the prefix store
-func (k Keeper) EnableDynamicPrecompile(ctx sdk.Context, address common.Address) error {
-	k.Logger(ctx).Info("Added new precompiles", "addresses", address)
-	if err := k.RegisterCodeHash(ctx, address, PrecompileTypeDynamic); err != nil {
-		return err
-	}
-	k.SetDynamicPrecompile(ctx, address)
-	return nil
-}

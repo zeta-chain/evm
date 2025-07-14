@@ -35,18 +35,14 @@ func InitGenesis(
 	}
 
 	for _, precompile := range data.NativePrecompiles {
-		addr := common.HexToAddress(precompile)
-		if err := k.RegisterCodeHash(ctx, addr, keeper.PrecompileTypeNative); err != nil {
+		if err := k.EnableDynamicPrecompile(ctx, common.HexToAddress(precompile)); err != nil {
 			panic(fmt.Errorf("error registering native precompiles %s", err))
 		}
-		k.SetNativePrecompile(ctx, addr)
 	}
 	for _, precompile := range data.DynamicPrecompiles {
-		addr := common.HexToAddress(precompile)
-		if err := k.RegisterCodeHash(ctx, addr, keeper.PrecompileTypeDynamic); err != nil {
+		if err := k.EnableDynamicPrecompile(ctx, common.HexToAddress(precompile)); err != nil {
 			panic(fmt.Errorf("error registering dynamic precompiles %s", err))
 		}
-		k.SetDynamicPrecompile(ctx, addr)
 	}
 
 	for _, allowance := range data.Allowances {
