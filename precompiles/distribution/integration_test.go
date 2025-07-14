@@ -1517,11 +1517,17 @@ var _ = Describe("Calling distribution precompile from contract", Ordered, func(
 				differentAddr, s.network.GetValidators()[0].OperatorAddress,
 			}
 
+			revertReasonCheck := execRevertedCheck.WithErrNested(
+				cmn.ErrRequesterIsNotMsgSender,
+				contractAddr,
+				differentAddr.String(),
+			)
+
 			res, _, err := s.factory.CallContractAndCheckLogs(
 				s.keyring.GetPrivKey(0),
 				txArgs,
 				callArgs,
-				execRevertedCheck,
+				revertReasonCheck,
 			)
 			Expect(err).To(BeNil(), "error while calling the smart contract: %v", err)
 			Expect(s.network.NextBlock()).To(BeNil(), "error on NextBlock: %v", err)
@@ -2657,11 +2663,17 @@ var _ = Describe("Calling distribution precompile from contract", Ordered, func(
 				differentAddr.String(), differentAddr, s.network.GetValidators()[0].OperatorAddress,
 			}
 
+			revertReasonCheck := execRevertedCheck.WithErrNested(
+				cmn.ErrRequesterIsNotMsgSender,
+				contractAddr,
+				s.keyring.GetAddr(0),
+			)
+
 			_, _, err = s.factory.CallContractAndCheckLogs(
 				s.keyring.GetPrivKey(0),
 				txArgs,
 				callArgs,
-				execRevertedCheck,
+				revertReasonCheck,
 			)
 			Expect(err).To(BeNil(), "error while calling the smart contract: %v", err)
 			Expect(s.network.NextBlock()).To(BeNil())
@@ -2686,11 +2698,13 @@ var _ = Describe("Calling distribution precompile from contract", Ordered, func(
 			callArgs.MethodName = "delegateCallSetWithdrawAddress"
 			callArgs.Args = []interface{}{s.keyring.GetAddr(0), differentAddr.String()}
 
+			revertReasonCheck := execRevertedCheck.WithErrNested("failed delegateCall to precompile")
+
 			_, _, err := s.factory.CallContractAndCheckLogs(
 				s.keyring.GetPrivKey(0),
 				txArgs,
 				callArgs,
-				execRevertedCheck,
+				revertReasonCheck,
 			)
 			Expect(err).To(BeNil(), "error while calling the smart contract: %v", err)
 			Expect(s.network.NextBlock()).To(BeNil())
@@ -2705,11 +2719,13 @@ var _ = Describe("Calling distribution precompile from contract", Ordered, func(
 			callArgs.MethodName = "staticCallSetWithdrawAddress"
 			callArgs.Args = []interface{}{s.keyring.GetAddr(0), differentAddr.String()}
 
+			revertReasonCheck := execRevertedCheck.WithErrNested("failed staticCall to precompile")
+
 			_, _, err := s.factory.CallContractAndCheckLogs(
 				s.keyring.GetPrivKey(0),
 				txArgs,
 				callArgs,
-				execRevertedCheck,
+				revertReasonCheck,
 			)
 			Expect(err).To(BeNil(), "error while calling the smart contract: %v", err)
 			Expect(s.network.NextBlock()).To(BeNil())

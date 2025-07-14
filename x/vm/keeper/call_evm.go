@@ -38,7 +38,7 @@ func (k Keeper) CallEVM(
 
 	resp, err := k.CallEVMWithData(ctx, from, &contract, data, commit)
 	if err != nil {
-		return nil, errorsmod.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
+		return resp, errorsmod.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
 	}
 	return resp, nil
 }
@@ -96,7 +96,7 @@ func (k Keeper) CallEVMWithData(
 	}
 
 	if res.Failed() {
-		return nil, errorsmod.Wrap(types.ErrVMExecution, res.VmError)
+		return res, errorsmod.Wrap(types.ErrVMExecution, res.VmError)
 	}
 
 	return res, nil
