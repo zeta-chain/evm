@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/core/tracing"
 	"github.com/ethereum/go-ethereum/core/vm"
 
 	"github.com/cosmos/evm/x/precisebank/types"
@@ -48,6 +49,12 @@ func (p Precompile) Deposit(
 	); err != nil {
 		return nil, err
 	}
+
+	// TODO: Properly handle native balance changes via the balance handler.
+	// Currently, decimal conversion issues exist with the precisebank module.
+	// As a temporary workaround, balances are adjusted directly using add/sub operations.
+	stateDB.SubBalance(p.Address(), depositedAmount, tracing.BalanceChangeUnspecified)
+	stateDB.AddBalance(caller, depositedAmount, tracing.BalanceChangeUnspecified)
 
 	if err := p.EmitDepositEvent(ctx, stateDB, caller, depositedAmount.ToBig()); err != nil {
 		return nil, err
