@@ -99,6 +99,7 @@ func (k Keeper) EnableNativePrecompile(ctx sdk.Context, addr common.Address) err
 	return nil
 }
 
+// Only to be used by ExportGenesis, not to be directly used
 func (k Keeper) GetNativePrecompiles(ctx sdk.Context) []string {
 	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixNativePrecompiles)
 	defer iterator.Close()
@@ -138,6 +139,7 @@ func (k Keeper) EnableDynamicPrecompile(ctx sdk.Context, address common.Address)
 	return nil
 }
 
+// Only to be used by ExportGenesis, not to be directly used
 func (k Keeper) GetDynamicPrecompiles(ctx sdk.Context) []string {
 	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.KeyPrefixDynamicPrecompiles)
 	defer iterator.Close()
