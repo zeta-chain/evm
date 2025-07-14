@@ -35,6 +35,9 @@ var _ types.QueryServer = Keeper{}
 
 const (
 	defaultTraceTimeout = 5 * time.Second
+	// maxTracePredecessors is the maximum amount of transaction predecessors to be included in a trace Tx request.
+	// This limit is chosen as a sensible default to prevent unbounded predecessor iteration.
+	maxTracePredecessors = 10_000
 )
 
 // Account implements the Query/Account gRPC method. The method returns the
@@ -451,6 +454,10 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		return nil, status.Errorf(codes.InvalidArgument, "output limit cannot be negative, got %d", req.TraceConfig.Limit)
 	}
 
+	if len(req.Predecessors) > maxTracePredecessors {
+		return nil, status.Errorf(codes.InvalidArgument, "too many predecessors, got %d: limit %d", len(req.Predecessors), maxTracePredecessors)
+	}
+
 	// get the context of block beginning
 	contextHeight := req.BlockNumber
 	if contextHeight < 1 {
@@ -480,7 +487,6 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 	}
 
 	signer := ethtypes.MakeSigner(types.GetEthChainConfig(), big.NewInt(ctx.BlockHeight()), uint64(ctx.BlockTime().Unix())) //#nosec G115 -- int overflow is not a concern here
-
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 
 	// gas used at this point corresponds to GetProposerAddress & CalculateBaseFee
@@ -510,13 +516,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		txConfig.TxIndex++
 	}
 
-	var tracerConfig json.RawMessage
-	if req.TraceConfig != nil && req.TraceConfig.TracerJsonConfig != "" {
-		// ignore error. default to no traceConfig
-		_ = json.Unmarshal([]byte(req.TraceConfig.TracerJsonConfig), &tracerConfig)
-	}
-
-	result, _, err := k.traceTx(ctx, cfg, txConfig, signer, tx, req.TraceConfig, false, tracerConfig)
+	result, _, err := k.traceTx(ctx, cfg, txConfig, signer, tx, req.TraceConfig, false)
 	if err != nil {
 		// error will be returned with detail status from traceTx
 		return nil, err
@@ -583,7 +583,7 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 		ethTx := tx.AsTransaction()
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i) //nolint:gosec // G115 // won't exceed uint64
-		traceResult, logIndex, err := k.traceTx(ctx, cfg, txConfig, signer, ethTx, req.TraceConfig, true, nil)
+		traceResult, logIndex, err := k.traceTx(ctx, cfg, txConfig, signer, ethTx, req.TraceConfig, true)
 		if err != nil {
 			result.Error = err.Error()
 		} else {
@@ -612,14 +612,14 @@ func (k *Keeper) traceTx(
 	tx *ethtypes.Transaction,
 	traceConfig *types.TraceConfig,
 	commitMessage bool,
-	tracerJSONConfig json.RawMessage,
 ) (*any, uint, error) {
 	// Assemble the structured logger or the JavaScript tracer
 	var (
-		tracer    *tracers.Tracer
-		overrides *ethparams.ChainConfig
-		err       error
-		timeout   = defaultTraceTimeout
+		tracer           *tracers.Tracer
+		overrides        *ethparams.ChainConfig
+		jsonTracerConfig json.RawMessage
+		err              error
+		timeout          = defaultTraceTimeout
 	)
 	msg, err := core.TransactionToMessage(tx, signer, cfg.BaseFee)
 	if err != nil {
@@ -628,6 +628,11 @@ func (k *Keeper) traceTx(
 
 	if traceConfig == nil {
 		traceConfig = &types.TraceConfig{}
+	}
+
+	if traceConfig != nil && traceConfig.TracerJsonConfig != "" {
+		// ignore error. default to no traceConfig
+		_ = json.Unmarshal([]byte(traceConfig.TracerJsonConfig), &jsonTracerConfig)
 	}
 
 	if traceConfig.Overrides != nil {
@@ -657,7 +662,7 @@ func (k *Keeper) traceTx(
 	}
 
 	if traceConfig.Tracer != "" {
-		if tracer, err = tracers.DefaultDirectory.New(traceConfig.Tracer, tCtx, tracerJSONConfig,
+		if tracer, err = tracers.DefaultDirectory.New(traceConfig.Tracer, tCtx, jsonTracerConfig,
 			types.GetEthChainConfig()); err != nil {
 			return nil, 0, status.Error(codes.Internal, err.Error())
 		}
