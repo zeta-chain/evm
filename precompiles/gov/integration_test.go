@@ -1920,12 +1920,14 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 	})
 
 	Context("testRefunds security issue", func() {
+		var minDepositAmt math.Int
+
 		BeforeEach(func() {
 			toAddr := s.keyring.GetAccAddr(1)
 			denom := s.network.GetBaseDenom()
 			amount := "100"
 			jsonBlob := minimalBankSendProposalJSON(toAddr, denom, amount)
-			minDepositAmt := math.NewInt(100)
+			minDepositAmt = math.NewInt(100)
 			callArgs.MethodName = testSubmitProposalFromContract
 			callArgs.Args = []interface{}{
 				jsonBlob,
@@ -1964,30 +1966,39 @@ var _ = Describe("Calling governance precompile from contract", Ordered, func() 
 			Expect(deposits[1].Amount[0].Amount).To(Equal(math.NewInt(100)))
 		})
 
-		Describe("test transferCancelFund",
-			func() {
-				It("reverts instead of mints tokens", func() {
-					baseDenom := s.network.GetBaseDenom()
-					txArgs.To = &contractAddr
-					txArgs.GasLimit = 1_000_000_000
-					callArgs.MethodName = "testTransferCancelFund"
-					callArgs.Args = []interface{}{
-						contractAddrDupe,
-						contractProposalID,
-						[]byte(baseDenom),
-						s.network.GetValidators()[0].OperatorAddress,
-					}
-					// Call the contract
-					_, err := s.factory.ExecuteContractCall(txSenderKey, txArgs, callArgs)
-					Expect(err.Error()).To(ContainSubstring("reverted"))
-					Expect(s.network.NextBlock()).To(BeNil())
+		Describe("test transferCancelFund", func() {
+			It("should cancel proposal and fund to communityPool", func() {
+				baseDenom := s.network.GetBaseDenom()
+				txArgs.To = &contractAddr
+				txArgs.GasLimit = 1_000_000_000
+				callArgs.MethodName = "testTransferCancelFund"
+				callArgs.Args = []interface{}{
+					contractAddrDupe,
+					contractProposalID,
+					[]byte(baseDenom),
+					s.network.GetValidators()[0].OperatorAddress,
+				}
+				// Call the contract
+				_, err := s.factory.ExecuteContractCall(txSenderKey, txArgs, callArgs)
+				Expect(err).To(BeNil())
+				Expect(s.network.NextBlock()).To(BeNil())
 
-					afterDepositorBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), contractAccAddrDupe,
-						baseDenom)
+				params, err := s.network.App.GovKeeper.Params.Get(s.network.GetContext())
+				Expect(err).To(BeNil())
 
-					Expect(afterDepositorBal.Amount).To(Equal(math.NewInt(0)))
-				})
-			},
+				cancelRatio := math.LegacyMustNewDecFromStr(params.ProposalCancelRatio)
+				cancelFee := minDepositAmt.ToLegacyDec().Mul(cancelRatio).TruncateInt()
+				transferAmount := math.NewInt(1)
+				fundCommunityPoolAmount := math.NewInt(2)
+				expectedDepositorBal := minDepositAmt.
+					Sub(cancelFee).
+					Add(transferAmount).
+					Sub(fundCommunityPoolAmount)
+
+				afterDepositorBal := s.network.App.BankKeeper.GetBalance(s.network.GetContext(), contractAccAddrDupe, baseDenom)
+				Expect(afterDepositorBal.Amount).To(Equal(expectedDepositorBal))
+			})
+		},
 		)
 	})
 
