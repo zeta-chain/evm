@@ -193,7 +193,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	tmpCtx, commitFn := ctx.CacheContext()
 
 	// pass true to commit the StateDB
-	res, err := k.ApplyMessageWithConfig(tmpCtx, *msg, nil, true, cfg, txConfig)
+	res, err := k.ApplyMessageWithConfig(tmpCtx, *msg, nil, true, cfg, txConfig, false)
 	if err != nil {
 		// when a transaction contains multiple msg, as long as one of the msg fails
 		// all gas will be deducted. so is not msg.Gas()
@@ -285,16 +285,14 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 }
 
 // ApplyMessage calls ApplyMessageWithConfig with an empty TxConfig.
-func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer *tracing.Hooks,
-	commit bool,
-) (*types.MsgEthereumTxResponse, error) {
+func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer *tracing.Hooks, commit bool, internal bool) (*types.MsgEthereumTxResponse, error) {
 	cfg, err := k.EVMConfig(ctx, ctx.BlockHeader().ProposerAddress)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to load evm config")
 	}
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
-	return k.ApplyMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig)
+	return k.ApplyMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig, internal)
 }
 
 // ApplyMessageWithConfig computes the new state by applying the given message against the existing state.
@@ -335,14 +333,7 @@ func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer *tracing
 // # Commit parameter
 //
 // If commit is true, the `StateDB` will be committed, otherwise discarded.
-func (k *Keeper) ApplyMessageWithConfig(
-	ctx sdk.Context,
-	msg core.Message,
-	tracer *tracing.Hooks,
-	commit bool,
-	cfg *statedb.EVMConfig,
-	txConfig statedb.TxConfig,
-) (*types.MsgEthereumTxResponse, error) {
+func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, tracer *tracing.Hooks, commit bool, cfg *statedb.EVMConfig, txConfig statedb.TxConfig, internal bool) (*types.MsgEthereumTxResponse, error) {
 	var (
 		ret   []byte // return bytes from evm execution
 		vmErr error  // vm errors do not effect consensus and are therefore not assigned to err
@@ -413,6 +404,10 @@ func (k *Keeper) ApplyMessageWithConfig(
 		refundQuotient = params.RefundQuotientEIP3529
 	}
 
+	if internal {
+		refundQuotient = 1 // full refund on internal calls
+	}
+
 	// calculate gas refund
 	if msg.GasLimit < leftoverGas {
 		return nil, errorsmod.Wrap(types.ErrGasOverflow, "apply message")
@@ -453,9 +448,12 @@ func (k *Keeper) ApplyMessageWithConfig(
 		return nil, errorsmod.Wrapf(types.ErrGasOverflow, "message gas limit < leftover gas (%d < %d)", msg.GasLimit, leftoverGas)
 	}
 
-	gasUsed := math.LegacyMaxDec(minimumGasUsed, math.LegacyNewDec(int64(temporaryGasUsed))).TruncateInt().Uint64() //#nosec G115 -- int overflow is not a concern here
+	gasUsed := math.LegacyNewDec(int64(temporaryGasUsed)) //#nosec G115 -- int overflow is not a concern here
+	if !internal {
+		gasUsed = math.LegacyMaxDec(gasUsed, minimumGasUsed)
+	}
 	// reset leftoverGas, to be used by the tracer
-	leftoverGas = msg.GasLimit - gasUsed
+	leftoverGas = msg.GasLimit - gasUsed.TruncateInt().Uint64()
 
 	// if the execution reverted, we return the revert reason as the return data
 	if vmError == vm.ErrExecutionReverted.Error() {
@@ -463,7 +461,7 @@ func (k *Keeper) ApplyMessageWithConfig(
 	}
 
 	return &types.MsgEthereumTxResponse{
-		GasUsed: gasUsed,
+		GasUsed: gasUsed.TruncateInt().Uint64(),
 		VmError: vmError,
 		Ret:     ret,
 		Logs:    types.NewLogsFromEth(stateDB.Logs()),

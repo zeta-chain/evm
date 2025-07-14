@@ -677,12 +677,7 @@ func (suite *KeeperTestSuite) TestApplyMessage() {
 		*coreMsg,
 		types.GetEthChainConfig(),
 	)
-	res, err := suite.network.App.EVMKeeper.ApplyMessage(
-		suite.network.GetContext(),
-		*coreMsg,
-		tracer,
-		true,
-	)
+	res, err := suite.network.App.EVMKeeper.ApplyMessage(suite.network.GetContext(), *coreMsg, tracer, true, false)
 	suite.Require().NoError(err)
 	suite.Require().False(res.Failed())
 
@@ -828,14 +823,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithConfig() {
 			suite.Require().NoError(err)
 
 			// Function being tested
-			res, err := suite.network.App.EVMKeeper.ApplyMessageWithConfig(
-				suite.network.GetContext(),
-				msg,
-				nil,
-				true,
-				config,
-				txConfig,
-			)
+			res, err := suite.network.App.EVMKeeper.ApplyMessageWithConfig(suite.network.GetContext(), msg, nil, true, config, txConfig, false)
 
 			if tc.expErr {
 				suite.Require().Error(err)
@@ -929,6 +917,7 @@ func (suite *KeeperTestSuite) TestApplyMessageWithNegativeAmount() {
 		*coreMsg,
 		tracer,
 		true,
+		false,
 	)
 	suite.Require().Nil(res)
 	suite.Require().Error(err)
