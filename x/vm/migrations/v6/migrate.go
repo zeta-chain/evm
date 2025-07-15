@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/evm/types"
+	legacytypes "github.com/cosmos/evm/legacy/types"
 	evmtypes "github.com/cosmos/evm/x/vm/types"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -18,7 +18,7 @@ func MigrateStore(ctx sdk.Context, ek evmKeeper, ak evmtypes.AccountKeeper) erro
 
 	ak.IterateAccounts(ctx, func(account sdk.AccountI) (stop bool) {
 		fmt.Println("Trying to migrate account", account.GetAddress().String())
-		ethAcc, ok := account.(*types.EthAccount)
+		ethAcc, ok := account.(*legacytypes.EthAccount)
 		if !ok {
 			fmt.Println("Skip account")
 			return false
