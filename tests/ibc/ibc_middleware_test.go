@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	testifysuite "github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/evm/evmd"
@@ -203,8 +204,8 @@ func (suite *MiddlewareTestSuite) TestOnRecvPacket() {
 				suite.Require().True(found)
 				suite.Require().Equal(voucherDenom, tokenPair.Denom)
 				// Make sure dynamic precompile is registered
-				params := evmApp.Erc20Keeper.GetParams(ctxA)
-				suite.Require().Contains(params.DynamicPrecompiles, tokenPair.Erc20Address)
+				available := evmApp.Erc20Keeper.IsDynamicPrecompileAvailable(ctxA, common.HexToAddress(tokenPair.Erc20Address))
+				suite.Require().True(available)
 			} else {
 				suite.Require().False(ack.Success())
 

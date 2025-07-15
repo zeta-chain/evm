@@ -241,9 +241,9 @@ var _ = Describe("ERC20 Extension -", func() {
 		execRevertedCheck = failCheck.WithErrContains("execution reverted")
 		passCheck = failCheck.WithExpPass(true)
 
-		erc20Params := is.network.App.Erc20Keeper.GetParams(is.network.GetContext())
-		Expect(len(erc20Params.NativePrecompiles)).To(Equal(1))
-		Expect(common.HexToAddress(erc20Params.NativePrecompiles[0])).To(Equal(common.HexToAddress(testconstants.WEVMOSContractMainnet)))
+		erc20Keeper := is.network.App.Erc20Keeper
+		available := erc20Keeper.IsNativePrecompileAvailable(is.network.GetContext(), common.HexToAddress(testconstants.WEVMOSContractMainnet))
+		Expect(available, true)
 
 		revertContractAddr, err = is.factory.DeployContract(
 			sender.Priv,
@@ -252,7 +252,7 @@ var _ = Describe("ERC20 Extension -", func() {
 				Contract: revertCallerContract,
 				// NOTE: we're passing the precompile address to the constructor because that initiates the contract
 				// to make calls to the correct ERC20 precompile.
-				ConstructorArgs: []interface{}{common.HexToAddress(erc20Params.NativePrecompiles[0])},
+				ConstructorArgs: []interface{}{common.HexToAddress(testconstants.WEVMOSContractMainnet)},
 			},
 		)
 		Expect(err).ToNot(HaveOccurred(), "failed to deploy reverter contract")
@@ -1885,7 +1885,7 @@ var _ = Describe("ERC20 Extension -", func() {
 				Expect(tokenPairs).To(HaveLen(1))
 
 				// overwrite the other precompile with this one, so that the test utils like is.getTxAndCallArgs still work.
-				is.precompile, err = setupNewERC20PrecompileForTokenPair(is.keyring.GetPrivKey(0), is.network, is.factory, tokenPairs[0])
+				is.precompile, err = is.setupNewERC20PrecompileForTokenPair(tokenPairs[0])
 				Expect(err).ToNot(HaveOccurred(), "failed to set up erc20 precompile")
 
 				// commit changes to chain state

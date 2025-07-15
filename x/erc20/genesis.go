@@ -37,6 +37,17 @@ func InitGenesis(
 		}
 	}
 
+	for _, precompile := range data.NativePrecompiles {
+		if err := k.EnableNativePrecompile(ctx, common.HexToAddress(precompile)); err != nil {
+			panic(fmt.Errorf("error registering native precompiles %s", err))
+		}
+	}
+	for _, precompile := range data.DynamicPrecompiles {
+		if err := k.EnableDynamicPrecompile(ctx, common.HexToAddress(precompile)); err != nil {
+			panic(fmt.Errorf("error registering dynamic precompiles %s", err))
+		}
+	}
+
 	for _, allowance := range data.Allowances {
 		erc20 := common.HexToAddress(allowance.Erc20Address)
 		owner := common.HexToAddress(allowance.Owner)
@@ -52,8 +63,10 @@ func InitGenesis(
 // ExportGenesis export module status
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return &types.GenesisState{
-		Params:     k.GetParams(ctx),
-		TokenPairs: k.GetTokenPairs(ctx),
-		Allowances: k.GetAllowances(ctx),
+		Params:             k.GetParams(ctx),
+		TokenPairs:         k.GetTokenPairs(ctx),
+		Allowances:         k.GetAllowances(ctx),
+		NativePrecompiles:  k.GetNativePrecompiles(ctx),
+		DynamicPrecompiles: k.GetDynamicPrecompiles(ctx),
 	}
 }
