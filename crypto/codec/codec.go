@@ -2,7 +2,7 @@ package codec
 
 import (
 	"github.com/cosmos/evm/crypto/ethsecp256k1"
-	legacytypes "github.com/cosmos/evm/legacy/types"
+	legacysecp256k1 "github.com/cosmos/evm/legacy/ethsecp256k1"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -13,7 +13,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*cryptotypes.PubKey)(nil), &ethsecp256k1.PubKey{})
 	registry.RegisterImplementations((*cryptotypes.PrivKey)(nil), &ethsecp256k1.PrivKey{})
 
-	registry.RegisterImplementations((*cryptotypes.PubKey)(nil), &legacytypes.PubKey{})
-	registry.RegisterImplementations((*cryptotypes.PrivKey)(nil), &legacytypes.PrivKey{})
+	registry.RegisterImplementations((*cryptotypes.PubKey)(nil), &legacysecp256k1.PubKey{})
+	registry.RegisterImplementations((*cryptotypes.PrivKey)(nil), &legacysecp256k1.PrivKey{})
 
 }
