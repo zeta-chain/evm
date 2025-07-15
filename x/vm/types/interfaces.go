@@ -33,6 +33,7 @@ type AccountKeeper interface {
 	UnorderedTransactionsEnabled() bool
 	RemoveExpiredUnorderedNonces(ctx sdk.Context) error
 	TryAddUnorderedNonce(ctx sdk.Context, sender []byte, timestamp time.Time) error
+	IterateAccounts(ctx context.Context, cb func(account sdk.AccountI) (stop bool))
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
