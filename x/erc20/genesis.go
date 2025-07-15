@@ -35,7 +35,7 @@ func InitGenesis(
 	}
 
 	for _, precompile := range data.NativePrecompiles {
-		if err := k.EnableDynamicPrecompile(ctx, common.HexToAddress(precompile)); err != nil {
+		if err := k.EnableNativePrecompile(ctx, common.HexToAddress(precompile)); err != nil {
 			panic(fmt.Errorf("error registering native precompiles %s", err))
 		}
 	}
