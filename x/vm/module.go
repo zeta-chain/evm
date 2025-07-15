@@ -128,7 +128,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), am.keeper)
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 
-	m := keeper.NewMigrator(*am.keeper)
+	m := keeper.NewMigrator(am.keeper, am.ak)
 
 	cfg.RegisterMigration(types.ModuleName, 5, m.Migrate5to6)
 }
