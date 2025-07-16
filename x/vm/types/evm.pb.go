@@ -4,14 +4,15 @@
 package types
 
 import (
-	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
-	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
-	_ "github.com/cosmos/gogoproto/gogoproto"
-	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+
+	cosmossdk_io_math "cosmossdk.io/math"
+	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -66,14 +67,14 @@ type Params struct {
 	ExtraEIPs []int64 `protobuf:"varint,4,rep,packed,name=extra_eips,json=extraEips,proto3" json:"extra_eips,omitempty" yaml:"extra_eips"`
 	// allow_unprotected_txs defines if replay-protected (i.e non EIP155
 	// signed) transactions can be executed on the state machine.
-	AllowUnprotectedTxs bool `protobuf:"varint,5,opt,name=allow_unprotected_txs,json=allowUnprotectedTxs,proto3" json:"allow_unprotected_txs,omitempty"`
+	AllowUnprotectedTxs bool `protobuf:"varint,6,opt,name=allow_unprotected_txs,json=allowUnprotectedTxs,proto3" json:"allow_unprotected_txs,omitempty"`
 	// evm_channels is the list of channel identifiers from EVM compatible chains
-	EVMChannels []string `protobuf:"bytes,7,rep,name=evm_channels,json=evmChannels,proto3" json:"evm_channels,omitempty"`
+	EVMChannels []string `protobuf:"bytes,8,rep,name=evm_channels,json=evmChannels,proto3" json:"evm_channels,omitempty"`
 	// access_control defines the permission policy of the EVM
-	AccessControl AccessControl `protobuf:"bytes,8,opt,name=access_control,json=accessControl,proto3" json:"access_control"`
-	// active_static_precompiles defines the slice of hex addresses of the
-	// precompiled contracts that are active
-	ActiveStaticPrecompiles []string `protobuf:"bytes,9,rep,name=active_static_precompiles,json=activeStaticPrecompiles,proto3" json:"active_static_precompiles,omitempty"`
+	AccessControl AccessControl `protobuf:"bytes,9,opt,name=access_control,json=accessControl,proto3" json:"access_control"`
+	// active_static_precompiles defines the slice of hex addresses of the precompiled
+	// contracts that are active
+	ActiveStaticPrecompiles []string `protobuf:"bytes,10,rep,name=active_static_precompiles,json=activeStaticPrecompiles,proto3" json:"active_static_precompiles,omitempty"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -1096,7 +1097,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.ActiveStaticPrecompiles[iNdEx])
 			i = encodeVarintEvm(dAtA, i, uint64(len(m.ActiveStaticPrecompiles[iNdEx])))
 			i--
-			dAtA[i] = 0x4a
+			dAtA[i] = 0x52
 		}
 	}
 	{
@@ -1108,14 +1109,14 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintEvm(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x42
+	dAtA[i] = 0x4a
 	if len(m.EVMChannels) > 0 {
 		for iNdEx := len(m.EVMChannels) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.EVMChannels[iNdEx])
 			copy(dAtA[i:], m.EVMChannels[iNdEx])
 			i = encodeVarintEvm(dAtA, i, uint64(len(m.EVMChannels[iNdEx])))
 			i--
-			dAtA[i] = 0x3a
+			dAtA[i] = 0x42
 		}
 	}
 	if m.AllowUnprotectedTxs {
@@ -1126,7 +1127,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x30
 	}
 	if len(m.ExtraEIPs) > 0 {
 		dAtA3 := make([]byte, len(m.ExtraEIPs)*10)
@@ -2503,7 +2504,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExtraEIPs", wireType)
 			}
-		case 5:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AllowUnprotectedTxs", wireType)
 			}
@@ -2523,7 +2524,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.AllowUnprotectedTxs = bool(v != 0)
-		case 7:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EVMChannels", wireType)
 			}
@@ -2555,7 +2556,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			}
 			m.EVMChannels = append(m.EVMChannels, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 8:
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AccessControl", wireType)
 			}
@@ -2588,7 +2589,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 9:
+		case 10:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ActiveStaticPrecompiles", wireType)
 			}
