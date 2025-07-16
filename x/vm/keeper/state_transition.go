@@ -202,7 +202,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	}
 
 	ethLogs := types.LogsToEthereum(res.Logs)
-	bloom, bloomReceipt := k.initializeBloomFromLogs(ctx, ethLogs)
+	_, bloomReceipt := k.initializeBloomFromLogs(ctx, ethLogs)
 
 	if !res.Failed() {
 		var contractAddr common.Address
@@ -256,7 +256,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 
 	// update logs and bloom for full view if post processing updated them
 	ethLogs = types.LogsToEthereum(res.Logs)
-	bloom, _ = k.initializeBloomFromLogs(ctx, ethLogs)
+	bloom, _ := k.initializeBloomFromLogs(ctx, ethLogs)
 
 	// refund gas to match the Ethereum gas consumption instead of the default SDK one.
 	remainingGas := uint64(0)
