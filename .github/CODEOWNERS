@@ -1,5 +1,3 @@
-# CODEOWNERS: https://help.github.com/articles/about-codeowners/
+* @zeta-chain/protocol-engineering
 
-# Primary repo maintainers
-*       @cosmos/interchain_inc_evm_write @cosmos/interchain_inc_evm_admin
-
+.github/** @zeta-chain/devops
