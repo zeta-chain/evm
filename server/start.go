@@ -29,7 +29,6 @@ import (
 	cmttypes "github.com/cometbft/cometbft/types"
 
 	dbm "github.com/cosmos/cosmos-db"
-	"github.com/cosmos/evm/cmd/evmd/config"
 	"github.com/cosmos/evm/indexer"
 	ethdebug "github.com/cosmos/evm/rpc/namespaces/ethereum/debug"
 	cosmosevmserverconfig "github.com/cosmos/evm/server/config"
@@ -68,7 +67,7 @@ func NewDefaultStartOptions(appCreator types.AppCreator, defaultNodeHome string)
 	return StartOptions{
 		AppCreator:      appCreator,
 		DefaultNodeHome: defaultNodeHome,
-		DBOpener:        config.OpenDB,
+		DBOpener:        cosmosevmserverconfig.OpenDB,
 	}
 }
 
@@ -145,10 +144,6 @@ which accepts a path for the resulting pprof file.
 			}
 
 			serverCtx.Logger.Debug("received quit signal")
-			// TODO: why is this check here? Should not make sense since err is checked above
-			if err != nil {
-				serverCtx.Logger.Error(fmt.Sprintf("error on quit: %s", err.Error()))
-			}
 
 			return nil
 		},

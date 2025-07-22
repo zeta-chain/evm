@@ -1,24 +1,40 @@
 #!/usr/bin/make -f
 
-PACKAGES_NOSIMULATION=$(shell go list ./... | grep -v '/simulation')
+###############################################################################
+###                           Module & Versioning                           ###
+###############################################################################
+
 VERSION ?= $(shell echo $(shell git describe --tags --always) | sed 's/^v//')
 TMVERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* ::')
 COMMIT := $(shell git log -1 --format='%H')
+
+###############################################################################
+###                          Directories & Binaries                         ###
+###############################################################################
+
 BINDIR ?= $(GOPATH)/bin
-EXAMPLE_BINARY = evmd
 BUILDDIR ?= $(CURDIR)/build
+EXAMPLE_BINARY := evmd
+
+###############################################################################
+###                              Repo Info                                  ###
+###############################################################################
+
 HTTPS_GIT := https://github.com/cosmos/evm.git
 DOCKER := $(shell which docker)
 
 export GO111MODULE = on
 
-# Default target executed when no arguments are given to make.
-default_target: all
+###############################################################################
+###                            Submodule Settings                           ###
+###############################################################################
 
-.PHONY: build default_target
+# evmd is a separate module under ./evmd
+EVMD_DIR      := evmd
+EVMD_MAIN_PKG := ./cmd/evmd
 
 ###############################################################################
-###                          evmd Build & Install                           ###
+###                        Build & Install evmd                             ###
 ###############################################################################
 
 # process build tags
@@ -71,18 +87,28 @@ ifneq (,$(findstring nooptimization,$(COSMOS_BUILD_OPTIONS)))
   BUILD_FLAGS += -gcflags "all=-N -l"
 endif
 
+# Build into $(BUILDDIR)
+build: go.sum $(BUILDDIR)/
+	@echo "🏗️  Building evmd to $(BUILDDIR)/$(EXAMPLE_BINARY) ..."
+	@cd $(EVMD_DIR) && CGO_ENABLED="1" \
+	  go build $(BUILD_FLAGS) -o $(BUILDDIR)/$(EXAMPLE_BINARY) $(EVMD_MAIN_PKG)
 
-BUILD_TARGETS := build install
-
-build: BUILD_ARGS=-o $(BUILDDIR)/
+# Cross-compile for Linux AMD64
 build-linux:
 	GOOS=linux GOARCH=amd64 $(MAKE) build
 
-$(BUILD_TARGETS): go.sum $(BUILDDIR)/
-	CGO_ENABLED="1" go $@ $(BUILD_FLAGS) $(BUILD_ARGS) ./...
+# Install into $(BINDIR)
+install: go.sum
+	@echo "🚚  Installing evmd to $(BINDIR) ..."
+	@cd $(EVMD_DIR) && CGO_ENABLED="1" \
+	  go install $(BUILD_FLAGS) $(EVMD_MAIN_PKG)
 
 $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
+
+# Default & all target
+.PHONY: all build build-linux install
+all: build
 
 ###############################################################################
 ###                          Tools & Dependencies                           ###
@@ -101,6 +127,7 @@ vulncheck:
 ###                           Tests & Simulation                            ###
 ###############################################################################
 
+PACKAGES_NOSIMULATION=$(shell go list ./... | grep -v '/simulation')
 PACKAGES_UNIT := $(shell go list ./... | grep -v '/tests/e2e$$' | grep -v '/simulation')
 PACKAGES_EVMD := $(shell cd evmd && go list ./... | grep -v '/simulation')
 COVERPKG_EVM  := $(shell go list ./... | grep -v '/tests/e2e$$' | grep -v '/simulation' | paste -sd, -)
@@ -182,7 +209,7 @@ benchmark:
 ###                                Linting                                  ###
 ###############################################################################
 golangci_lint_cmd=golangci-lint
-golangci_version=v2.1.6
+golangci_version=v2.2.2
 
 lint: lint-go lint-python lint-contracts
 
@@ -322,3 +349,31 @@ contracts-compile:
 contracts-add:
 	@echo "Adding a new smart contract to be compiled..."
 	@python3 ./scripts/compile_smart_contracts/compile_smart_contracts.py --add $(CONTRACT)
+
+###############################################################################
+###                                Localnet                                 ###
+###############################################################################
+
+localnet-build-env:
+	$(MAKE) -C contrib/images evmd-env
+
+localnet-build-nodes:
+	$(DOCKER) run --rm -v $(CURDIR)/.testnets:/data cosmos/evmd \
+			  testnet init-files --validator-count 4 -o /data --starting-ip-address 192.168.10.2 --keyring-backend=test --chain-id=local-4221 --use-docker=true
+	docker compose up -d
+
+localnet-stop:
+	docker compose down
+
+# localnet-start will run a 4-node testnet locally. The nodes are
+# based off the docker images in: ./contrib/images/simd-env
+localnet-start: localnet-stop localnet-build-env localnet-build-nodes
+
+
+.PHONY: localnet-start localnet-stop localnet-build-env localnet-build-nodes
+
+test-system: build
+	ulimit -n 1300
+	mkdir -p ./tests/systemtests/binaries/
+	cp $(BUILDDIR)/evmd ./tests/systemtests/binaries/
+	$(MAKE) -C tests/systemtests test

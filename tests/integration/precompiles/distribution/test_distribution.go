@@ -252,7 +252,7 @@ func (s *PrecompileTestSuite) TestRun() {
 				To:        &contractAddr,
 				Amount:    nil,
 				GasLimit:  100000,
-				GasPrice:  chainutil.ExampleMinGasPrices.BigInt(),
+				GasPrice:  chainutil.ExampleMinGasPrices,
 				GasFeeCap: baseFee,
 				GasTipCap: big.NewInt(1),
 				Accesses:  &gethtypes.AccessList{},
@@ -480,7 +480,7 @@ func (s *PrecompileTestSuite) TestCMS() {
 				To:        &contractAddr,
 				Amount:    nil,
 				GasLimit:  1000000,
-				GasPrice:  chainutil.ExampleMinGasPrices.BigInt(),
+				GasPrice:  chainutil.ExampleMinGasPrices,
 				GasFeeCap: baseFee,
 				GasTipCap: big.NewInt(1),
 				Accesses:  &gethtypes.AccessList{},
@@ -497,13 +497,18 @@ func (s *PrecompileTestSuite) TestCMS() {
 			if tc.expPass {
 				s.Require().NoError(err, "expected no error when running the precompile")
 				s.Require().NotNil(resp.Ret, "expected returned bytes not to be nil")
-				testutil.ValidateWrites(s.T(), cms, 2)
+				// NOTES: After stack-based snapshot mechanism is added for precompile call,
+				// CacheMultiStore.Write() is always called once when tx succeeds.
+				// It is because CacheMultiStore() is not called when creating snapshot for MultiStore,
+				// Count of Write() is not accumulated.
+				testutil.ValidateWrites(s.T(), cms, 1)
 			} else {
 				s.Require().Error(err, "expected error to be returned when running the precompile")
 				s.Require().Nil(resp.Ret, "expected returned bytes to be nil")
 				s.Require().ErrorContains(err, tc.errContains)
-				// Writes once because of gas usage
-				testutil.ValidateWrites(s.T(), cms, 1)
+				// NOTES: After stack-based snapshot mechanism is added for precompile call,
+				// CacheMultiStore.Write() is not called when tx fails.
+				testutil.ValidateWrites(s.T(), cms, 0)
 			}
 		})
 	}
