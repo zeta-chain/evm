@@ -44,7 +44,8 @@ jobs:
         if: env.GIT_DIFF
         id: lint_long
         run: |
-  
+          make lint-go
+
   markdown-lint:
     name: Run markdown-lint
     runs-on: ubuntu-latest
