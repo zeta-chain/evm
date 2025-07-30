@@ -743,7 +743,6 @@ func (suite *MiddlewareTestSuite) TestOnRecvPacketNativeErc20() {
 	trappedBal := evmApp.BankKeeper.GetBalance(evmCtx, types2.GenerateIsolatedAddress(path.EndpointA.ChannelID,
 		suite.chainB.SenderAccount.GetAddress().String()), nativeErc20.Denom)
 	suite.Require().Equal(recvAmt.String(), trappedBal.Amount.String())
-
 }
 
 // TestOnAcknowledgementPacketWithCallback tests acknowledgement logic with comprehensive callback scenarios.
