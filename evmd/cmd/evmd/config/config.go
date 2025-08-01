@@ -32,7 +32,7 @@ var ChainsCoinInfo = map[uint64]evmtypes.EvmCoinInfo{
 	},
 	// EVMChainID provides a chain ID used for internal testing
 	EVMChainID: {
-		Denom:         "atest",
+		Denom:         "utest",
 		ExtendedDenom: "atest",
 		DisplayDenom:  "test",
 		Decimals:      evmtypes.EighteenDecimals,
