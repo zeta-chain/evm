@@ -30,6 +30,7 @@ const (
 	codeErrInactivePrecompile
 	codeErrABIPack
 	codeErrABIUnpack
+	codeErrInvalidPreinstall
 )
 
 var (
@@ -89,6 +90,9 @@ var (
 
 	// RevertSelector is selector of ErrExecutionReverted
 	RevertSelector = crypto.Keccak256([]byte("Error(string)"))[:4]
+
+	// ErrInvalidPreinstall returns an error if a preinstall is invalid
+	ErrInvalidPreinstall = errorsmod.Register(ModuleName, codeErrInvalidPreinstall, "invalid preinstall")
 )
 
 // RevertReasonBytes converts a message to ABI-encoded revert bytes.
