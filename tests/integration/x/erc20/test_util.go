@@ -79,7 +79,7 @@ func (s *KeeperTestSuite) DeployContractDirectBalanceManipulation() (common.Addr
 	return addr, s.network.NextBlock()
 }
 
-func (suite *KeeperTestSuite) DeployBytes32MetadataTokenContract(name, symbol string) (common.Address, error) {
+func (s *KeeperTestSuite) DeployBytes32MetadataTokenContract(name, symbol string) (common.Address, error) {
 	bytes32MetadataTokenContract, err := testdata.LoadBytes32MetadataTokenContract()
 	if err != nil {
 		return common.Address{}, err
@@ -91,8 +91,8 @@ func (suite *KeeperTestSuite) DeployBytes32MetadataTokenContract(name, symbol st
 	copy(nameBytes32[:], []byte(name))
 	copy(symbolBytes32[:], []byte(symbol))
 
-	addr, err := suite.factory.DeployContract(
-		suite.keyring.GetPrivKey(0),
+	addr, err := s.factory.DeployContract(
+		s.keyring.GetPrivKey(0),
 		evmtypes.EvmTxArgs{},
 		testutiltypes.ContractDeploymentData{
 			Contract:        bytes32MetadataTokenContract,
@@ -103,5 +103,5 @@ func (suite *KeeperTestSuite) DeployBytes32MetadataTokenContract(name, symbol st
 		return common.Address{}, err
 	}
 
-	return addr, suite.network.NextBlock()
+	return addr, s.network.NextBlock()
 }

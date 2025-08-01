@@ -854,7 +854,7 @@ func FuzzSendCoins(f *testing.F) {
 	})
 }
 
-func (suite *KeeperIntegrationTestSuite) TestSendMsg_RandomValueMultiDecimals() {
+func (s *KeeperIntegrationTestSuite) TestSendMsg_RandomValueMultiDecimals() { //nolint:revive // false positive due to file name
 	tests := []struct {
 		name    string
 		chainID testconstants.ChainID
@@ -874,15 +874,15 @@ func (suite *KeeperIntegrationTestSuite) TestSendMsg_RandomValueMultiDecimals() 
 	}
 
 	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			suite.SetupTestWithChainID(tt.chainID)
+		s.Run(tt.name, func() {
+			s.SetupTestWithChainID(tt.chainID)
 
 			sender := sdk.AccAddress([]byte{1})
 			recipient := sdk.AccAddress([]byte{2})
 
 			// Initial balance large enough to cover many small sends
 			initialBalance := types.ConversionFactor().MulRaw(100)
-			suite.MintToAccount(sender, cs(ci(types.ExtendedCoinDenom(), initialBalance)))
+			s.MintToAccount(sender, cs(ci(types.ExtendedCoinDenom(), initialBalance)))
 
 			// Setup test parameters
 			maxSendUnit := types.ConversionFactor().MulRaw(2).SubRaw(1)
@@ -894,7 +894,7 @@ func (suite *KeeperIntegrationTestSuite) TestSendMsg_RandomValueMultiDecimals() 
 			// Continue transfers as long as sender has balance remaining
 			for {
 				// Check current sender balance
-				senderAmount := suite.GetAllBalances(sender).AmountOf(types.ExtendedCoinDenom())
+				senderAmount := s.GetAllBalances(sender).AmountOf(types.ExtendedCoinDenom())
 				if senderAmount.IsZero() {
 					break
 				}
@@ -912,28 +912,28 @@ func (suite *KeeperIntegrationTestSuite) TestSendMsg_RandomValueMultiDecimals() 
 					ToAddress:   recipient.String(),
 					Amount:      sendAmount,
 				}
-				_, err := suite.network.App.GetPreciseBankKeeper().Send(suite.network.GetContext(), &msgSend)
-				suite.NoError(err)
+				_, err := s.network.App.GetPreciseBankKeeper().Send(s.network.GetContext(), &msgSend)
+				s.NoError(err)
 				totalSent = totalSent.Add(randAmount)
 				sentCount++
 			}
 
-			suite.T().Logf("Completed %d random sends, total sent: %s", sentCount, totalSent.String())
+			s.T().Logf("Completed %d random sends, total sent: %s", sentCount, totalSent.String())
 
 			// Check sender balance
-			senderAmount := suite.GetAllBalances(sender).AmountOf(types.ExtendedCoinDenom())
-			suite.Equal(senderAmount.BigInt().Cmp(big.NewInt(0)), 0, "sender balance should be zero")
+			senderAmount := s.GetAllBalances(sender).AmountOf(types.ExtendedCoinDenom())
+			s.Equal(senderAmount.BigInt().Cmp(big.NewInt(0)), 0, "sender balance should be zero")
 
 			// Check recipient balance
-			recipientBal := suite.GetAllBalances(recipient)
+			recipientBal := s.GetAllBalances(recipient)
 			intReceived := recipientBal.AmountOf(types.ExtendedCoinDenom()).Quo(types.ConversionFactor())
-			fracReceived := suite.network.App.GetPreciseBankKeeper().GetFractionalBalance(suite.network.GetContext(), recipient)
+			fracReceived := s.network.App.GetPreciseBankKeeper().GetFractionalBalance(s.network.GetContext(), recipient)
 
 			expectedInt := totalSent.Quo(types.ConversionFactor())
 			expectedFrac := totalSent.Mod(types.ConversionFactor())
 
-			suite.Equal(expectedInt.BigInt().Cmp(intReceived.BigInt()), 0, "integer carry mismatch (expected: %s, received: %s)", expectedInt, intReceived)
-			suite.Equal(expectedFrac.BigInt().Cmp(fracReceived.BigInt()), 0, "fractional balance mismatch (expected: %s, received: %s)", expectedFrac, fracReceived)
+			s.Equal(expectedInt.BigInt().Cmp(intReceived.BigInt()), 0, "integer carry mismatch (expected: %s, received: %s)", expectedInt, intReceived)
+			s.Equal(expectedFrac.BigInt().Cmp(fracReceived.BigInt()), 0, "fractional balance mismatch (expected: %s, received: %s)", expectedFrac, fracReceived)
 		})
 	}
 }
