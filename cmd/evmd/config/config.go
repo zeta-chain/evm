@@ -30,6 +30,13 @@ var ChainsCoinInfo = map[uint64]evmtypes.EvmCoinInfo{
 		DisplayDenom:  "test",
 		Decimals:      evmtypes.SixDecimals,
 	},
+	// EVMChainID provides a chain ID used for internal testing
+	EVMChainID: {
+		Denom:         "atest",
+		ExtendedDenom: "atest",
+		DisplayDenom:  "test",
+		Decimals:      evmtypes.EighteenDecimals,
+	},
 }
 
 const (
