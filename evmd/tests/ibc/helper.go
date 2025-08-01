@@ -33,7 +33,7 @@ type NativeErc20Info struct {
 }
 
 // SetupNativeErc20 deploys, registers, and mints a native ERC20 token on an EVM-based chain.
-func SetupNativeErc20(t *testing.T, chain *evmibctesting.TestChain) *NativeErc20Info {
+func SetupNativeErc20(t *testing.T, chain *evmibctesting.TestChain, senderAcc evmibctesting.SenderAccount) *NativeErc20Info {
 	t.Helper()
 
 	evmCtx := chain.GetContext()
@@ -65,7 +65,7 @@ func SetupNativeErc20(t *testing.T, chain *evmibctesting.TestChain) *NativeErc20
 	contractAbi := contracts.ERC20MinterBurnerDecimalsContract.ABI
 	nativeDenom := erc20types.CreateDenom(contractAddr.String())
 	sendAmt := ibctesting.DefaultCoinAmount
-	senderAcc := chain.SenderAccount.GetAddress()
+	senderAddr := senderAcc.SenderAccount.GetAddress()
 
 	_, err = evmApp.EVMKeeper.CallEVM(
 		evmCtx,
@@ -75,7 +75,7 @@ func SetupNativeErc20(t *testing.T, chain *evmibctesting.TestChain) *NativeErc20
 		true,
 		nil,
 		"mint",
-		common.BytesToAddress(senderAcc),
+		common.BytesToAddress(senderAddr),
 		big.NewInt(sendAmt.Int64()),
 	)
 	if err != nil {
@@ -83,7 +83,7 @@ func SetupNativeErc20(t *testing.T, chain *evmibctesting.TestChain) *NativeErc20
 	}
 
 	// Verify minted balance
-	bal := evmApp.Erc20Keeper.BalanceOf(evmCtx, contractAbi, contractAddr, common.BytesToAddress(senderAcc))
+	bal := evmApp.Erc20Keeper.BalanceOf(evmCtx, contractAbi, contractAddr, common.BytesToAddress(senderAddr))
 	if bal.Cmp(big.NewInt(sendAmt.Int64())) != 0 {
 		t.Fatalf("unexpected ERC20 balance; got %s, want %s", bal.String(), sendAmt.String())
 	}
@@ -92,7 +92,7 @@ func SetupNativeErc20(t *testing.T, chain *evmibctesting.TestChain) *NativeErc20
 		Denom:        nativeDenom,
 		ContractAbi:  contractAbi,
 		ContractAddr: contractAddr,
-		Account:      common.BytesToAddress(senderAcc),
+		Account:      common.BytesToAddress(senderAddr),
 		InitialBal:   big.NewInt(sendAmt.Int64()),
 	}
 }

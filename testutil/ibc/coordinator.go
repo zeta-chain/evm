@@ -29,7 +29,7 @@ type Coordinator struct {
 }
 
 // NewCoordinator initializes Coordinator with N EVM TestChain's (Cosmos EVM apps) and M Cosmos chains (Simulation Apps)
-func NewCoordinator(t *testing.T, nEVMChains, mCosmosChains int) *Coordinator {
+func NewCoordinator(t *testing.T, nEVMChains, mCosmosChains int, evmAppCreator ibctesting.AppCreator) *Coordinator {
 	t.Helper()
 	chains := make(map[string]*TestChain)
 	coord := &Coordinator{
@@ -37,7 +37,7 @@ func NewCoordinator(t *testing.T, nEVMChains, mCosmosChains int) *Coordinator {
 		CurrentTime: globalStartTime,
 	}
 
-	ibctesting.DefaultTestingAppInit = SetupExampleApp
+	ibctesting.DefaultTestingAppInit = evmAppCreator
 	for i := 1; i <= nEVMChains; i++ {
 		chainID := GetChainID(i)
 		evmChainID, err := strconv.ParseUint(GetEvmChainID(i), 10, 64)
