@@ -31,7 +31,7 @@ func (m MsgServer) Send(goCtx context.Context, msg *banktypes.MsgSend) error {
 			// This should return an error to avoid the contract from being executed and an event being emitted
 			return ConvertErrToERC20Error(err)
 		}
-	case precisebankkeeper.Keeper:
+	case *precisebankkeeper.Keeper:
 		if _, err := keeper.Send(goCtx, msg); err != nil {
 			// This should return an error to avoid the contract from being executed and an event being emitted
 			return ConvertErrToERC20Error(err)
