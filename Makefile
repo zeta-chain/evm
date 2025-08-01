@@ -359,7 +359,7 @@ localnet-build-env:
 
 localnet-build-nodes:
 	$(DOCKER) run --rm -v $(CURDIR)/.testnets:/data cosmos/evmd \
-			  testnet init-files --v 4 -o /data --starting-ip-address 192.168.10.2 --keyring-backend=test --chain-id=local-4221 --use-docker=true
+			  testnet init-files --validator-count 4 -o /data --starting-ip-address 192.168.10.2 --keyring-backend=test --chain-id=local-4221 --use-docker=true
 	docker compose up -d
 
 localnet-stop:
@@ -371,3 +371,9 @@ localnet-start: localnet-stop localnet-build-env localnet-build-nodes
 
 
 .PHONY: localnet-start localnet-stop localnet-build-env localnet-build-nodes
+
+test-system: build
+	ulimit -n 1300
+	mkdir -p ./tests/systemtests/binaries/
+	cp $(BUILDDIR)/evmd ./tests/systemtests/binaries/
+	$(MAKE) -C tests/systemtests test
