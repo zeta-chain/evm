@@ -793,9 +793,8 @@ func (s *PrecompileTestSuite) TestCMS() {
 					s.Require().Contains(execRevertErr.Error(), tc.errContains)
 
 					consumed := ctx.GasMeter().GasConsumed()
-					// Because opCall (for calling precompile) return ErrExecutionReverted, leftOverGas is refunded.
-					// So, consumed gas is less than gasLimit
-					s.Require().LessOrEqual(consumed, tc.gas, "expected gas consumed to be equal to gas limit")
+					// LessThanOrEqual because the gas is consumed before the error is returned
+					s.Require().LessOrEqual(tc.gas, consumed, "expected gas consumed to be equal to gas limit")
 					// NOTES: After stack-based snapshot mechanism is added for precompile call,
 					// CacheMultiStore.Write() is not called when tx fails.
 					testutil.ValidateWrites(s.T(), cms, 0)
