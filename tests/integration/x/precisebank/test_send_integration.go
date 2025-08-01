@@ -912,7 +912,7 @@ func (suite *KeeperIntegrationTestSuite) TestSendMsg_RandomValueMultiDecimals() 
 					ToAddress:   recipient.String(),
 					Amount:      sendAmount,
 				}
-				_, err := suite.network.App.PreciseBankKeeper.Send(suite.network.GetContext(), &msgSend)
+				_, err := suite.network.App.GetPreciseBankKeeper().Send(suite.network.GetContext(), &msgSend)
 				suite.NoError(err)
 				totalSent = totalSent.Add(randAmount)
 				sentCount++
@@ -927,7 +927,7 @@ func (suite *KeeperIntegrationTestSuite) TestSendMsg_RandomValueMultiDecimals() 
 			// Check recipient balance
 			recipientBal := suite.GetAllBalances(recipient)
 			intReceived := recipientBal.AmountOf(types.ExtendedCoinDenom()).Quo(types.ConversionFactor())
-			fracReceived := suite.network.App.PreciseBankKeeper.GetFractionalBalance(suite.network.GetContext(), recipient)
+			fracReceived := suite.network.App.GetPreciseBankKeeper().GetFractionalBalance(suite.network.GetContext(), recipient)
 
 			expectedInt := totalSent.Quo(types.ConversionFactor())
 			expectedFrac := totalSent.Mod(types.ConversionFactor())

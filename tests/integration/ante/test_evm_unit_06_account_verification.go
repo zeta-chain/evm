@@ -95,39 +95,39 @@ func (s *EvmUnitAnteTestSuite) TestVerifyAccountBalance() {
 			name:          "fail: sender spendable balance is lower than the transaction cost, total balance equals transaction cost",
 			expectedError: errortypes.ErrInsufficientFunds,
 			generateAccountAndArgs: func() (*statedb.Account, evmtypes.EvmTxArgs) {
-				txArgs, err := txFactory.GenerateDefaultTxTypeArgs(senderKey.Addr, suite.ethTxType)
-				suite.Require().NoError(err)
+				txArgs, err := txFactory.GenerateDefaultTxTypeArgs(senderKey.Addr, s.EthTxType)
+				s.Require().NoError(err)
 
 				// Make tx cost greater than balance
 				balanceResp, err := grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				balance, ok := math.NewIntFromString(balanceResp.Balance)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				balance = balance.Quo(types.ConversionFactor())
 
 				// replace with vesting account
 				ctx := unitNetwork.GetContext()
-				baseAccount := unitNetwork.App.AccountKeeper.GetAccount(ctx, senderKey.AccAddr).(*authtypes.BaseAccount)
+				baseAccount := unitNetwork.App.GetAccountKeeper().GetAccount(ctx, senderKey.AccAddr).(*authtypes.BaseAccount)
 				baseDenom := unitNetwork.GetBaseDenom()
 				currTime := unitNetwork.GetContext().BlockTime().Unix()
 				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), unitNetwork.GetContext().BlockTime().Unix(), currTime+100)
-				suite.Require().NoError(err)
-				unitNetwork.App.AccountKeeper.SetAccount(ctx, acc)
+				s.Require().NoError(err)
+				unitNetwork.App.GetAccountKeeper().SetAccount(ctx, acc)
 
-				spendable := unitNetwork.App.BankKeeper.SpendableCoin(ctx, senderKey.AccAddr, baseDenom).Amount
-				suite.Require().Equal(spendable.String(), "0")
+				spendable := unitNetwork.App.GetBankKeeper().SpendableCoin(ctx, senderKey.AccAddr, baseDenom).Amount
+				s.Require().Equal(spendable.String(), "0")
 
 				evmBalanceRes, err := grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				evmBalance := evmBalanceRes.Balance
-				suite.Require().Equal(evmBalance, "0")
+				s.Require().Equal(evmBalance, "0")
 
-				totalBalance := unitNetwork.App.BankKeeper.GetBalance(ctx, senderKey.AccAddr, baseDenom)
-				suite.Require().Equal(totalBalance.Amount, balance)
+				totalBalance := unitNetwork.App.GetBankKeeper().GetBalance(ctx, senderKey.AccAddr, baseDenom)
+				s.Require().Equal(totalBalance.Amount, balance)
 
 				statedbAccount := getDefaultStateDBAccount(unitNetwork, senderKey.Addr)
-				suite.Require().Equal(spendable.String(), math.NewIntFromBigInt(statedbAccount.Balance.ToBig()).Quo(types.ConversionFactor()).String())
+				s.Require().Equal(spendable.String(), math.NewIntFromBigInt(statedbAccount.Balance.ToBig()).Quo(types.ConversionFactor()).String())
 				return statedbAccount, txArgs
 			},
 		},
@@ -135,57 +135,57 @@ func (s *EvmUnitAnteTestSuite) TestVerifyAccountBalance() {
 			name:          "success: tx cost equals spendable balance in vesting account",
 			expectedError: nil,
 			generateAccountAndArgs: func() (*statedb.Account, evmtypes.EvmTxArgs) {
-				txArgs, err := txFactory.GenerateDefaultTxTypeArgs(senderKey.Addr, suite.ethTxType)
-				suite.Require().NoError(err)
+				txArgs, err := txFactory.GenerateDefaultTxTypeArgs(senderKey.Addr, s.EthTxType)
+				s.Require().NoError(err)
 
 				// Make tx cost greater than balance
 				balanceResp, err := grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 
 				balance, ok := math.NewIntFromString(balanceResp.Balance)
-				suite.Require().True(ok)
+				s.Require().True(ok)
 				balance = balance.Quo(types.ConversionFactor())
 
 				// replace with vesting account
 				ctx := unitNetwork.GetContext()
-				baseAccount := unitNetwork.App.AccountKeeper.GetAccount(ctx, senderKey.AccAddr).(*authtypes.BaseAccount)
+				baseAccount := unitNetwork.App.GetAccountKeeper().GetAccount(ctx, senderKey.AccAddr).(*authtypes.BaseAccount)
 				baseDenom := unitNetwork.GetBaseDenom()
 				currTime := unitNetwork.GetContext().BlockTime().Unix()
 				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), unitNetwork.GetContext().BlockTime().Unix(), currTime+100)
-				suite.Require().NoError(err)
-				unitNetwork.App.AccountKeeper.SetAccount(ctx, acc)
+				s.Require().NoError(err)
+				unitNetwork.App.GetAccountKeeper().SetAccount(ctx, acc)
 
-				spendable := unitNetwork.App.BankKeeper.SpendableCoin(ctx, senderKey.AccAddr, baseDenom).Amount
-				suite.Require().Equal(spendable.String(), "0")
+				spendable := unitNetwork.App.GetBankKeeper().SpendableCoin(ctx, senderKey.AccAddr, baseDenom).Amount
+				s.Require().Equal(spendable.String(), "0")
 
 				evmBalanceRes, err := grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				evmBalance := evmBalanceRes.Balance
-				suite.Require().Equal(evmBalance, "0")
+				s.Require().Equal(evmBalance, "0")
 
-				totalBalance := unitNetwork.App.BankKeeper.GetBalance(ctx, senderKey.AccAddr, baseDenom)
-				suite.Require().Equal(totalBalance.Amount, balance)
+				totalBalance := unitNetwork.App.GetBankKeeper().GetBalance(ctx, senderKey.AccAddr, baseDenom)
+				s.Require().Equal(totalBalance.Amount, balance)
 
 				mintAmt := sdk.NewCoins(sdk.NewCoin(baseDenom, balance))
-				err = unitNetwork.App.BankKeeper.MintCoins(ctx, "mint", mintAmt)
-				suite.Require().NoError(err)
+				err = unitNetwork.App.GetBankKeeper().MintCoins(ctx, "mint", mintAmt)
+				s.Require().NoError(err)
 
-				err = unitNetwork.App.BankKeeper.SendCoinsFromModuleToAccount(ctx, "mint", senderKey.AccAddr, mintAmt)
-				suite.Require().NoError(err)
+				err = unitNetwork.App.GetBankKeeper().SendCoinsFromModuleToAccount(ctx, "mint", senderKey.AccAddr, mintAmt)
+				s.Require().NoError(err)
 
-				spendable = unitNetwork.App.BankKeeper.SpendableCoin(ctx, senderKey.AccAddr, baseDenom).Amount
-				suite.Require().Equal(spendable.String(), balance.String())
+				spendable = unitNetwork.App.GetBankKeeper().SpendableCoin(ctx, senderKey.AccAddr, baseDenom).Amount
+				s.Require().Equal(spendable.String(), balance.String())
 
 				evmBalanceRes, err = grpcHandler.GetBalanceFromEVM(senderKey.AccAddr)
-				suite.Require().NoError(err)
+				s.Require().NoError(err)
 				evmBalance = evmBalanceRes.Balance
-				suite.Require().Equal(evmBalance, balanceResp.Balance)
+				s.Require().Equal(evmBalance, balanceResp.Balance)
 
-				totalBalance = unitNetwork.App.BankKeeper.GetBalance(ctx, senderKey.AccAddr, baseDenom)
-				suite.Require().Equal(totalBalance.Amount, balance.Mul(math.NewInt(2)))
+				totalBalance = unitNetwork.App.GetBankKeeper().GetBalance(ctx, senderKey.AccAddr, baseDenom)
+				s.Require().Equal(totalBalance.Amount, balance.Mul(math.NewInt(2)))
 
 				statedbAccount := getDefaultStateDBAccount(unitNetwork, senderKey.Addr)
-				suite.Require().Equal(spendable.String(), math.NewIntFromBigInt(statedbAccount.Balance.ToBig()).Quo(types.ConversionFactor()).String())
+				s.Require().Equal(spendable.String(), math.NewIntFromBigInt(statedbAccount.Balance.ToBig()).Quo(types.ConversionFactor()).String())
 				return statedbAccount, txArgs
 			},
 		},

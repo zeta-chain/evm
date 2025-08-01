@@ -238,7 +238,7 @@ func (s *KeeperTestSuite) TestQueryERC20ForceFail() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestQueryERC20Bytes32Fallback() {
+func (s *KeeperTestSuite) TestQueryERC20Bytes32Fallback() {
 	var mockEVMKeeper *erc20mocks.EVMKeeper
 	contract := utiltx.GenerateAddress()
 
@@ -389,27 +389,28 @@ func (suite *KeeperTestSuite) TestQueryERC20Bytes32Fallback() {
 	}
 
 	for _, tc := range testCases {
-		suite.Run(tc.name, func() {
-			suite.SetupTest() // reset
+		s.Run(tc.name, func() {
+			s.SetupTest() // reset
 
+			transferKeeper := s.network.App.GetTransferKeeper()
 			mockEVMKeeper = &erc20mocks.EVMKeeper{}
-			suite.network.App.Erc20Keeper = keeper.NewKeeper(
-				suite.network.App.GetKey("erc20"), suite.network.App.AppCodec(),
+			s.network.App.SetErc20Keeper(keeper.NewKeeper(
+				s.network.App.GetKey("erc20"), s.network.App.AppCodec(),
 				authtypes.NewModuleAddress(govtypes.ModuleName),
-				suite.network.App.AccountKeeper, suite.network.App.BankKeeper,
-				mockEVMKeeper, suite.network.App.StakingKeeper,
-				&suite.network.App.TransferKeeper,
-			)
+				s.network.App.GetAccountKeeper(), s.network.App.GetBankKeeper(),
+				mockEVMKeeper, s.network.App.GetStakingKeeper(),
+				&transferKeeper,
+			))
 
 			tc.malleate()
 
-			res, err := suite.network.App.Erc20Keeper.QueryERC20(suite.network.GetContext(), contract)
+			res, err := s.network.App.GetErc20Keeper().QueryERC20(s.network.GetContext(), contract)
 
 			if tc.shouldPass {
-				suite.Require().NoError(err, "Test case should pass but got error: %v", err)
-				suite.Require().Equal(tc.expectedRes, res, "Expected result mismatch")
+				s.Require().NoError(err, "Test case should pass but got error: %v", err)
+				s.Require().Equal(tc.expectedRes, res, "Expected result mismatch")
 			} else {
-				suite.Require().Error(err, "Test case should fail but succeeded")
+				s.Require().Error(err, "Test case should fail but succeeded")
 			}
 		})
 	}

@@ -140,7 +140,7 @@ type Backend struct {
 }
 
 func (b *Backend) GetConfig() config.Config {
-	return b.cfg
+	return b.Cfg
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
