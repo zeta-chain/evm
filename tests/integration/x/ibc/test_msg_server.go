@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/cosmos/evm/testutil/integration/evm/utils"
+	testutils "github.com/cosmos/evm/testutil/integration/evm/utils"
 	"github.com/cosmos/evm/testutil/keyring"
 	erc20types "github.com/cosmos/evm/x/erc20/types"
 	transferkeeper "github.com/cosmos/evm/x/ibc/transfer/keeper"
@@ -274,11 +275,11 @@ func (suite *KeeperTestSuite) TestTransfer() {
 				suite.Require().Equal(erc20types.Erc20NativeCoinDenomPrefix+contractAddr.String(), erc20Denom)
 
 				// Verify that GetTokenPairID works correctly with the contract address (hex string)
-				pairIDFromAddress := suite.network.App.Erc20Keeper.GetTokenPairID(ctx, contractAddr.String())
+				pairIDFromAddress := suite.network.App.GetErc20Keeper().GetTokenPairID(ctx, contractAddr.String())
 				suite.Require().NotEmpty(pairIDFromAddress)
 
 				// Verify that GetTokenPairID works correctly with the full denom
-				pairIDFromDenom := suite.network.App.Erc20Keeper.GetTokenPairID(ctx, erc20Denom)
+				pairIDFromDenom := suite.network.App.GetErc20Keeper().GetTokenPairID(ctx, erc20Denom)
 				suite.Require().NotEmpty(pairIDFromDenom)
 
 				// Both should return the same pair ID
@@ -414,11 +415,11 @@ func (suite *KeeperTestSuite) TestPrefixTrimming() {
 				suite.Require().Equal(contractAddr.String(), expectedTrimmed)
 
 				// Verify that GetTokenPairID works correctly with the contract address (hex string)
-				pairIDFromAddress := suite.network.App.Erc20Keeper.GetTokenPairID(ctx, contractAddr.String())
+				pairIDFromAddress := suite.network.App.GetErc20Keeper().GetTokenPairID(ctx, contractAddr.String())
 				suite.Require().NotEmpty(pairIDFromAddress)
 
 				// Verify that GetTokenPairID works correctly with the full denom
-				pairIDFromDenom := suite.network.App.Erc20Keeper.GetTokenPairID(ctx, erc20Denom)
+				pairIDFromDenom := suite.network.App.GetErc20Keeper().GetTokenPairID(ctx, erc20Denom)
 				suite.Require().NotEmpty(pairIDFromDenom)
 
 				// Both should return the same pair ID
@@ -468,8 +469,8 @@ func (suite *KeeperTestSuite) TestPrefixTrimming() {
 				suite.Require().Equal(erc20Denom, incorrectTrimmed)
 
 				// Both lookups should work due to dual mapping, but use different code paths
-				pairIDFromCorrect := suite.network.App.Erc20Keeper.GetTokenPairID(ctx, correctTrimmed)
-				pairIDFromIncorrect := suite.network.App.Erc20Keeper.GetTokenPairID(ctx, incorrectTrimmed)
+				pairIDFromCorrect := suite.network.App.GetErc20Keeper().GetTokenPairID(ctx, correctTrimmed)
+				pairIDFromIncorrect := suite.network.App.GetErc20Keeper().GetTokenPairID(ctx, incorrectTrimmed)
 
 				suite.Require().NotEmpty(pairIDFromCorrect)
 				suite.Require().NotEmpty(pairIDFromIncorrect)
@@ -490,24 +491,24 @@ func (suite *KeeperTestSuite) TestPrefixTrimming() {
 			sender = suite.keyring.GetKey(0)
 			ctx = suite.network.GetContext()
 
-			suite.network.App.TransferKeeper = keeper.NewKeeper(
+			suite.network.App.SetTransferKeeper(transferkeeper.NewKeeper(
 				suite.network.App.AppCodec(),
 				runtime.NewKVStoreService(suite.network.App.GetKey(types.StoreKey)),
 				suite.network.App.GetSubspace(types.ModuleName),
 				&MockICS4Wrapper{}, // ICS4 Wrapper
 				mockChannelKeeper,
 				suite.network.App.MsgServiceRouter(),
-				suite.network.App.AccountKeeper,
-				suite.network.App.BankKeeper,
-				suite.network.App.Erc20Keeper, // Add ERC20 Keeper for ERC20 transfers
+				suite.network.App.GetAccountKeeper(),
+				suite.network.App.GetBankKeeper(),
+				suite.network.App.GetErc20Keeper(), // Add ERC20 Keeper for ERC20 transfers
 				authAddr,
-			)
+			))
 			msg := tc.malleate()
 
 			// get updated context with the latest changes
 			ctx = suite.network.GetContext()
 
-			_, err := suite.network.App.TransferKeeper.Transfer(ctx, msg)
+			_, err := suite.network.App.GetTransferKeeper().Transfer(ctx, msg)
 			if tc.expPass {
 				suite.Require().NoError(err)
 			} else {

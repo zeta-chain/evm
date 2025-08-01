@@ -6,16 +6,20 @@ import (
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/holiman/uint256"
 
+	cmn "github.com/cosmos/evm/precompiles/common"
+	"github.com/cosmos/evm/precompiles/common/mocks"
 	"github.com/cosmos/evm/precompiles/erc20"
 	"github.com/cosmos/evm/precompiles/testutil"
 	erc20types "github.com/cosmos/evm/x/erc20/types"
 	"github.com/cosmos/evm/x/vm/statedb"
+	vmtypes "github.com/cosmos/evm/x/vm/types"
 
 	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	"github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 var (
@@ -78,7 +82,7 @@ func (s *PrecompileTestSuite) TestTransfer() {
 			func() []interface{} {
 				ctx := s.network.GetContext()
 				accAddr := sdk.AccAddress(fromAddr.Bytes())
-				err := s.network.App.BankKeeper.SendCoins(ctx, s.keyring.GetAccAddr(0), accAddr, sdk.NewCoins(sdk.NewCoin(s.network.GetBaseDenom(), math.NewInt(2e18))))
+				err := s.network.App.GetBankKeeper().SendCoins(ctx, s.keyring.GetAccAddr(0), accAddr, sdk.NewCoins(sdk.NewCoin(s.network.GetBaseDenom(), math.NewInt(2e18))))
 				s.Require().NoError(err)
 				// replace with vesting account
 				balanceResp, err := s.grpcHandler.GetBalanceFromEVM(accAddr)
@@ -87,14 +91,14 @@ func (s *PrecompileTestSuite) TestTransfer() {
 				balance, ok := math.NewIntFromString(balanceResp.Balance)
 				s.Require().True(ok)
 
-				baseAccount := s.network.App.AccountKeeper.GetAccount(ctx, accAddr).(*authtypes.BaseAccount)
+				baseAccount := s.network.App.GetAccountKeeper().GetAccount(ctx, accAddr).(*authtypes.BaseAccount)
 				baseDenom := s.network.GetBaseDenom()
 				currTime := s.network.GetContext().BlockTime().Unix()
 				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(baseDenom, balance)), s.network.GetContext().BlockTime().Unix(), currTime+100)
 				s.Require().NoError(err)
-				s.network.App.AccountKeeper.SetAccount(ctx, acc)
+				s.network.App.GetAccountKeeper().SetAccount(ctx, acc)
 
-				spendable := s.network.App.BankKeeper.SpendableCoin(ctx, accAddr, baseDenom).Amount
+				spendable := s.network.App.GetBankKeeper().SpendableCoin(ctx, accAddr, baseDenom).Amount
 				s.Require().Equal(spendable.String(), "0")
 
 				evmBalanceRes, err := s.grpcHandler.GetBalanceFromEVM(accAddr)
@@ -102,7 +106,7 @@ func (s *PrecompileTestSuite) TestTransfer() {
 				evmBalance := evmBalanceRes.Balance
 				s.Require().Equal(evmBalance, "0")
 
-				tb, overflow := uint256.FromBig(s.network.App.BankKeeper.GetBalance(ctx, accAddr, baseDenom).Amount.BigInt())
+				tb, overflow := uint256.FromBig(s.network.App.GetBankKeeper().GetBalance(ctx, accAddr, baseDenom).Amount.BigInt())
 				s.Require().False(overflow)
 				s.Require().Equal(tb.ToBig(), balance.BigInt())
 
@@ -220,7 +224,7 @@ func (s *PrecompileTestSuite) TestTransferFrom() {
 		{
 			"fail - not enough balance",
 			func() []interface{} {
-				err := s.network.App.GetErc20Keeper().SetAllowance(ctx, s.precompile.Address(), owner.Addr, spender.Addr, big.NewInt(5e18))
+				err := s.network.App.GetErc20Keeper().SetAllowance(s.network.GetContext(), s.precompile.Address(), owner.Addr, spender.Addr, big.NewInt(5e18))
 				s.Require().NoError(err, "failed to set allowance")
 
 				return []interface{}{owner.Addr, toAddr, big.NewInt(2e18)}
@@ -309,6 +313,56 @@ func (s *PrecompileTestSuite) TestTransferFrom() {
 			} else {
 				s.Require().NoError(err, "expected transfer transaction succeeded")
 				tc.postCheck()
+			}
+		})
+	}
+}
+
+func (s *PrecompileTestSuite) TestSend() {
+	s.SetupTest()
+
+	testcases := []struct {
+		name     string
+		malleate func() cmn.BankKeeper
+		expFail  bool
+	}{
+		{
+			name: "send with BankKeeper",
+			malleate: func() cmn.BankKeeper {
+				return s.network.App.GetBankKeeper()
+			},
+			expFail: false,
+		},
+		{
+			name: "send with PreciseBankKeeper",
+			malleate: func() cmn.BankKeeper {
+				return s.network.App.GetPreciseBankKeeper()
+			},
+			expFail: false,
+		},
+		{
+			name: "send with MockBankKeeper",
+			malleate: func() cmn.BankKeeper {
+				return mocks.NewBankKeeper(s.T())
+			},
+			expFail: true,
+		},
+	}
+
+	for _, tc := range testcases {
+		s.Run(tc.name, func() {
+			bankKeeper := tc.malleate()
+			msgServ := erc20.NewMsgServerImpl(bankKeeper)
+			s.Require().NotNil(msgServ)
+			err := msgServ.Send(s.network.GetContext(), &types.MsgSend{
+				FromAddress: s.keyring.GetAccAddr(0).String(),
+				ToAddress:   s.keyring.GetAccAddr(1).String(),
+				Amount:      sdk.NewCoins(sdk.NewCoin(vmtypes.GetEVMCoinExtendedDenom(), math.OneInt())),
+			})
+			if tc.expFail {
+				s.Require().ErrorContains(err, "invalid keeper type")
+			} else {
+				s.Require().NoError(err)
 			}
 		})
 	}

@@ -50,7 +50,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*rpctypes.RPCTransac
 
 	blockRes, err := b.RPCClient.BlockResults(b.Ctx, &block.Block.Height)
 	if err != nil {
-		b.logger.Debug("block result not found", "height", block.Block.Height, "error", err.Error())
+		b.Logger.Debug("block result not found", "height", block.Block.Height, "error", err.Error())
 		return nil, fmt.Errorf("block result not found: %w", err)
 	}
 
@@ -146,13 +146,13 @@ func (b *Backend) GetTransactionReceipt(hash common.Hash) (map[string]interface{
 
 	res, err := b.GetTxByEthHash(hash)
 	if err != nil {
-		b.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
+		b.Logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
 		return nil, err
 	}
 
 	resBlock, err := b.TendermintBlockByNumber(rpctypes.BlockNumber(res.Height))
 	if err != nil {
-		b.logger.Debug("block not found", "height", res.Height, "error", err.Error())
+		b.Logger.Debug("block not found", "height", res.Height, "error", err.Error())
 		return nil, fmt.Errorf("block not found at height %d: %w", res.Height, err)
 	}
 

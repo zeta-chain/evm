@@ -174,12 +174,12 @@ func (s *TestSuite) TestGetProof() {
 			[]string{"0x0"},
 			rpctypes.BlockNumberOrHash{BlockNumber: &blockNrZero},
 			func(bn rpctypes.BlockNumber, addr common.Address) {
-				suite.backend.ctx = rpctypes.ContextWithHeight(4)
+				s.backend.Ctx = rpctypes.ContextWithHeight(4)
 
-				client := suite.backend.clientCtx.Client.(*mocks.Client)
+				client := s.backend.ClientCtx.Client.(*mocks.Client)
 				_, err := RegisterBlock(client, 4, nil)
-				suite.Require().NoError(err)
-				queryClient := suite.backend.queryClient.QueryClient.(*mocks.EVMQueryClient)
+				s.Require().NoError(err)
+				queryClient := s.backend.QueryClient.QueryClient.(*mocks.EVMQueryClient)
 				RegisterAccount(queryClient, addr, 4)
 				var header metadata.MD
 				RegisterParams(queryClient, &header, 4)
