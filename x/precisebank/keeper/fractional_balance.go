@@ -3,13 +3,12 @@ package keeper
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 
 	"github.com/cosmos/evm/x/precisebank/types"
 
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
-
-	"runtime/debug"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
