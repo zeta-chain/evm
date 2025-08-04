@@ -196,7 +196,7 @@ test-scripts:
 
 test-solidity:
 	@echo "Beginning solidity tests..."
-	./scripts/run-solidity-tests.sh --verbose-log
+	./scripts/run-solidity-tests.sh
 
 .PHONY: run-tests test test-all $(TEST_TARGETS)
 
