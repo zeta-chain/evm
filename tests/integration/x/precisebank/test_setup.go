@@ -3,6 +3,9 @@ package precisebank
 import (
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	testconstants "github.com/cosmos/evm/testutil/constants"
 	"github.com/cosmos/evm/testutil/integration/evm/factory"
 	"github.com/cosmos/evm/testutil/integration/evm/grpc"
@@ -47,4 +50,10 @@ func (s *KeeperIntegrationTestSuite) SetupTestWithChainID(chainID testconstants.
 
 	s.network = nw
 	s.factory = tf
+
+	// Clear all fractional balances to ensure no leftover balances persist between tests
+	s.network.App.GetPreciseBankKeeper().IterateFractionalBalances(s.network.GetContext(), func(addr sdk.AccAddress, bal sdkmath.Int) bool {
+		s.network.App.GetPreciseBankKeeper().DeleteFractionalBalance(s.network.GetContext(), addr)
+		return false
+	})
 }
