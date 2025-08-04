@@ -83,20 +83,8 @@ func SignatureVerification(
 		}
 	}
 
-	sender, err := signer.Sender(ethTx)
-	if err != nil {
-		return errorsmod.Wrapf(
-			errortypes.ErrorInvalidSigner,
-			"couldn't retrieve sender address from the ethereum transaction: %s",
-			err.Error(),
-		)
+	if err := msg.VerifySender(signer); err != nil {
+		return errorsmod.Wrapf(errortypes.ErrorInvalidSigner, "signature verification failed: %s", err.Error())
 	}
-
-	// set up the sender to the transaction field if not already
-	if msg.From != "" && msg.From != sender.Hex() {
-		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "invalid from address; expected %q; got: %q", sender.Hex(), msg.From)
-	}
-
-	msg.From = sender.Hex()
 	return nil
 }
