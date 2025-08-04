@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -ex
+
 export GOPATH="$HOME"/go
 export PATH="$PATH":"$GOPATH"/bin
 
