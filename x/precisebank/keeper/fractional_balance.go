@@ -3,7 +3,6 @@ package keeper
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
 
 	"github.com/cosmos/evm/x/precisebank/types"
 
@@ -40,12 +39,6 @@ func (k *Keeper) SetFractionalBalance(
 		panic(errors.New("address cannot be empty"))
 	}
 
-	// PANIC if setting fractional balance for the module account
-	moduleAddr := k.ak.GetModuleAddress(types.ModuleName)
-	if address.Equals(moduleAddr) {
-		panic(fmt.Sprintf("SetFractionalBalance called for module account: %s, amount: %s\n%s", address.String(), amount.String(), debug.Stack()))
-	}
-
 	if amount.IsZero() {
 		k.DeleteFractionalBalance(ctx, address)
 		return
@@ -54,7 +47,7 @@ func (k *Keeper) SetFractionalBalance(
 	// Ensure the fractional balance is valid before setting it. Use the
 	// ValidateFractionalAmount function to validate the amount.
 	if err := types.ValidateFractionalAmount(amount); err != nil {
-		panic(fmt.Errorf("invalid fractional balance amount: %w", err))
+		panic(fmt.Errorf("amount is invalid: %w", err))
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FractionalBalancePrefix)
