@@ -9,6 +9,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store/prefix"
 
+	"runtime/debug"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -39,15 +41,21 @@ func (k *Keeper) SetFractionalBalance(
 		panic(errors.New("address cannot be empty"))
 	}
 
+	// PANIC if setting fractional balance for the module account
+	moduleAddr := k.ak.GetModuleAddress(types.ModuleName)
+	if address.Equals(moduleAddr) {
+		panic(fmt.Sprintf("SetFractionalBalance called for module account: %s, amount: %s\n%s", address.String(), amount.String(), debug.Stack()))
+	}
+
 	if amount.IsZero() {
 		k.DeleteFractionalBalance(ctx, address)
 		return
 	}
 
 	// Ensure the fractional balance is valid before setting it. Use the
-	// NewFractionalAmountFromInt wrapper to use its Validate() method.
+	// ValidateFractionalAmount function to validate the amount.
 	if err := types.ValidateFractionalAmount(amount); err != nil {
-		panic(fmt.Errorf("amount is invalid: %w", err))
+		panic(fmt.Errorf("invalid fractional balance amount: %w", err))
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FractionalBalancePrefix)
