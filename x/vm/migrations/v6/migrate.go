@@ -11,20 +11,26 @@ import (
 
 type evmKeeper interface {
 	SetCodeHash(ctx sdk.Context, addrBytes, hashBytes []byte)
+	GetParams(ctx sdk.Context) (params evmtypes.Params)
+	SetParams(ctx sdk.Context, params evmtypes.Params) error
 }
 
 func MigrateStore(ctx sdk.Context, ek evmKeeper, ak evmtypes.AccountKeeper) error {
-	fmt.Println("MigrateStore V5->V6")
+	newParams := evmtypes.DefaultParams()
+	newParams.EvmDenom = "azeta"
+	newParams.AllowUnprotectedTxs = true // currently set to true on live networks
+
+	err := ek.SetParams(ctx, newParams)
+	if err != nil {
+		fmt.Println("Set params error", err.Error())
+		return err
+	}
 
 	ak.IterateAccounts(ctx, func(account sdk.AccountI) (stop bool) {
-		fmt.Println("Trying to migrate account", account.GetAddress().String())
 		ethAcc, ok := account.(*legacytypes.EthAccount)
 		if !ok {
-			fmt.Println("Skip account")
 			return false
 		}
-
-		fmt.Println("Migrating start")
 
 		// NOTE: we only need to add store entries for smart contracts
 		codeHashBytes := common.HexToHash(ethAcc.CodeHash).Bytes()
@@ -36,10 +42,8 @@ func MigrateStore(ctx sdk.Context, ek evmKeeper, ak evmtypes.AccountKeeper) erro
 		// Set the base account in the account keeper instead of the EthAccount
 		ak.SetAccount(ctx, ethAcc.BaseAccount)
 
-		fmt.Println("Migrating account success")
 		return false
 	})
 
-	fmt.Println("Migrating success")
 	return nil
 }
