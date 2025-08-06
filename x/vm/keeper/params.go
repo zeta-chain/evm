@@ -7,11 +7,23 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
+	legacyevm "github.com/cosmos/evm/legacy/evm"
 	"github.com/cosmos/evm/utils"
 	"github.com/cosmos/evm/x/vm/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+// GetLegacyParams returns the total set of legacy evm parameters.
+func (k Keeper) GetLegacyParams(ctx sdk.Context) (params legacyevm.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.KeyPrefixParams)
+	if bz == nil {
+		return params
+	}
+	k.cdc.MustUnmarshal(bz, &params)
+	return
+}
 
 // GetParams returns the total set of evm parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
