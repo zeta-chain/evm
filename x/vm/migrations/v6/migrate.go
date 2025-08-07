@@ -1,8 +1,6 @@
 package v6
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	legacytypes "github.com/cosmos/evm/legacy/types"
 	evmtypes "github.com/cosmos/evm/x/vm/types"
@@ -22,7 +20,6 @@ func MigrateStore(ctx sdk.Context, ek evmKeeper, ak evmtypes.AccountKeeper) erro
 
 	err := ek.SetParams(ctx, newParams)
 	if err != nil {
-		fmt.Println("Set params error", err.Error())
 		return err
 	}
 
