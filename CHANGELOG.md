@@ -50,4 +50,5 @@
 
 ### API-BREAKING
 
+- [\#422](https://github.com/cosmos/evm/pull/422) Align function and package names for consistency.
 - [\#305](https://github.com/cosmos/evm/pull/305) Remove evidence precompile due to lack of use cases
