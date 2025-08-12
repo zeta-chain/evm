@@ -25,5 +25,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*tx.TxExtensionOptionI)(nil),
 		&ExtensionOptionsWeb3Tx{},
 		&ExtensionOptionDynamicFeeTx{},
+		&legacytypes.MsgUpdateParams{},
 	)
 }
