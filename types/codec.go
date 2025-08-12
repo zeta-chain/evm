@@ -21,6 +21,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		// TODO: uncomment after moving into migrations for EVM version
 		&legacytypes.EthAccount{},
 	)
+	// Register the EIP712 Tx extension options
 	registry.RegisterImplementations(
 		(*tx.TxExtensionOptionI)(nil),
 		&ExtensionOptionsWeb3Tx{},
