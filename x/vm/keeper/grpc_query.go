@@ -720,6 +720,12 @@ func (k *Keeper) traceTx(
 	fmt.Println("trace tx11")
 
 	if traceConfig.Tracer != "" {
+		fmt.Println("nil checks", traceConfig)
+		fmt.Println("nil checks1", traceConfig.Tracer)
+		fmt.Println("nil checks2", tCtx)
+		fmt.Println("nil checks3", jsonTracerConfig)
+		fmt.Println("nil checks4", types.GetEthChainConfig())
+
 		if tracer, err = tracers.DefaultDirectory.New(traceConfig.Tracer, tCtx, jsonTracerConfig,
 			types.GetEthChainConfig()); err != nil {
 			return nil, 0, status.Error(codes.Internal, err.Error())
