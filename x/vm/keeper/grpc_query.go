@@ -538,9 +538,12 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 // executes the given message in the provided environment for all the transactions in the queried block.
 // The return value will be tracer dependent.
 func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest) (*types.QueryTraceBlockResponse, error) {
+	fmt.Println("trace block 1")
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
+
+	fmt.Println("trace block 2")
 
 	if req.TraceConfig != nil && req.TraceConfig.Limit < 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "output limit cannot be negative, got %d", req.TraceConfig.Limit)
@@ -553,15 +556,21 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 		contextHeight = 1
 	}
 
+	fmt.Println("trace block 3")
+
 	ctx := sdk.UnwrapSDKContext(c)
 	ctx = ctx.WithBlockHeight(contextHeight)
 	ctx = ctx.WithBlockTime(req.BlockTime)
 	ctx = ctx.WithHeaderHash(common.Hex2Bytes(req.BlockHash))
 
+	fmt.Println("trace block 4")
+
 	// to get the base fee we only need the block max gas in the consensus params
 	ctx = ctx.WithConsensusParams(tmproto.ConsensusParams{
 		Block: &tmproto.BlockParams{MaxGas: req.BlockMaxGas},
 	})
+
+	fmt.Println("trace block 5")
 
 	cfg, err := k.EVMConfig(ctx, GetProposerAddress(ctx, req.ProposerAddress))
 	if err != nil {
@@ -574,18 +583,26 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 		cfg.BaseFee = baseFee
 	}
 
+	fmt.Println("trace block 6")
+
 	signer := ethtypes.MakeSigner(types.GetEthChainConfig(), big.NewInt(ctx.BlockHeight()), uint64(ctx.BlockTime().Unix())) //#nosec G115 -- int overflow is not a concern here
 	txsLength := len(req.Txs)
 	results := make([]*types.TxTraceResult, 0, txsLength)
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 
+	fmt.Println("trace block 7")
+
 	for i, tx := range req.Txs {
 		result := types.TxTraceResult{}
 		ethTx := tx.AsTransaction()
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i) //nolint:gosec // G115 // won't exceed uint64
+		fmt.Println("trace block 8")
+
 		traceResult, logIndex, err := k.traceTx(ctx, cfg, txConfig, signer, ethTx, req.TraceConfig, true)
+		fmt.Println("trace block 9")
+
 		if err != nil {
 			result.Error = err.Error()
 		} else {
@@ -595,10 +612,14 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 		results = append(results, &result)
 	}
 
+	fmt.Println("trace block 10")
+
 	resultData, err := json.Marshal(results)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
+
+	fmt.Println("trace block 11")
 
 	return &types.QueryTraceBlockResponse{
 		Data: resultData,
