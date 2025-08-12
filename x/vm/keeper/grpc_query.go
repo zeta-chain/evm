@@ -719,6 +719,18 @@ func (k *Keeper) traceTx(
 
 	fmt.Println("trace tx11")
 
+	type callTracerConfig struct {
+		OnlyTopCall bool `json:"onlyTopCall"` // If true, call tracer won't collect any subcalls
+		WithLog     bool `json:"withLog"`     // If true, call tracer will collect event logs
+	}
+
+	var config callTracerConfig
+	if err := json.Unmarshal(jsonTracerConfig, &config); err != nil {
+		fmt.Println("err call tracer config", err.Error())
+	}
+
+	fmt.Println("check nils")
+
 	if traceConfig.Tracer != "" {
 		fmt.Println("nil checks", traceConfig)
 		fmt.Println("nil checks1", traceConfig.Tracer)
