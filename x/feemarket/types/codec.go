@@ -36,11 +36,9 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgUpdateParams{},
+		&legacytypes.MsgUpdateParams{},
 	)
-
-	registry.RegisterImplementations(
-		&legacytypes.MsgUpdateParams{}, // Keep interface for backwards compatibility on proposals query
-	)
+	// Keep interface for backwards compatibility on proposals quer
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
