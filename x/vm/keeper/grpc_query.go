@@ -643,6 +643,7 @@ func (k *Keeper) traceTx(
 	traceConfig *types.TraceConfig,
 	commitMessage bool,
 ) (*any, uint, error) {
+	fmt.Println("trace tx1")
 	// Assemble the structured logger or the JavaScript tracer
 	var (
 		tracer           *tracers.Tracer
@@ -652,24 +653,39 @@ func (k *Keeper) traceTx(
 		timeout          = defaultTraceTimeout
 	)
 
+	fmt.Println("trace tx2")
+
 	var msg *core.Message
 	if !isUnsigned(tx) {
+		fmt.Println("trace tx3")
+
 		msg, err = core.TransactionToMessage(tx, signer, cfg.BaseFee)
 		if err != nil {
 			return nil, 0, status.Errorf(codes.InvalidArgument, "transaction to message: %v", err.Error())
 		}
+		fmt.Println("trace tx5")
+
 	} else {
+		fmt.Println("trace tx4")
+
 		msg = unsignedTxAsMessage(from, tx, cfg.BaseFee)
+
+		fmt.Println("trace tx6")
+
 	}
 
 	if traceConfig == nil {
 		traceConfig = &types.TraceConfig{}
 	}
 
+	fmt.Println("trace tx7")
+
 	if traceConfig != nil && traceConfig.TracerJsonConfig != "" {
 		// ignore error. default to no traceConfig
 		_ = json.Unmarshal([]byte(traceConfig.TracerJsonConfig), &jsonTracerConfig)
 	}
+
+	fmt.Println("trace tx8")
 
 	if traceConfig.Overrides != nil {
 		overrides = traceConfig.Overrides.EthereumConfig(types.GetEthChainConfig().ChainID)
@@ -684,6 +700,8 @@ func (k *Keeper) traceTx(
 		Overrides:        overrides,
 	}
 
+	fmt.Println("trace tx9")
+
 	sLogger := logger.NewStructLogger(&logConfig)
 	tracer = &tracers.Tracer{
 		Hooks:     sLogger.Hooks(),
@@ -691,11 +709,15 @@ func (k *Keeper) traceTx(
 		Stop:      sLogger.Stop,
 	}
 
+	fmt.Println("trace tx10")
+
 	tCtx := &tracers.Context{
 		BlockHash: txConfig.BlockHash,
 		TxIndex:   int(txConfig.TxIndex), //#nosec G115 -- int overflow is not a concern here
 		TxHash:    txConfig.TxHash,
 	}
+
+	fmt.Println("trace tx11")
 
 	if traceConfig.Tracer != "" {
 		if tracer, err = tracers.DefaultDirectory.New(traceConfig.Tracer, tCtx, jsonTracerConfig,
@@ -703,6 +725,8 @@ func (k *Keeper) traceTx(
 			return nil, 0, status.Error(codes.Internal, err.Error())
 		}
 	}
+
+	fmt.Println("trace tx12")
 
 	// Define a meaningful timeout of a single transaction trace
 	if traceConfig.Timeout != "" {
@@ -722,6 +746,8 @@ func (k *Keeper) traceTx(
 		}
 	}()
 
+	fmt.Println("trace tx13")
+
 	// Build EVM execution context
 	ctx = buildTraceCtx(ctx, msg.GasLimit)
 	res, err := k.ApplyMessageWithConfig(ctx, *msg, tracer.Hooks, commitMessage, cfg, txConfig, false)
@@ -729,11 +755,15 @@ func (k *Keeper) traceTx(
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
 
+	fmt.Println("trace tx14")
+
 	var result interface{}
 	result, err = tracer.GetResult()
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
+
+	fmt.Println("trace tx15")
 
 	return &result, txConfig.LogIndex + uint(len(res.Logs)), nil
 }
