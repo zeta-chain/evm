@@ -5,6 +5,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	legacytypes "github.com/cosmos/evm/legacy/types"
 )
 
 var (
@@ -36,10 +37,16 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		(*sdk.Msg)(nil),
 		&MsgUpdateParams{},
 	)
+
+	registry.RegisterImplementations(
+		&legacytypes.MsgUpdateParams{}, // Keep interface for backwards compatibility on proposals query
+	)
+
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
 // RegisterLegacyAminoCodec required for EIP-712
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateParams{}, updateParamsName, nil)
+	cdc.RegisterConcrete(&legacytypes.MsgUpdateParams{}, "ethermint/evm.v1/MsgUpdateParams", nil)
 }
