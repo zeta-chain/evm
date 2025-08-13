@@ -11,6 +11,8 @@ import (
 	"github.com/cosmos/evm/x/vm/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	legacyevm "github.com/cosmos/evm/legacy/evm"
 )
 
 // GetParams returns the total set of evm parameters.
@@ -20,7 +22,22 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	if bz == nil {
 		return params
 	}
-	k.cdc.MustUnmarshal(bz, &params)
+	err := k.cdc.Unmarshal(bz, &params)
+
+	if err != nil {
+		fmt.Println("err unm", err.Error())
+		var legacyParams legacyevm.Params
+		err = k.cdc.Unmarshal(bz, &legacyParams)
+		if err != nil {
+			fmt.Println("err unm 2", err.Error())
+		}
+
+		return types.Params{
+			EvmDenom:            params.EvmDenom,
+			ExtraEIPs:           params.ExtraEIPs,
+			AllowUnprotectedTxs: params.AllowUnprotectedTxs,
+		}
+	}
 	return
 }
 
