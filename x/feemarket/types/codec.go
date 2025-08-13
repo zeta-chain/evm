@@ -44,5 +44,5 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // RegisterLegacyAminoCodec required for EIP-712
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateParams{}, updateParamsName, nil)
-	cdc.RegisterConcrete(&legacytypes.MsgUpdateParams{}, updateParamsName, nil)
+	cdc.RegisterConcrete(&legacytypes.MsgUpdateParams{}, "ethermint/feemarket/v1/MsgUpdateParams", nil)
 }
