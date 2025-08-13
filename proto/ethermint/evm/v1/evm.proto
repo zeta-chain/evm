@@ -128,3 +128,4 @@ message ChainConfig {
     (gogoproto.moretags) = "yaml:\"cancun_block\""
   ];
 }
+

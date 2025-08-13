@@ -2,6 +2,8 @@
 
 ## UNRELEASED
 
+- [\#6](https://github.com/zeta-chain/evm/pull/6 Add legacy ethermint protocol buffer files to support querying legacy transactions
+
 ### DEPENDENCIES
 
 - [\#31](https://github.com/cosmos/evm/pull/31) Migrated example_chain to evmd

@@ -5,6 +5,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	legacyfeemarket "github.com/cosmos/evm/legacy/feemarket"
 )
 
 var (
@@ -21,7 +22,8 @@ var (
 
 const (
 	// Amino names
-	updateParamsName = "os/feemarket/MsgUpdateParams"
+	updateParamsName       = "os/feemarket/MsgUpdateParams"
+	legacyUpdateParamsName = "ethermint/feemarket/MsgUpdateParams"
 )
 
 // NOTE: This is required for the GetSignBytes function
@@ -35,6 +37,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgUpdateParams{},
+		&legacyfeemarket.MsgUpdateParams{},
 	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
@@ -42,4 +45,5 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 // RegisterLegacyAminoCodec required for EIP-712
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateParams{}, updateParamsName, nil)
+	cdc.RegisterConcrete(&legacyfeemarket.MsgUpdateParams{}, legacyUpdateParamsName, nil)
 }

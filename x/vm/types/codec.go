@@ -1,6 +1,7 @@
 package types
 
 import (
+	legacyevm "github.com/cosmos/evm/legacy/evm"
 	proto "github.com/cosmos/gogoproto/proto"
 
 	errorsmod "cosmossdk.io/errors"
@@ -25,7 +26,8 @@ var (
 
 const (
 	// Amino names
-	updateParamsName = "os/evm/MsgUpdateParams"
+	updateParamsName       = "os/evm/MsgUpdateParams"
+	legacyUpdateParamsName = "ethermint/MsgUpdateParams"
 )
 
 // NOTE: This is required for the GetSignBytes function
@@ -39,11 +41,14 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*tx.TxExtensionOptionI)(nil),
 		&ExtensionOptionsEthereumTx{},
+		&legacyevm.ExtensionOptionsEthereumTx{},
 	)
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgEthereumTx{},
 		&MsgUpdateParams{},
+		&legacyevm.MsgEthereumTx{},
+		&legacyevm.MsgUpdateParams{},
 	)
 	registry.RegisterInterface(
 		"os.vm.v1.TxData",
@@ -91,4 +96,5 @@ func UnpackTxData(anyTxData *codectypes.Any) (TxData, error) {
 // RegisterLegacyAminoCodec required for EIP-712
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateParams{}, updateParamsName, nil)
+	cdc.RegisterConcrete(&legacyevm.MsgUpdateParams{}, legacyUpdateParamsName, nil)
 }
