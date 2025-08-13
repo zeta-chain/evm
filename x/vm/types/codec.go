@@ -56,9 +56,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&DynamicFeeTx{},
 		&AccessListTx{},
 		&LegacyTx{},
-		&legacyevm.DynamicFeeTx{},
-		&legacyevm.AccessListTx{},
-		&legacyevm.LegacyTx{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
