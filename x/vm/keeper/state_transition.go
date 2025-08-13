@@ -414,6 +414,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	} else {
 		fmt.Println("amc 45")
 
+		fmt.Println("nil check", msg.To, convertedValue, sender.Address(), msg.Data, leftoverGas)
 		ret, leftoverGas, vmErr = evm.Call(sender.Address(), *msg.To, msg.Data, leftoverGas, convertedValue)
 		fmt.Println("amc 46")
 
