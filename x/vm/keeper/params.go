@@ -22,23 +22,8 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	if bz == nil {
 		return params
 	}
-	err := k.cdc.Unmarshal(bz, &params)
+	k.cdc.MustUnmarshal(bz, &params)
 
-	if err != nil {
-		fmt.Println("err unm", err.Error())
-		var legacyParams legacyevm.Params
-		err = k.cdc.Unmarshal(bz, &legacyParams)
-		if err != nil {
-			fmt.Println("err unm 2", err.Error())
-		}
-
-		df := types.DefaultParams()
-		df.EvmDenom = params.EvmDenom
-		df.ExtraEIPs = params.ExtraEIPs
-		df.AllowUnprotectedTxs = params.AllowUnprotectedTxs
-
-		return df
-	}
 	return
 }
 
@@ -51,17 +36,16 @@ func (k Keeper) GetParamsWithFallback(ctx sdk.Context) (params types.Params) {
 		return params
 	}
 	err := k.cdc.Unmarshal(bz, &params)
-
 	if err != nil {
 		var legacyParams legacyevm.Params
 		k.cdc.MustUnmarshal(bz, &legacyParams)
 
-		// remaining params didn't exist in legacy version so default can be used
-		return types.Params{
-			EvmDenom:            params.EvmDenom,
-			ExtraEIPs:           params.ExtraEIPs,
-			AllowUnprotectedTxs: params.AllowUnprotectedTxs,
-		}
+		df := types.DefaultParams()
+		df.EvmDenom = legacyParams.EvmDenom
+		df.ExtraEIPs = legacyParams.ExtraEIPs
+		df.AllowUnprotectedTxs = legacyParams.AllowUnprotectedTxs
+
+		return df
 	}
 	return
 }
