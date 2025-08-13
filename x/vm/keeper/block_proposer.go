@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 
 	errorsmod "cosmossdk.io/errors"
@@ -27,8 +29,11 @@ func (k Keeper) GetCoinbaseAddress(ctx sdk.Context, proposerAddress sdk.ConsAddr
 
 // GetProposerAddress returns current block proposer's address when provided proposer address is empty.
 func GetProposerAddress(ctx sdk.Context, proposerAddress sdk.ConsAddress) sdk.ConsAddress {
+	fmt.Println("GetProposerAddress1")
+
 	if len(proposerAddress) == 0 {
 		proposerAddress = ctx.BlockHeader().ProposerAddress
 	}
+	fmt.Println("GetProposerAddress2", proposerAddress.String())
 	return proposerAddress
 }

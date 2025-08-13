@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/tracing"
@@ -16,15 +18,20 @@ import (
 
 // EVMConfig creates the EVMConfig based on current state
 func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress) (*statedb.EVMConfig, error) {
+	fmt.Println("get params")
+
 	params := k.GetParams(ctx)
 
+	fmt.Println("params", params)
 	// get the coinbase address from the block proposer
 	coinbase, err := k.GetCoinbaseAddress(ctx, proposerAddress)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to obtain coinbase address")
 	}
 
+	fmt.Println("get base fee")
 	baseFee := k.GetBaseFee(ctx)
+	fmt.Println("base fee", baseFee.String())
 	return &statedb.EVMConfig{
 		Params:   params,
 		CoinBase: coinbase,

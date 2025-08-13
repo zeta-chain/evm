@@ -583,6 +583,8 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 		return nil, status.Error(codes.Internal, "failed to load evm config")
 	}
 
+	fmt.Println("trace block 55")
+
 	// compute and use base fee of height that is being traced
 	baseFee := k.feeMarketWrapper.CalculateBaseFee(ctx)
 	if baseFee != nil {
@@ -732,6 +734,7 @@ func (k *Keeper) traceTx(
 	fmt.Println("check nils")
 
 	if traceConfig.Tracer != "" {
+		fmt.Println("nil checks0", tracers.DefaultDirectory)
 		fmt.Println("nil checks", traceConfig)
 		fmt.Println("nil checks1", traceConfig.Tracer)
 		fmt.Println("nil checks2", tCtx)
