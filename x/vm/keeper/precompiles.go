@@ -34,16 +34,20 @@ func (k *Keeper) GetPrecompileInstance(
 	}
 
 	// Get the precompile from the dynamic precompiles
-	precompile, found, err := k.erc20Keeper.GetERC20PrecompileInstance(ctx, address)
-	if err != nil || !found {
-		return nil, false, err
-	}
-	addressMap := make(map[common.Address]vm.PrecompiledContract)
-	addressMap[address] = precompile
-	return &Precompiles{
-		Map:       addressMap,
-		Addresses: []common.Address{precompile.Address()},
-	}, found, nil
+	// TODO: getting nil checks here when tracing pre-upgrade blocks
+	// since there is no precompile instance we are using from this keeper, can skip for now and come back to it
+	// probably associated with querieng store from past blocks cached ms
+	return nil, false, nil
+	// precompile, found, err := k.erc20Keeper.GetERC20PrecompileInstance(ctx, address)
+	// if err != nil || !found {
+	// 	return nil, false, err
+	// }
+	// addressMap := make(map[common.Address]vm.PrecompiledContract)
+	// addressMap[address] = precompile
+	// return &Precompiles{
+	// 	Map:       addressMap,
+	// 	Addresses: []common.Address{precompile.Address()},
+	// }, found, nil
 }
 
 // GetPrecompilesCallHook returns a closure that can be used to instantiate the EVM with a specific
