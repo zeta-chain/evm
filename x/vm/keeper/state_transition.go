@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -340,6 +341,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		vmErr error  // vm errors do not effect consensus and are therefore not assigned to err
 	)
 
+	fmt.Println("amc 1")
 	stateDB := statedb.New(ctx, k, txConfig)
 	evm := k.NewEVM(ctx, msg, cfg, tracer, stateDB)
 
@@ -360,6 +362,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		}()
 	}
 
+	fmt.Println("amc 2")
+
 	ethCfg := types.GetEthChainConfig()
 
 	sender := vm.AccountRef(msg.From)
@@ -371,6 +375,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		// should have already been checked on Ante Handler
 		return nil, errorsmod.Wrap(err, "intrinsic gas failed")
 	}
+
+	fmt.Println("amc 3")
 
 	// Should check again even if it is checked on Ante Handler, because eth_call don't go through Ante Handler.
 	if leftoverGas < intrinsicGas {
@@ -388,6 +394,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("amc 4")
 
 	if contractCreation {
 		// take over the nonce management from evm:
@@ -429,6 +437,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		vmError = vmErr.Error()
 	}
 
+	fmt.Println("amc 5")
+
 	// The dirty states in `StateDB` is either committed or discarded after return
 	if commit {
 		if err := stateDB.Commit(); err != nil {
@@ -458,10 +468,14 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	// reset leftoverGas, to be used by the tracer
 	leftoverGas = msg.GasLimit - gasUsed.TruncateInt().Uint64()
 
+	fmt.Println("amc 6")
+
 	// if the execution reverted, we return the revert reason as the return data
 	if vmError == vm.ErrExecutionReverted.Error() {
 		ret = evm.Interpreter().ReturnData()
 	}
+
+	fmt.Println("amc 7")
 
 	return &types.MsgEthereumTxResponse{
 		GasUsed: gasUsed.TruncateInt().Uint64(),
