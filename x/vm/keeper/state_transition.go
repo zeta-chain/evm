@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 	"math/big"
+	"runtime/debug"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -415,6 +416,15 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		fmt.Println("amc 45")
 
 		fmt.Println("nil check", msg.To, convertedValue, sender.Address(), msg.Data, leftoverGas)
+		fmt.Println("nil check 2", *msg.To)
+		fmt.Println("nil check 3", convertedValue.ToBig(), convertedValue.IsZero())
+
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Println("panic recovered:", r)
+				debug.PrintStack()
+			}
+		}()
 		ret, leftoverGas, vmErr = evm.Call(sender.Address(), *msg.To, msg.Data, leftoverGas, convertedValue)
 		fmt.Println("amc 46")
 

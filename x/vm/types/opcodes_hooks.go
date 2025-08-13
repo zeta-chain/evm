@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 )
@@ -58,10 +60,12 @@ func (h *DefaultOpCodesHooks) CreateHook(evm *vm.EVM, caller common.Address) err
 
 // CallHook checks if the caller has permission to perform a call
 func (h *DefaultOpCodesHooks) CallHook(evm *vm.EVM, caller common.Address, recipient common.Address) error {
+	fmt.Println("CALL HOOK")
 	for _, hook := range h.callHooks {
 		if err := hook(evm, caller, recipient); err != nil {
 			return err
 		}
 	}
+	fmt.Println("CALL HOOK 2")
 	return nil
 }
