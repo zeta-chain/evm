@@ -11,16 +11,32 @@ import (
 	"github.com/cosmos/evm/x/vm/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	legacyevm "github.com/cosmos/evm/legacy/evm"
 )
 
-// GetParams returns the total set of evm parameters.
+// GetParams returns the total set of evm parameters
+// with fallback to legacy params - to be used just for queries
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.KeyPrefixParams)
 	if bz == nil {
 		return params
 	}
-	k.cdc.MustUnmarshal(bz, &params)
+	err := k.cdc.Unmarshal(bz, &params)
+
+	if err != nil {
+		var legacyParams legacyevm.Params
+		k.cdc.MustUnmarshal(bz, &legacyParams)
+
+		// remaining params didn't exist in legacy version so default can be used
+		df := types.DefaultParams()
+		df.EvmDenom = legacyParams.EvmDenom
+		df.ExtraEIPs = legacyParams.ExtraEIPs
+		df.AllowUnprotectedTxs = legacyParams.AllowUnprotectedTxs
+
+		return df
+	}
 	return
 }
 
