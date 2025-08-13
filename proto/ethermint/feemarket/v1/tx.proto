@@ -5,7 +5,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "cosmos/msg/v1/msg.proto";
 
-option go_package = "github.com/cosmos/evm/legacy/types";
+option go_package = "github.com/cosmos/evm/legacy/feemarket";
 
 // Deprecated:MsgUpdateParams defines a Msg for updating the the feemarket module paramteres
 // This message has now been replaces by the same message in the cosmos.evm.feemarket.v1 package
