@@ -32,24 +32,6 @@ func (k *Keeper) EVMConfig(ctx sdk.Context, proposerAddress sdk.ConsAddress) (*s
 	}, nil
 }
 
-// EVMConfig creates the EVMConfig based on current state
-// fallsback to legacy params in case of historical queries
-func (k *Keeper) EVMConfigForQuery(ctx sdk.Context, proposerAddress sdk.ConsAddress) (*statedb.EVMConfig, error) {
-	params := k.GetParamsWithFallback(ctx)
-	// get the coinbase address from the block proposer
-	coinbase, err := k.GetCoinbaseAddress(ctx, proposerAddress)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "failed to obtain coinbase address")
-	}
-
-	baseFee := k.GetBaseFee(ctx)
-	return &statedb.EVMConfig{
-		Params:   params,
-		CoinBase: coinbase,
-		BaseFee:  baseFee,
-	}, nil
-}
-
 // TxConfig loads `TxConfig` from current transient storage
 func (k *Keeper) TxConfig(ctx sdk.Context, txHash common.Hash) statedb.TxConfig {
 	return statedb.NewTxConfig(
