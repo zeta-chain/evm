@@ -398,15 +398,27 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	fmt.Println("amc 4")
 
 	if contractCreation {
+		fmt.Println("amc 41")
 		// take over the nonce management from evm:
 		// - reset sender's nonce to msg.Nonce() before calling evm.
 		// - increase sender's nonce by one no matter the result.
 		stateDB.SetNonce(sender.Address(), msg.Nonce, tracing.NonceChangeEoACall)
+		fmt.Println("amc 42")
+
 		ret, _, leftoverGas, vmErr = evm.Create(sender.Address(), msg.Data, leftoverGas, convertedValue)
+		fmt.Println("amc 43")
+
 		stateDB.SetNonce(sender.Address(), msg.Nonce+1, tracing.NonceChangeContractCreator)
+		fmt.Println("amc 44")
+
 	} else {
+		fmt.Println("amc 45")
+
 		ret, leftoverGas, vmErr = evm.Call(sender.Address(), *msg.To, msg.Data, leftoverGas, convertedValue)
+		fmt.Println("amc 46")
+
 	}
+	fmt.Println("amc 47")
 
 	refundQuotient := params.RefundQuotient
 
@@ -423,9 +435,14 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	if msg.GasLimit < leftoverGas {
 		return nil, errorsmod.Wrap(types.ErrGasOverflow, "apply message")
 	}
+
+	fmt.Println("amc 48")
+
 	// refund gas
 	temporaryGasUsed := msg.GasLimit - leftoverGas
 	refund := GasToRefund(stateDB.GetRefund(), temporaryGasUsed, refundQuotient)
+
+	fmt.Println("amc 49")
 
 	// update leftoverGas and temporaryGasUsed with refund amount
 	leftoverGas += refund

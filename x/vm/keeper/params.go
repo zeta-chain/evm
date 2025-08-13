@@ -15,21 +15,9 @@ import (
 	legacyevm "github.com/cosmos/evm/legacy/evm"
 )
 
-// GetParams returns the total set of evm parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.KeyPrefixParams)
-	if bz == nil {
-		return params
-	}
-	k.cdc.MustUnmarshal(bz, &params)
-
-	return
-}
-
 // GetParamsWithFallback returns the total set of evm parameters
 // with fallback to legacy params - to be used just for queries
-func (k Keeper) GetParamsWithFallback(ctx sdk.Context) (params types.Params) {
+func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.KeyPrefixParams)
 	if bz == nil {
