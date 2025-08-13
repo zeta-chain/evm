@@ -22,21 +22,31 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 	if bz == nil {
 		return params
 	}
+	k.cdc.MustUnmarshal(bz, &params)
+	return
+}
+
+// GetParamsWithFallback returns the total set of evm parameters
+// with fallback to legacy params - to be used just for queries
+func (k Keeper) GetParamsWithFallback(ctx sdk.Context) (params types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.KeyPrefixParams)
+	if bz == nil {
+		return params
+	}
 	err := k.cdc.Unmarshal(bz, &params)
 
 	if err != nil {
-		fmt.Println("err unm", err.Error())
 		var legacyParams legacyevm.Params
-		err = k.cdc.Unmarshal(bz, &legacyParams)
-		if err != nil {
-			fmt.Println("err unm 2", err.Error())
-		}
+		k.cdc.MustUnmarshal(bz, &legacyParams)
 
-		return types.Params{
-			EvmDenom:            params.EvmDenom,
-			ExtraEIPs:           params.ExtraEIPs,
-			AllowUnprotectedTxs: params.AllowUnprotectedTxs,
-		}
+		// remaining params didn't exist in legacy version so default can be used
+		df := types.DefaultParams()
+		df.EvmDenom = legacyParams.EvmDenom
+		df.ExtraEIPs = legacyParams.ExtraEIPs
+		df.AllowUnprotectedTxs = legacyParams.AllowUnprotectedTxs
+
+		return df
 	}
 	return
 }
