@@ -41,6 +41,7 @@
 - [\#389](https://github.com/cosmos/evm/pull/389) Post-audit security fixes (batch 3)
 - [\#392](https://github.com/cosmos/evm/pull/392) Post-audit security fixes (batch 5)
 - [\#398](https://github.com/cosmos/evm/pull/398) Post-audit security fixes (batch 4)
+- [\#442](https://github.com/cosmos/evm/pull/442) Prevent nil pointer by checking error in gov precompile FromResponse.
 - [\#387](https://github.com/cosmos/evm/pull/387) (Experimental) EVM-compatible appside mempool
 
 ### FEATURES
