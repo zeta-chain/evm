@@ -15,5 +15,4 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 
 	registry.RegisterImplementations((*cryptotypes.PubKey)(nil), &legacysecp256k1.PubKey{})
 	registry.RegisterImplementations((*cryptotypes.PrivKey)(nil), &legacysecp256k1.PrivKey{})
-
 }

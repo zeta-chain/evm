@@ -238,7 +238,8 @@ func (_m *AccountKeeper) UnorderedTransactionsEnabled() bool {
 func NewAccountKeeper(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *AccountKeeper {
+},
+) *AccountKeeper {
 	mock := &AccountKeeper{}
 	mock.Mock.Test(t)
 

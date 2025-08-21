@@ -24,7 +24,6 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 		return params
 	}
 	err := k.cdc.Unmarshal(bz, &params)
-
 	if err != nil {
 		var legacyParams legacyevm.Params
 		k.cdc.MustUnmarshal(bz, &legacyParams)
