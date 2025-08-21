@@ -29,5 +29,5 @@ func (m Migrator) Migrate5to6(ctx sdk.Context) error {
 
 // Migrate6to7 migrates the store from consensus version 5 to 6
 func (m Migrator) Migrate6to7(ctx sdk.Context) error {
-	return v7.MigrateStore(ctx, m.evmKeeper, m.akKeeper)
+	return v7.MigrateStore(ctx, m.evmKeeper)
 }
