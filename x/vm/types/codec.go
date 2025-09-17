@@ -36,6 +36,10 @@ func init() {
 	amino.Seal()
 }
 
+var _ legacyevm.TxData = &legacyevm.DynamicFeeTx{}
+var _ legacyevm.TxData = &legacyevm.AccessListTx{}
+var _ legacyevm.TxData = &legacyevm.LegacyTx{}
+
 // RegisterInterfaces registers the client interfaces to protobuf Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
