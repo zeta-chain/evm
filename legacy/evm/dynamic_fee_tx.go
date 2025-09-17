@@ -6,6 +6,8 @@ import (
 	"math/big"
 )
 
+var _ TxData = &DynamicFeeTx{}
+
 func (tx *DynamicFeeTx) TxType() byte {
 	return 0x00
 }

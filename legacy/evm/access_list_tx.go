@@ -6,6 +6,8 @@ import (
 	"math/big"
 )
 
+var _ TxData = &AccessListTx{}
+
 func (tx *AccessListTx) TxType() byte {
 	return 0x00
 }

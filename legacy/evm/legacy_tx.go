@@ -6,6 +6,8 @@ import (
 	"math/big"
 )
 
+var _ TxData = &LegacyTx{}
+
 func (tx *LegacyTx) TxType() byte {
 	return 0x00
 }
