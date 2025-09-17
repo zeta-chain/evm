@@ -57,6 +57,14 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&AccessListTx{},
 		&LegacyTx{},
 	)
+	// register legacy evm tx data types for backward compatibility
+	registry.RegisterInterface(
+		"ethermint.evm.v1.TxData",
+		(*legacyevm.TxData)(nil),
+		&legacyevm.DynamicFeeTx{},
+		&legacyevm.AccessListTx{},
+		&legacyevm.LegacyTx{},
+	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

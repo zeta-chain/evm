@@ -1273,8 +1273,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Deprecated:MsgUpdateParams defines a Msg for updating the the feemarket module paramteres
-// This message has now been replaces by the same message in the cosmos.evm.feemarket.v1 package
+// Deprecated:MsgUpdateParams defines a Msg for updating the the feemarket
+// module paramteres This message has now been replaces by the same message in
+// the cosmos.evm.feemarket.v1 package
 type MsgUpdateParams struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1322,7 +1323,8 @@ func (x *MsgUpdateParams) GetParams() *Params {
 }
 
 // Deprecated: Params
-// This message has now been replaces by the same message in the cosmos.evm.feemarket.v1 package
+// This message has now been replaces by the same message in the
+// cosmos.evm.feemarket.v1 package
 type Params struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1336,11 +1338,13 @@ type Params struct {
 	// elasticity_multiplier bounds the maximum gas limit an EIP-1559 block may
 	// have.
 	ElasticityMultiplier uint32 `protobuf:"varint,3,opt,name=elasticity_multiplier,json=elasticityMultiplier,proto3" json:"elasticity_multiplier,omitempty"`
-	// enable_height defines at which block height the base fee calculation is enabled.
+	// enable_height defines at which block height the base fee calculation is
+	// enabled.
 	EnableHeight int64 `protobuf:"varint,5,opt,name=enable_height,json=enableHeight,proto3" json:"enable_height,omitempty"`
 	// base_fee for EIP-1559 blocks.
 	BaseFee string `protobuf:"bytes,6,opt,name=base_fee,json=baseFee,proto3" json:"base_fee,omitempty"`
-	// min_gas_price defines the minimum gas price value for cosmos and eth transactions
+	// min_gas_price defines the minimum gas price value for cosmos and eth
+	// transactions
 	MinGasPrice string `protobuf:"bytes,7,opt,name=min_gas_price,json=minGasPrice,proto3" json:"min_gas_price,omitempty"`
 	// min_gas_multiplier bounds the minimum gas used to be charged
 	// to senders based on gas limit
