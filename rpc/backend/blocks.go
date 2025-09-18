@@ -303,7 +303,7 @@ func (b *Backend) HeaderByNumber(blockNum rpctypes.BlockNumber) (*ethtypes.Heade
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		// handle the error for pruned node.
-		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", resBlock.Block.Height, "error", err)
+		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", "func", "HeaderByNumber", resBlock.Block.Height, "error", err)
 	}
 
 	ethHeader := rpctypes.EthHeaderFromTendermint(resBlock.Block.Header, bloom, baseFee)
@@ -336,7 +336,7 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		// handle the error for pruned node.
-		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", height, "error", err)
+		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", height, "func", "HeaderByHash", "error", err)
 	}
 
 	ethHeader := rpctypes.EthHeaderFromTendermint(*resHeader.Header, bloom, baseFee)
@@ -372,7 +372,7 @@ func (b *Backend) RPCBlockFromTendermintBlock(
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		// handle the error for pruned node.
-		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", block.Height, "error", err)
+		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", block.Height, "func", "RPCBlockFromTendermintBlock", "error", err)
 	}
 
 	msgs := b.EthMsgsFromTendermintBlock(resBlock, blockRes)
@@ -491,7 +491,7 @@ func (b *Backend) EthBlockFromTendermintBlock(
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		// handle error for pruned node and log
-		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", height, "error", err)
+		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", height, "func", "EthBlockFromTendermintBlock", "error", err)
 	}
 
 	ethHeader := rpctypes.EthHeaderFromTendermint(block.Header, bloom, baseFee)

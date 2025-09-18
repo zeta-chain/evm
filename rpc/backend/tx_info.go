@@ -75,7 +75,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*rpctypes.RPCTransac
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		// handle the error for pruned node.
-		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", blockRes.Height, "error", err)
+		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", "func", "GetTransactionByHash", blockRes.Height, "error", err)
 	}
 
 	height := uint64(res.Height)    //#nosec G115 -- checked for int overflow already
@@ -451,7 +451,7 @@ func (b *Backend) GetTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock, i
 	baseFee, err := b.BaseFee(blockRes)
 	if err != nil {
 		// handle the error for pruned node.
-		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", block.Block.Height, "error", err)
+		b.Logger.Error("failed to fetch Base Fee from prunned block. Check node prunning configuration", "height", block.Block.Height, "func", "GetTransactionByBlockAndIndex", "error", err)
 	}
 
 	height := uint64(block.Block.Height) // #nosec G115 -- checked for int overflow already
