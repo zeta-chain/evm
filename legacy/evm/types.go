@@ -44,6 +44,30 @@ type TxData interface {
 	EffectiveCost(baseFee *big.Int) *big.Int
 }
 
+// NewAccessList creates a new protobuf-compatible AccessList from an ethereum
+// core AccessList type
+func NewAccessList(ethAccessList *ethtypes.AccessList) AccessList {
+	if ethAccessList == nil {
+		return nil
+	}
+
+	al := AccessList{}
+	for _, tuple := range *ethAccessList {
+		storageKeys := make([]string, len(tuple.StorageKeys))
+
+		for i := range tuple.StorageKeys {
+			storageKeys[i] = tuple.StorageKeys[i].String()
+		}
+
+		al = append(al, AccessTuple{
+			Address:     tuple.Address.String(),
+			StorageKeys: storageKeys,
+		})
+	}
+
+	return al
+}
+
 func (al AccessList) ToEthAccessList() *ethtypes.AccessList {
 	var ethAccessList ethtypes.AccessList
 
