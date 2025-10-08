@@ -52,6 +52,92 @@ const (
 	TypeMsgEthereumTx = "ethereum_tx"
 )
 
+// NewTx returns a reference to a new Ethereum transaction message.
+func NewTx(
+	chainID *big.Int, nonce uint64, to *common.Address, amount *big.Int,
+	gasLimit uint64, gasPrice, gasFeeCap, gasTipCap *big.Int, input []byte, accesses *ethtypes.AccessList,
+) *MsgEthereumTx {
+	return newMsgEthereumTx(chainID, nonce, to, amount, gasLimit, gasPrice, gasFeeCap, gasTipCap, input, accesses)
+}
+
+func newMsgEthereumTx(
+	chainID *big.Int, nonce uint64, to *common.Address, amount *big.Int,
+	gasLimit uint64, gasPrice, gasFeeCap, gasTipCap *big.Int, input []byte, accesses *ethtypes.AccessList,
+) *MsgEthereumTx {
+	var (
+		cid, amt, gp *sdkmath.Int
+		toAddr       string
+		txData       TxData
+	)
+
+	if to != nil {
+		toAddr = to.Hex()
+	}
+
+	if amount != nil {
+		amountInt := sdkmath.NewIntFromBigInt(amount)
+		amt = &amountInt
+	}
+
+	if chainID != nil {
+		chainIDInt := sdkmath.NewIntFromBigInt(chainID)
+		cid = &chainIDInt
+	}
+
+	if gasPrice != nil {
+		gasPriceInt := sdkmath.NewIntFromBigInt(gasPrice)
+		gp = &gasPriceInt
+	}
+
+	switch {
+	case accesses == nil:
+		txData = &LegacyTx{
+			Nonce:    nonce,
+			To:       toAddr,
+			Amount:   amt,
+			GasLimit: gasLimit,
+			GasPrice: gp,
+			Data:     input,
+		}
+	case accesses != nil && gasFeeCap != nil && gasTipCap != nil:
+		gtc := sdkmath.NewIntFromBigInt(gasTipCap)
+		gfc := sdkmath.NewIntFromBigInt(gasFeeCap)
+
+		txData = &DynamicFeeTx{
+			ChainID:   cid,
+			Nonce:     nonce,
+			To:        toAddr,
+			Amount:    amt,
+			GasLimit:  gasLimit,
+			GasTipCap: &gtc,
+			GasFeeCap: &gfc,
+			Data:      input,
+			Accesses:  NewAccessList(accesses),
+		}
+	case accesses != nil:
+		txData = &AccessListTx{
+			ChainID:  cid,
+			Nonce:    nonce,
+			To:       toAddr,
+			Amount:   amt,
+			GasLimit: gasLimit,
+			GasPrice: gp,
+			Data:     input,
+			Accesses: NewAccessList(accesses),
+		}
+	default:
+	}
+
+	dataAny, err := PackTxData(txData)
+	if err != nil {
+		panic(err)
+	}
+
+	msg := MsgEthereumTx{Data: dataAny}
+	msg.Hash = msg.AsTransaction().Hash().Hex()
+	return &msg
+}
+
 // recoverSender recovers the sender address from the transaction signature.
 func (msg *MsgEthereumTx) recoverSender(chainID *big.Int) (common.Address, error) {
 	return ethtypes.LatestSignerForChainID(chainID).Sender(msg.AsTransaction())
