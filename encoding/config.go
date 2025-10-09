@@ -48,11 +48,11 @@ func MakeConfig(evmChainID uint64) Config {
 	codec := amino.NewProtoCodec(interfaceRegistry)
 	enccodec.RegisterLegacyAminoCodec(cdc)
 	enccodec.RegisterInterfaces(interfaceRegistry)
+	eip712.SetEncodingConfig(cdc, interfaceRegistry, evmChainID)
 
 	// This is needed for the EIP712 txs because currently is using
 	// the deprecated method legacytx.StdSignBytes
 	legacytx.RegressionTestingAminoCodec = cdc
-	eip712.SetEncodingConfig(cdc, interfaceRegistry, evmChainID)
 
 	return Config{
 		InterfaceRegistry: interfaceRegistry,
