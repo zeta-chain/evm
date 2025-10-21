@@ -107,6 +107,7 @@ func (s *PrecompileTestSuite) SetupTest() {
 	s.network = nw
 	s.precompile, err = distribution.NewPrecompile(
 		s.network.App.DistrKeeper,
+		s.network.App.BankKeeper,
 		*s.network.App.StakingKeeper,
 		s.network.App.EVMKeeper,
 	)

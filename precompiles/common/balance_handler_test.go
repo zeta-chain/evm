@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cmn "github.com/cosmos/evm/precompiles/common"
+	commonmocks "github.com/cosmos/evm/precompiles/common/mocks"
 	testutil "github.com/cosmos/evm/testutil"
 	testconstants "github.com/cosmos/evm/testutil/constants"
 	"github.com/cosmos/evm/x/vm/statedb"
@@ -155,7 +156,8 @@ func TestAfterBalanceChange(t *testing.T) {
 	// initial balance for spender
 	stateDB.AddBalance(spender, uint256.NewInt(5), tracing.BalanceChangeUnspecified)
 
-	bh := cmn.NewBalanceHandler()
+	bhf := cmn.NewBalanceHandlerFactory(commonmocks.NewBankKeeper(t))
+	bh := bhf.NewBalanceHandler()
 	bh.BeforeBalanceChange(ctx)
 
 	coins := sdk.NewCoins(sdk.NewInt64Coin(evmtypes.GetEVMCoinDenom(), 3))
@@ -183,7 +185,8 @@ func TestAfterBalanceChangeErrors(t *testing.T) {
 	require.NoError(t, err)
 	addr := addrs[0]
 
-	bh := cmn.NewBalanceHandler()
+	bhf := cmn.NewBalanceHandlerFactory(commonmocks.NewBankKeeper(t))
+	bh := bhf.NewBalanceHandler()
 	bh.BeforeBalanceChange(ctx)
 
 	// invalid address in event
