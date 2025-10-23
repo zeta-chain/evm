@@ -34,6 +34,7 @@ import (
 type revision struct {
 	id           int
 	journalIndex int
+	events       sdk.Events
 }
 
 var _ vm.StateDB = &StateDB{}
@@ -312,6 +313,15 @@ func (s *StateDB) GetCommittedState(addr common.Address, hash common.Hash) commo
 		return stateObject.GetCommittedState(hash)
 	}
 	return common.Hash{}
+}
+
+// GetStateAndCommittedState returns the current value and the original value.
+func (s *StateDB) GetStateAndCommittedState(addr common.Address, hash common.Hash) (common.Hash, common.Hash) {
+	stateObject := s.getStateObject(addr)
+	if stateObject != nil {
+		return stateObject.GetState(hash), stateObject.GetCommittedState(hash)
+	}
+	return common.Hash{}, common.Hash{}
 }
 
 // GetRefund returns the current value of the refund counter.
@@ -632,7 +642,7 @@ func (s *StateDB) SlotInAccessList(addr common.Address, slot common.Hash) (addre
 func (s *StateDB) Snapshot() int {
 	id := s.nextRevisionID
 	s.nextRevisionID++
-	s.validRevisions = append(s.validRevisions, revision{id, s.journal.length()})
+	s.validRevisions = append(s.validRevisions, revision{id, s.journal.length(), s.ctx.EventManager().Events()})
 	return id
 }
 
@@ -646,6 +656,11 @@ func (s *StateDB) RevertToSnapshot(revid int) {
 		panic(fmt.Errorf("revision id %v cannot be reverted", revid))
 	}
 	snapshot := s.validRevisions[idx].journalIndex
+
+	// revert back to snapshotted events
+	eventManager := sdk.NewEventManager()
+	eventManager.EmitEvents(s.validRevisions[idx].events)
+	s.ctx = s.ctx.WithEventManager(eventManager)
 
 	// Replay the journal to undo changes and remove invalidated snapshots
 	s.journal.Revert(s, snapshot)
