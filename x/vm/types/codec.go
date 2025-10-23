@@ -46,13 +46,6 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&legacyevm.MsgEthereumTx{},
 		&legacyevm.MsgUpdateParams{},
 	)
-	registry.RegisterInterface(
-		"os.vm.v1.TxData",
-		(*TxData)(nil),
-		&DynamicFeeTx{},
-		&AccessListTx{},
-		&LegacyTx{},
-	)
 	// register legacy evm tx data types for backward compatibility
 	registry.RegisterInterface(
 		"ethermint.evm.v1.TxData",
