@@ -636,7 +636,7 @@ func (s *KeeperTestSuite) CreateTestTx(msg *types.MsgEthereumTx, priv cryptotype
 	s.Require().NoError(err)
 
 	clientCtx := client.Context{}.WithTxConfig(s.Network.App.GetTxConfig())
-	ethSigner := ethtypes.LatestSignerForChainID(types.GetEthChainConfig().ChainID)
+	ethSigner := ethtypes.LatestSignerForChainID(s.Network.GetEIP155ChainID())
 
 	txBuilder := clientCtx.TxConfig.NewTxBuilder()
 	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
@@ -729,7 +729,6 @@ func (s *KeeperTestSuite) TestAddLog() {
 			},
 			&ethtypes.Log{
 				Address: addr,
-				TxHash:  txHash,
 				Topics:  make([]common.Hash, 0),
 			},
 			func(vm.StateDB) {},
@@ -743,7 +742,6 @@ func (s *KeeperTestSuite) TestAddLog() {
 			},
 			&ethtypes.Log{
 				Address: addr,
-				TxHash:  txHash3,
 				Topics:  make([]common.Hash, 0),
 			},
 			func(vm.StateDB) {},
@@ -754,7 +752,6 @@ func (s *KeeperTestSuite) TestAddLog() {
 		s.Run(tc.name, func() {
 			s.SetupTest()
 			vmdb := statedb.New(s.Network.GetContext(), s.Network.App.GetEVMKeeper(), statedb.NewTxConfig(
-				common.BytesToHash(s.Network.GetContext().HeaderHash()),
 				tc.hash,
 				0, 0,
 			))
@@ -828,7 +825,7 @@ func (s *KeeperTestSuite) TestAddAddressToAccessList() {
 			vmdb := s.StateDB()
 			vmdb.AddAddressToAccessList(tc.addr)
 			addrOk := vmdb.AddressInAccessList(tc.addr)
-			s.Require().True(addrOk, tc.addr.Hex())
+			s.Require().True(addrOk, tc.addr.Bytes())
 		})
 	}
 }
@@ -850,7 +847,7 @@ func (s *KeeperTestSuite) TestAddSlotToAccessList() {
 			vmdb := s.StateDB()
 			vmdb.AddSlotToAccessList(tc.addr, tc.slot)
 			addrOk, slotOk := vmdb.SlotInAccessList(tc.addr, tc.slot)
-			s.Require().True(addrOk, tc.addr.Hex())
+			s.Require().True(addrOk, tc.addr.Bytes())
 			s.Require().True(slotOk, tc.slot.Hex())
 		})
 	}

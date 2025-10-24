@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/mempool"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -26,7 +27,6 @@ import (
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 )
@@ -59,6 +59,6 @@ type EvmApp interface { //nolint:revive
 	DefaultGenesis() map[string]json.RawMessage
 	GetKey(storeKey string) *storetypes.KVStoreKey
 	GetAnteHandler() sdk.AnteHandler
-	GetSubspace(moduleName string) paramstypes.Subspace
 	MsgServiceRouter() *baseapp.MsgServiceRouter
+	GetMempool() mempool.ExtMempool
 }

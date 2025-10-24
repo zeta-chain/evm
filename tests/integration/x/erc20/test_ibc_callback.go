@@ -31,7 +31,7 @@ import (
 
 var erc20Denom = "erc20:0xdac17f958d2ee523a2206206994597c13d831ec7"
 
-func (s *KeeperTestSuite) TestOnRecvPacket() {
+func (s *KeeperTestSuite) TestOnRecvPacketRegistered() {
 	var ctx sdk.Context
 	// secp256k1 account
 	secpPk := secp256k1.GenPrivKey()
@@ -233,7 +233,8 @@ func (s *KeeperTestSuite) TestOnRecvPacket() {
 					CodeHash: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
 				})
 				s.Require().NoError(err)
-				s.Require().True(s.network.App.GetEVMKeeper().IsContract(ctx, collidedAddr))
+				acct := s.network.App.GetEVMKeeper().GetAccount(ctx, collidedAddr)
+				s.Require().True(acct.HasCodeHash())
 			},
 			ackSuccess:    false,
 			receiver:      secpAddr,
