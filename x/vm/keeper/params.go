@@ -32,7 +32,7 @@ func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
 		df := types.DefaultParams()
 		df.EvmDenom = legacyParams.EvmDenom
 		df.ExtraEIPs = legacyParams.ExtraEIPs
-		df.AllowUnprotectedTxs = legacyParams.AllowUnprotectedTxs
+		// df.AllowUnprotectedTxs = legacyParams.AllowUnprotectedTxs
 
 		return df
 	}

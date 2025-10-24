@@ -16,7 +16,7 @@ type evmKeeper interface {
 func MigrateStore(ctx sdk.Context, ek evmKeeper, ak evmtypes.AccountKeeper) error {
 	newParams := evmtypes.DefaultParams()
 	newParams.EvmDenom = "azeta"
-	newParams.AllowUnprotectedTxs = true // currently set to true on live networks
+	// newParams.AllowUnprotectedTxs = true // currently set to true on live networks
 
 	err := ek.SetParams(ctx, newParams)
 	if err != nil {
