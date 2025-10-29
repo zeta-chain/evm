@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 )
 
@@ -53,6 +54,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&legacyevm.AccessListTx{},
 		&legacyevm.LegacyTx{},
 	)
+	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
 // RegisterLegacyAminoCodec required for EIP-712
