@@ -219,6 +219,8 @@ func (s *StateDB) cache() error {
 func (s *StateDB) AddLog(log *ethtypes.Log) {
 	s.journal.append(addLogChange{})
 
+	fmt.Println("adding log", s.txConfig.TxHash.Hex())
+	log.TxHash = s.txConfig.TxHash
 	log.TxIndex = s.txConfig.TxIndex
 	log.Index = s.txConfig.LogIndex + uint(len(s.logs))
 	s.logs = append(s.logs, log)
