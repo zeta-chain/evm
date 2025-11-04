@@ -64,6 +64,7 @@ func NewTxFromArgs(args *TransactionArgs) *MsgEthereumTx {
 // FromEthereumTx populates the message fields from the given ethereum transaction
 func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction) {
 	msg.Raw = EthereumTx{tx}
+	msg.Hash = tx.Hash().Hex()
 }
 
 // FromSignedEthereumTx populates the message fields from the given signed ethereum transaction, and set From field.
@@ -76,6 +77,7 @@ func (msg *MsgEthereumTx) FromSignedEthereumTx(tx *ethtypes.Transaction, signer 
 	}
 
 	msg.From = from.Bytes()
+	msg.Hash = tx.Hash().Hex()
 	return nil
 }
 
@@ -296,10 +298,6 @@ func (msg *MsgEthereumTx) UnmarshalBinary(b []byte, signer ethtypes.Signer) erro
 		return err
 	}
 	return msg.FromSignedEthereumTx(tx, signer)
-}
-
-func (msg *MsgEthereumTx) Hash() common.Hash {
-	return msg.AsTransaction().Hash()
 }
 
 // BuildTx builds the canonical cosmos tx from ethereum msg

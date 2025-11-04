@@ -37,7 +37,8 @@ message MsgEthereumTx {
 
   option (gogoproto.goproto_getters) = false;
 
-  reserved 1, 2, 3, 4;
+  reserved 1, 2, 4;
+  string hash = 3;
 
   // from is the bytes of ethereum signer address. This address value is checked
   // against the address derived from the signature (V, R, S) using the

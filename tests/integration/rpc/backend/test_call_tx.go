@@ -376,7 +376,7 @@ func (s *TestSuite) TestSendRawTransaction() {
 				bytes, _ := rlp.EncodeToBytes(ethTx.AsTransaction())
 				return bytes
 			},
-			ethTx.Hash(),
+			common.HexToHash(ethTx.Hash),
 			errortypes.ErrInvalidRequest.Error(),
 			false,
 		},
@@ -391,7 +391,7 @@ func (s *TestSuite) TestSendRawTransaction() {
 				RegisterBroadcastTx(client, txBytes)
 			},
 			func() []byte { return rlpEncodedBz },
-			ethTx.Hash(),
+			common.HexToHash(ethTx.Hash),
 			"",
 			true,
 		},

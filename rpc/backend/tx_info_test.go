@@ -485,7 +485,7 @@ func TestReceiptsFromCometBlock(t *testing.T) {
 			}
 			mockIndexer := &MockIndexer{
 				txResults: map[common.Hash]*servertypes.TxResult{
-					msgs[0].Hash(): expectedTxResult,
+					common.HexToHash(msgs[0].Hash): expectedTxResult,
 				},
 			}
 			backend.Indexer = mockIndexer
@@ -497,7 +497,7 @@ func TestReceiptsFromCometBlock(t *testing.T) {
 			actualTxIndex := receipts[0].TransactionIndex
 			require.NotEqual(t, uint(0), actualTxIndex)
 			require.Equal(t, uint(tc.ethTxIndex), actualTxIndex) // #nosec G115
-			require.Equal(t, msgs[0].Hash(), receipts[0].TxHash)
+			require.Equal(t, common.HexToHash(msgs[0].Hash), receipts[0].TxHash)
 			require.Equal(t, big.NewInt(height), receipts[0].BlockNumber)
 			require.Equal(t, ethtypes.ReceiptStatusSuccessful, receipts[0].Status)
 		})

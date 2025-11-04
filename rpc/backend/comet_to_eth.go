@@ -237,9 +237,9 @@ func (b *Backend) ReceiptsFromCometBlock(
 	receipts := make([]*ethtypes.Receipt, len(msgs))
 	cumulatedGasUsed := uint64(0)
 	for i, ethMsg := range msgs {
-		txResult, err := b.GetTxByEthHash(ethMsg.Hash())
+		txResult, err := b.GetTxByEthHash(common.HexToHash(ethMsg.Hash))
 		if err != nil {
-			return nil, fmt.Errorf("tx not found: hash=%s, error=%s", ethMsg.Hash(), err.Error())
+			return nil, fmt.Errorf("tx not found: hash=%s, error=%s", common.HexToHash(ethMsg.Hash), err.Error())
 		}
 
 		cumulatedGasUsed += txResult.GasUsed
@@ -285,7 +285,7 @@ func (b *Backend) ReceiptsFromCometBlock(
 			Logs:              logs,
 
 			// Implementation fields: These fields are added by geth when processing a transaction.
-			TxHash:            ethMsg.Hash(),
+			TxHash:            common.HexToHash(ethMsg.Hash),
 			ContractAddress:   contractAddress,
 			GasUsed:           txResult.GasUsed,
 			EffectiveGasPrice: effectiveGasPrice,

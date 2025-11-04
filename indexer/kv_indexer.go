@@ -82,7 +82,7 @@ func (kv *KVIndexer) IndexBlock(block *cmttypes.Block, txResults []*abci.ExecTxR
 		var cumulativeGasUsed uint64
 		for msgIndex, msg := range tx.GetMsgs() {
 			ethMsg := msg.(*evmtypes.MsgEthereumTx)
-			txHash := ethMsg.Hash()
+			txHash := ethMsg.Hash
 
 			txResult := servertypes.TxResult{
 				Height:     height,
@@ -112,7 +112,7 @@ func (kv *KVIndexer) IndexBlock(block *cmttypes.Block, txResults []*abci.ExecTxR
 			txResult.CumulativeGasUsed = cumulativeGasUsed
 			ethTxIndex++
 
-			if err := saveTxResult(kv.clientCtx.Codec, batch, txHash, &txResult); err != nil {
+			if err := saveTxResult(kv.clientCtx.Codec, batch, common.HexToHash(txHash), &txResult); err != nil {
 				return errorsmod.Wrapf(err, "IndexBlock %d", height)
 			}
 		}
