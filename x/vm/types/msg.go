@@ -55,6 +55,7 @@ func NewTx(tx *EvmTxArgs) *MsgEthereumTx {
 func NewTxFromArgs(args *TransactionArgs) *MsgEthereumTx {
 	var msg MsgEthereumTx
 	msg.FromEthereumTx(args.ToTransaction(ethtypes.LegacyTxType))
+	msg.Hash = msg.Raw.Hash().Hex()
 	if args.From != nil {
 		msg.From = args.From.Bytes()
 	}
@@ -334,6 +335,7 @@ func (msg *MsgEthereumTx) BuildTxWithEvmParams(b client.TxBuilder, params Params
 	err = builder.SetMsgs(&MsgEthereumTx{
 		From: msg.From,
 		Raw:  msg.Raw,
+		Hash: msg.Hash,
 	})
 	if err != nil {
 		return nil, err
