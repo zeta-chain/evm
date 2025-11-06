@@ -54,6 +54,13 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&legacyevm.AccessListTx{},
 		&legacyevm.LegacyTx{},
 	)
+	registry.RegisterInterface(
+		"os.vm.v1.TxData",
+		(*TxData)(nil),
+		&DynamicFeeTx{},
+		&AccessListTx{},
+		&LegacyTx{},
+	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
