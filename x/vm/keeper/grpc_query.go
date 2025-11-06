@@ -748,9 +748,15 @@ func (k *Keeper) traceTx(
 	traceConfig *types.TraceConfig,
 	commitMessage bool,
 ) (*any, uint, error) {
-	msg, err := core.TransactionToMessage(tx, signer, cfg.BaseFee)
-	if err != nil {
-		return nil, 0, status.Error(codes.Internal, err.Error())
+	var msg *core.Message
+	var err error
+	if !isUnsigned(tx) {
+		msg, err = core.TransactionToMessage(tx, signer, cfg.BaseFee)
+		if err != nil {
+			return nil, 0, status.Error(codes.Internal, err.Error())
+		}
+	} else {
+		msg = unsignedTxAsMessage(from, tx, cfg.BaseFee)
 	}
 
 	return k.traceTxWithMsg(ctx, cfg, txConfig, msg, traceConfig, commitMessage)
@@ -773,17 +779,6 @@ func (k *Keeper) traceTxWithMsg(
 		err              error
 		timeout          = defaultTraceTimeout
 	)
-
-	// TODO: refactor this to include unsigned txs
-	// var msg *core.Message
-	// if !isUnsigned(tx) {
-	// 	msg, err = core.TransactionToMessage(tx, signer, cfg.BaseFee)
-	// 	if err != nil {
-	// 		return nil, 0, status.Errorf(codes.InvalidArgument, "transaction to message: %v", err.Error())
-	// 	}
-	// } else {
-	// 	msg = unsignedTxAsMessage(from, tx, cfg.BaseFee)
-	// }
 
 	if traceConfig == nil {
 		traceConfig = &types.TraceConfig{}
