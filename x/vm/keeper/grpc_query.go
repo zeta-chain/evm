@@ -485,6 +485,13 @@ func (k Keeper) EstimateGasInternal(c context.Context, req *types.EthCallRequest
 // executes the given message in the provided environment. The return value will
 // be tracer-dependent.
 func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*types.QueryTraceTxResponse, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("panic occurred during trace tx grpc query", "error", r)
+			fmt.Println("stack trace", "stack", string(debug.Stack()))
+			os.Exit(1)
+		}
+	}()
 	if req == nil || req.Msg == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
