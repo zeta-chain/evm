@@ -9,6 +9,7 @@ import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
 
 option go_package = "github.com/cosmos/evm/x/vm/types";
 
@@ -37,7 +38,11 @@ message MsgEthereumTx {
 
   option (gogoproto.goproto_getters) = false;
 
-  reserved 1, 2, 4;
+   // data is inner transaction data of the Ethereum transaction
+  google.protobuf.Any data = 1;
+  // size is the encoded storage size of the transaction (DEPRECATED)
+  double size = 2 [ (gogoproto.jsontag) = "-", (amino.dont_omitempty) = true ];
+  reserved 4;
   string hash = 3;
 
   // from is the bytes of ethereum signer address. This address value is checked
