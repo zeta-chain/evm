@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -594,6 +596,13 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 // executes the given message in the provided environment for all the transactions in the queried block.
 // The return value will be tracer dependent.
 func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest) (*types.QueryTraceBlockResponse, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("panic occurred during trace block grpc query", "error", r)
+			fmt.Println("stack trace", "stack", string(debug.Stack()))
+			os.Exit(1)
+		}
+	}()
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
