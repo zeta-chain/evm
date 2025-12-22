@@ -3,6 +3,7 @@ package cosmos
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
@@ -31,6 +32,38 @@ func init() {
 	registry := codectypes.NewInterfaceRegistry()
 	eip712.RegisterInterfaces(registry)
 	evmCodec = codec.NewProtoCodec(registry)
+}
+
+// parseChainID parses a chain ID string and returns the EVM chain ID as uint64.
+// Examples:
+//   - "7000" -> 7000
+//   - "zetachain_7000-1" -> 7000
+//   - "cosmoshub_400-1" -> 400
+func parseChainID(chainID string) (uint64, error) {
+	// First, try to parse as a pure numeric chain ID
+	if evmChainID, err := strconv.ParseUint(chainID, 10, 64); err == nil {
+		return evmChainID, nil
+	}
+
+	// Try to extract EVM chain ID from Cosmos SDK format: {chain_name}_{evm_chain_id}-{revision}
+	// Find the position of the underscore and dash
+	underscoreIdx := strings.Index(chainID, "_")
+	dashIdx := strings.Index(chainID, "-")
+
+	// Check if both characters are found and in the correct order
+	if underscoreIdx == -1 || dashIdx == -1 || underscoreIdx > dashIdx {
+		return 0, fmt.Errorf("invalid chain-id format: %s (expected numeric or {chain_name}_{evm_chain_id}-{revision})", chainID)
+	}
+
+	// Extract the substring between underscore and dash
+	evmChainIDStr := chainID[underscoreIdx+1 : dashIdx]
+
+	evmChainID, err := strconv.ParseUint(evmChainIDStr, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse EVM chain-id from %s: %w", chainID, err)
+	}
+
+	return evmChainID, nil
 }
 
 // Deprecated: LegacyEip712SigVerificationDecorator Verify all signatures for a tx and return an error if any are invalid. Note,
@@ -189,7 +222,7 @@ func VerifySignature(
 			msgs, tx.GetMemo(),
 		)
 
-		signerChainID, err := strconv.ParseUint(signerData.ChainID, 10, 64)
+		signerChainID, err := parseChainID(signerData.ChainID)
 		if err != nil {
 			return errorsmod.Wrapf(err, "failed to parse chain-id: %s", signerData.ChainID)
 		}
