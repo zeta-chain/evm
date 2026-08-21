@@ -88,7 +88,7 @@ func TestParseHexAddress(t *testing.T) {
 
 			event := tc.maleate()
 
-			addr, err := parseHexAddress(event, tc.key)
+			addr, err := ParseHexAddress(event, tc.key)
 			if tc.expError {
 				require.Error(t, err)
 				return
@@ -180,7 +180,7 @@ func TestParseAmount(t *testing.T) {
 			configurator.ResetTestConfig()
 			require.NoError(t, configurator.WithEVMCoinInfo(testconstants.ExampleChainCoinInfo[tc.chainID]).Configure())
 
-			amt, err := parseAmount(tc.maleate())
+			amt, err := ParseAmount(tc.maleate())
 			if tc.expError {
 				require.Error(t, err)
 				return

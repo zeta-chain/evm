@@ -150,17 +150,30 @@ func (k *Keeper) SetBalanceWithLocked(ctx sdk.Context, addr common.Address, amou
 	}
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
 
-	if acct := k.accountKeeper.GetAccount(ctx, cosmosAddr); acct != nil {
-		if _, isModule := acct.(sdk.ModuleAccountI); isModule {
-			return errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to receive funds", cosmosAddr)
-		}
-	}
-
 	// Reconstruct the target bank balance as spendable + locked snapshot,
 	// then mint or burn the delta against the current bank balance.
 	target := new(big.Int).Add(amount.ToBig(), locked)
 	current := k.bankWrapper.GetBalance(ctx, cosmosAddr, types.GetEVMCoinDenom()).Amount.BigInt()
 	delta := new(big.Int).Sub(target, current)
+
+	// Module accounts must never have their balance reconciled by the EVM: that
+	// is the mint/burn primitive the statedb underflow turns into an exploit.
+	//
+	// NOTE: deliberate divergence from upstream cosmos/evm, which rejects module
+	// accounts unconditionally here. ZetaChain's x/fungible issues EVM calls from
+	// its own module account (ZRC20 deploys, gas-pool swaps, system contract
+	// calls), which makes the sender dirty in the statedb and reaches this path
+	// with delta == 0 on every such call. Gating on a non-zero delta keeps the
+	// security property identical -- a zero delta mints and burns nothing -- while
+	// leaving module-initiated EVM calls working.
+	if delta.Sign() != 0 {
+		if acct := k.accountKeeper.GetAccount(ctx, cosmosAddr); acct != nil {
+			if _, isModule := acct.(sdk.ModuleAccountI); isModule {
+				return errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to receive funds", cosmosAddr)
+			}
+		}
+	}
+
 	switch delta.Sign() {
 	case 1:
 		// mint

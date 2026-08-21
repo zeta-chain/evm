@@ -1310,14 +1310,20 @@ func (s *KeeperTestSuite) TestDeleteAccount() {
 
 func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 	type setup struct {
-		addr     common.Address
-		current  *uint256.Int
+		addr    common.Address
+		current *uint256.Int
 	}
 
+	// NOTE: ZetaChain narrows the upstream guard to fire only on a non-zero
+	// delta, because x/fungible issues EVM calls from its own module account and
+	// every such call reaches SetBalance with delta == 0. A zero delta mints and
+	// burns nothing, so allowing it preserves the security property while keeping
+	// module-initiated EVM calls working. wantErr encodes that difference.
 	cases := []struct {
 		name     string
 		prepare  func() setup
 		amountFn func(current *uint256.Int) *uint256.Int
+		wantErr  bool
 	}{
 		{
 			name: "mocked module account (isModule arm)",
@@ -1334,6 +1340,22 @@ func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 				}
 			},
 			amountFn: func(_ *uint256.Int) *uint256.Int { return uint256.NewInt(12345) },
+			wantErr:  true,
+		},
+		{
+			// the exploit direction: reconciliation minting into a module account
+			name: "bonded_tokens_pool, increase (mint direction)",
+			prepare: func() setup {
+				modEth := common.BytesToAddress(authtypes.NewModuleAddress(stakingtypes.BondedPoolName).Bytes())
+				return setup{
+					addr:    modEth,
+					current: s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), modEth),
+				}
+			},
+			amountFn: func(cur *uint256.Int) *uint256.Int {
+				return new(uint256.Int).Add(cur, uint256.NewInt(1))
+			},
+			wantErr: true,
 		},
 		{
 			name: "bonded_tokens_pool, decrease",
@@ -1350,9 +1372,12 @@ func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 				}
 				return new(uint256.Int).Sub(cur, uint256.NewInt(1))
 			},
+			wantErr: true,
 		},
 		{
-			name: "bonded_tokens_pool, equal",
+			// zero delta: allowed on ZetaChain (see note above), nothing is
+			// minted or burned, so the balance must be untouched either way
+			name: "bonded_tokens_pool, equal (zero delta, allowed)",
 			prepare: func() setup {
 				modEth := common.BytesToAddress(authtypes.NewModuleAddress(stakingtypes.BondedPoolName).Bytes())
 				return setup{
@@ -1361,6 +1386,7 @@ func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 				}
 			},
 			amountFn: func(cur *uint256.Int) *uint256.Int { return new(uint256.Int).Set(cur) },
+			wantErr:  false,
 		},
 	}
 
@@ -1371,9 +1397,15 @@ func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 			amount := tc.amountFn(st.current)
 
 			err := s.Network.App.GetEVMKeeper().SetBalance(s.Network.GetContext(), st.addr, amount)
-			s.Require().Error(err)
-			s.Require().Contains(err.Error(), "is not allowed to receive funds")
+			if tc.wantErr {
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), "is not allowed to receive funds")
+			} else {
+				s.Require().NoError(err)
+			}
 
+			// either way the module account's balance must be unchanged: the
+			// guard rejected the write, or the delta was zero to begin with
 			after := s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), st.addr)
 			s.Require().Equal(st.current, after)
 		})
