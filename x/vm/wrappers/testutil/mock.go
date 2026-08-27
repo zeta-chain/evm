@@ -756,6 +756,20 @@ func (m *MockBankWrapper) LockedCoins(ctx context.Context, addr types.AccAddress
 	return ret0
 }
 
+// BlockedAddr mocks base method.
+func (m *MockBankWrapper) BlockedAddr(addr types.AccAddress) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockedAddr", addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// BlockedAddr indicates an expected call of BlockedAddr.
+func (mr *MockBankWrapperMockRecorder) BlockedAddr(addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockedAddr", reflect.TypeOf((*MockBankWrapper)(nil).BlockedAddr), addr)
+}
+
 // LockedCoins indicates an expected call of LockedCoins.
 func (mr *MockBankWrapperMockRecorder) LockedCoins(ctx, addr any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()

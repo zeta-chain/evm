@@ -156,22 +156,32 @@ func (k *Keeper) SetBalanceWithLocked(ctx sdk.Context, addr common.Address, amou
 	current := k.bankWrapper.GetBalance(ctx, cosmosAddr, types.GetEVMCoinDenom()).Amount.BigInt()
 	delta := new(big.Int).Sub(target, current)
 
-	// Module accounts must never have their balance reconciled by the EVM: that
-	// is the mint/burn primitive the statedb underflow turns into an exploit.
+	// The EVM must never reconcile a balance into or out of an address the chain
+	// has declared must not receive funds. That reconciliation is the mint/burn
+	// primitive the statedb underflow turns into an exploit, and for module
+	// accounts it would also break the invariants the owning module maintains
+	// (the staking pools being the motivating case).
 	//
-	// NOTE: deliberate divergence from upstream cosmos/evm, which rejects module
-	// accounts unconditionally here. ZetaChain's x/fungible issues EVM calls from
-	// its own module account (ZRC20 deploys, gas-pool swaps, system contract
-	// calls), which makes the sender dirty in the statedb and reaches this path
-	// with delta == 0 on every such call. Gating on a non-zero delta keeps the
-	// security property identical -- a zero delta mints and burns nothing -- while
-	// leaving module-initiated EVM calls working.
-	if delta.Sign() != 0 {
-		if acct := k.accountKeeper.GetAccount(ctx, cosmosAddr); acct != nil {
-			if _, isModule := acct.(sdk.ModuleAccountI); isModule {
-				return errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to receive funds", cosmosAddr)
-			}
-		}
+	// NOTE: two deliberate divergences from upstream cosmos/evm, which rejects
+	// *any* module account unconditionally at the top of this function.
+	//
+	//  1. The check consults the chain's blocked-address policy rather than
+	//     testing whether the account is a module account. Under the upstream
+	//     evmd configuration every module account is blocked, so behaviour there
+	//     is unchanged. Chains that deliberately permit a module account to hold
+	//     and move funds keep working: ZetaChain leaves x/fungible and
+	//     x/crosschain out of its blocked-receive set precisely because they
+	//     originate EVM calls and pay value out of their own accounts
+	//     (SetupChainGasCoinAndPool sends native ZETA into the gas pool via a
+	//     payable addLiquidityETH call, which is a real non-zero delta).
+	//
+	//  2. It fires only on a non-zero delta. A zero delta mints and burns
+	//     nothing, so allowing it preserves the security property while letting
+	//     module-initiated EVM calls that move no value through -- ZRC20
+	//     deploys and system-contract calls make the sender dirty in the statedb
+	//     and reach this path with delta == 0 on every call.
+	if delta.Sign() != 0 && k.bankWrapper.BlockedAddr(cosmosAddr) {
+		return errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to receive funds", cosmosAddr)
 	}
 
 	switch delta.Sign() {
