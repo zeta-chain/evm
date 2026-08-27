@@ -1314,11 +1314,15 @@ func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 		current *uint256.Int
 	}
 
-	// NOTE: ZetaChain narrows the upstream guard to fire only on a non-zero
-	// delta, because x/fungible issues EVM calls from its own module account and
-	// every such call reaches SetBalance with delta == 0. A zero delta mints and
-	// burns nothing, so allowing it preserves the security property while keeping
-	// module-initiated EVM calls working. wantErr encodes that difference.
+	// NOTE: ZetaChain narrows the upstream guard in two ways, and wantErr encodes
+	// both. It fires only on a non-zero delta (a zero delta mints and burns
+	// nothing, and x/fungible reaches SetBalance with delta == 0 on every
+	// module-initiated EVM call), and it consults the chain's blocked-address
+	// policy rather than testing for a module account. Under this test app every
+	// module account in maccPerms is blocked, so the staking-pool arms behave
+	// exactly as they do upstream; a module account outside that set is allowed
+	// to move value, which is what keeps ZetaChain's x/fungible gas-pool path
+	// (a payable addLiquidityETH from the module account) working.
 	cases := []struct {
 		name     string
 		prepare  func() setup
@@ -1326,21 +1330,33 @@ func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 		wantErr  bool
 	}{
 		{
-			name: "mocked module account (isModule arm)",
+			// A module account the chain has NOT blocked from receiving funds is
+			// allowed to move value. This is the ZetaChain x/fungible shape: the
+			// module account pays native coin out through a payable EVM call, so
+			// the delta is genuinely non-zero and must reconcile. Upstream's
+			// unconditional module-account rejection broke exactly this, which is
+			// why the guard consults the blocked-address policy instead.
+			name: "unblocked module account, non-zero delta (allowed)",
 			prepare: func() setup {
 				ctx := s.Network.GetContext()
 				ak := s.Network.App.GetAccountKeeper()
-				acc := authtypes.NewEmptyModuleAccount("test-blocked-stale-overwrite", authtypes.Minter)
+				acc := authtypes.NewEmptyModuleAccount("test-unblocked-value-mover", authtypes.Minter)
 				ak.NewAccount(ctx, acc)
 				ak.SetAccount(ctx, acc)
 				modEth := common.BytesToAddress(acc.GetAddress().Bytes())
+				// guard the premise: this account must not be blocked, otherwise
+				// the case is silently testing the rejection path instead
+				s.Require().False(
+					s.Network.App.GetBankKeeper().BlockedAddr(acc.GetAddress()),
+					"premise broken: the test module account is blocked from receiving",
+				)
 				return setup{
 					addr:    modEth,
 					current: s.Network.App.GetEVMKeeper().GetBalance(ctx, modEth),
 				}
 			},
 			amountFn: func(_ *uint256.Int) *uint256.Int { return uint256.NewInt(12345) },
-			wantErr:  true,
+			wantErr:  false,
 		},
 		{
 			// the exploit direction: reconciliation minting into a module account
@@ -1404,10 +1420,12 @@ func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
 				s.Require().NoError(err)
 			}
 
-			// either way the module account's balance must be unchanged: the
-			// guard rejected the write, or the delta was zero to begin with
 			after := s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), st.addr)
-			s.Require().Equal(st.current, after)
+			if tc.wantErr {
+				s.Require().Equal(st.current, after, "a rejected write must not change the balance")
+			} else {
+				s.Require().Equal(amount, after, "an allowed write must land")
+			}
 		})
 	}
 }
