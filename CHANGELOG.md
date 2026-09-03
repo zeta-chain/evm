@@ -2,6 +2,18 @@
 
 ## UNRELEASED
 
+### SECURITY
+
+- [\#37](https://github.com/zeta-chain/evm/pull/37) Port the upstream `cosmos/evm`
+  statedb balance hardening to this fork: snapshot the locked balance on the statedb
+  account, guard `SubBalance` against underflow, guard `AddBalance` against overflow,
+  make `StateDB.Commit()` atomic so a late failure discards the whole commit, reject
+  balance reconciliation for addresses the chain blocks from receiving funds, and use
+  the cached context in the `x/ibc/callbacks` packet-timeout path. The blocked-address
+  check deliberately replaces upstream's unconditional module-account rejection, which
+  is equivalent under the `evmd` configuration but allows a chain to let a module
+  account hold and move funds.
+
 - [\#6](https://github.com/zeta-chain/evm/pull/6 Add legacy ethermint protocol buffer files to support querying legacy transactions
 
 ### DEPENDENCIES

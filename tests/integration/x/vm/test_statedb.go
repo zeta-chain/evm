@@ -30,6 +30,7 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
 func (s *KeeperTestSuite) TestCreateAccount() {
@@ -926,6 +927,68 @@ func (s *KeeperTestSuite) TestAddSlotToAccessList() {
 // 	}
 // }
 
+// TestGetAccountLocked verifies Keeper.GetAccount snapshots LockedCoins for
+// the EVM denom into the Account at load time. The snapshot powers the commit
+// path's bank-balance reconstruction without re-reading LockedCoins after a
+// precompile may have mutated DelegatedVesting on a vesting account.
+func (s *KeeperTestSuite) TestGetAccountLocked() {
+	addr := utiltx.GenerateAddress()
+	bondDenom := s.Network.GetBaseDenom()
+
+	testCases := []struct {
+		name      string
+		malleate  func()
+		expLocked *big.Int
+	}{
+		{
+			"non-existent account returns nil",
+			func() {},
+			nil, // GetAccount returns nil entirely; checked separately
+		},
+		{
+			"base account has zero Locked snapshot",
+			func() {
+				ctx := s.Network.GetContext()
+				err := s.Network.App.GetBankKeeper().SendCoins(ctx, s.Keyring.GetAccAddr(0), addr.Bytes(), sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(100))))
+				s.Require().NoError(err)
+			},
+			big.NewInt(0),
+		},
+		{
+			"vesting account snapshots OriginalVesting at start time",
+			func() {
+				ctx := s.Network.GetContext()
+				accAddr := sdk.AccAddress(addr.Bytes())
+				err := s.Network.App.GetBankKeeper().SendCoins(ctx, s.Keyring.GetAccAddr(0), accAddr, sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(100))))
+				s.Require().NoError(err)
+
+				baseAccount := s.Network.App.GetAccountKeeper().GetAccount(ctx, accAddr).(*authtypes.BaseAccount)
+				currTime := ctx.BlockTime().Unix()
+				acc, err := vestingtypes.NewContinuousVestingAccount(baseAccount, sdk.NewCoins(sdk.NewCoin(bondDenom, math.NewInt(100))), currTime, currTime+100)
+				s.Require().NoError(err)
+				s.Network.App.GetAccountKeeper().SetAccount(ctx, acc)
+			},
+			big.NewInt(100),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			tc.malleate()
+			acc := s.Network.App.GetEVMKeeper().GetAccount(s.Network.GetContext(), addr)
+			if tc.expLocked == nil {
+				s.Require().Nil(acc, "expected nil account")
+				return
+			}
+			s.Require().NotNil(acc, "expected non-nil account")
+			locked := acc.LockedBalanceSnapshot()
+			s.Require().NotNil(locked, "expected Locked snapshot to be populated")
+			s.Require().Zero(tc.expLocked.Cmp(locked), "Locked snapshot mismatch: want %s got %s", tc.expLocked, locked)
+		})
+	}
+}
+
 func (s *KeeperTestSuite) TestSetBalance() {
 	amount := common.U2560
 	totalBalance := common.U2560
@@ -1063,6 +1126,96 @@ func (s *KeeperTestSuite) TestSetBalance() {
 	}
 }
 
+func (s *KeeperTestSuite) TestSetBalanceWithLocked() {
+	amount := common.U2560
+	var locked *big.Int
+	addr := utiltx.GenerateAddress()
+
+	testCases := []struct {
+		name           string
+		addr           common.Address
+		malleate       func()
+		expErr         bool
+		expTotalAmount func() *uint256.Int
+		expSpendable   func() *uint256.Int
+	}{
+		{
+			"non vesting account: locked overrides reread",
+			addr,
+			func() {
+				amount = uint256.NewInt(100)
+				locked = big.NewInt(50)
+			},
+			false,
+			func() *uint256.Int {
+				return uint256.NewInt(150)
+			},
+			func() *uint256.Int {
+				// All funds are spendable on a non base account, the snapshot
+				// only inflates the bank balance reconstruction.
+				return uint256.NewInt(150)
+			},
+		},
+		{
+			"vesting account: locked snapshot beats current LockedCoins re-read",
+			addr,
+			func() {
+				ctx := s.Network.GetContext()
+				accAddr := sdk.AccAddress(addr.Bytes())
+				err := s.Network.App.GetBankKeeper().SendCoins(ctx, s.Keyring.GetAccAddr(0), accAddr, sdk.NewCoins(sdk.NewCoin(s.Network.GetBaseDenom(), math.NewInt(100))))
+				s.Require().NoError(err)
+
+				baseAccount := s.Network.App.GetAccountKeeper().GetAccount(ctx, accAddr).(*authtypes.BaseAccount)
+				baseDenom := s.Network.GetBaseDenom()
+				currTime := s.Network.GetContext().BlockTime().Unix()
+
+				// setup vesting account with 40 locked to simulate a spend
+				acc, err := vestingtypes.NewContinuousVestingAccount(
+					baseAccount,
+					sdk.NewCoins(sdk.NewCoin(baseDenom, math.NewInt(40))),
+					currTime, currTime+100,
+				)
+				s.Require().NoError(err)
+				s.Network.App.GetAccountKeeper().SetAccount(ctx, acc)
+
+				amount = uint256.NewInt(100)
+
+				// override locked to 100
+				locked = big.NewInt(100)
+			},
+			false,
+			func() *uint256.Int {
+				// ensure we used the override of 100
+				return uint256.NewInt(200)
+			},
+			func() *uint256.Int {
+				// spendable = bank balance − current LockedCoins = 200 − 40 = 160.
+				return uint256.NewInt(160)
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+
+			tc.malleate()
+			err := s.Network.App.GetEVMKeeper().SetBalanceWithLocked(s.Network.GetContext(), tc.addr, amount, locked)
+			if tc.expErr {
+				s.Require().Error(err)
+				return
+			}
+
+			balance := s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), tc.addr)
+			s.Require().NoError(err)
+			s.Require().Equal(tc.expTotalAmount(), balance)
+
+			spendable := s.Network.App.GetEVMKeeper().SpendableCoin(s.Network.GetContext(), tc.addr)
+			s.Require().Equal(tc.expSpendable(), spendable)
+		})
+	}
+}
+
 func (s *KeeperTestSuite) TestDeleteAccount() {
 	var (
 		ctx          sdk.Context
@@ -1153,4 +1306,138 @@ func (s *KeeperTestSuite) TestDeleteAccount() {
 			}
 		})
 	}
+}
+
+func (s *KeeperTestSuite) TestSetBalanceRejectsModuleAccounts() {
+	type setup struct {
+		addr    common.Address
+		current *uint256.Int
+	}
+
+	// NOTE: ZetaChain narrows the upstream guard in two ways, and wantErr encodes
+	// both. It fires only on a non-zero delta (a zero delta mints and burns
+	// nothing, and x/fungible reaches SetBalance with delta == 0 on every
+	// module-initiated EVM call), and it consults the chain's blocked-address
+	// policy rather than testing for a module account. Under this test app every
+	// module account in maccPerms is blocked, so the staking-pool arms behave
+	// exactly as they do upstream; a module account outside that set is allowed
+	// to move value, which is what keeps ZetaChain's x/fungible gas-pool path
+	// (a payable addLiquidityETH from the module account) working.
+	cases := []struct {
+		name     string
+		prepare  func() setup
+		amountFn func(current *uint256.Int) *uint256.Int
+		wantErr  bool
+	}{
+		{
+			// A module account the chain has NOT blocked from receiving funds is
+			// allowed to move value. This is the ZetaChain x/fungible shape: the
+			// module account pays native coin out through a payable EVM call, so
+			// the delta is genuinely non-zero and must reconcile. Upstream's
+			// unconditional module-account rejection broke exactly this, which is
+			// why the guard consults the blocked-address policy instead.
+			name: "unblocked module account, non-zero delta (allowed)",
+			prepare: func() setup {
+				ctx := s.Network.GetContext()
+				ak := s.Network.App.GetAccountKeeper()
+				acc := authtypes.NewEmptyModuleAccount("test-unblocked-value-mover", authtypes.Minter)
+				ak.NewAccount(ctx, acc)
+				ak.SetAccount(ctx, acc)
+				modEth := common.BytesToAddress(acc.GetAddress().Bytes())
+				// guard the premise: this account must not be blocked, otherwise
+				// the case is silently testing the rejection path instead
+				s.Require().False(
+					s.Network.App.GetBankKeeper().BlockedAddr(acc.GetAddress()),
+					"premise broken: the test module account is blocked from receiving",
+				)
+				return setup{
+					addr:    modEth,
+					current: s.Network.App.GetEVMKeeper().GetBalance(ctx, modEth),
+				}
+			},
+			amountFn: func(_ *uint256.Int) *uint256.Int { return uint256.NewInt(12345) },
+			wantErr:  false,
+		},
+		{
+			// the exploit direction: reconciliation minting into a module account
+			name: "bonded_tokens_pool, increase (mint direction)",
+			prepare: func() setup {
+				modEth := common.BytesToAddress(authtypes.NewModuleAddress(stakingtypes.BondedPoolName).Bytes())
+				return setup{
+					addr:    modEth,
+					current: s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), modEth),
+				}
+			},
+			amountFn: func(cur *uint256.Int) *uint256.Int {
+				return new(uint256.Int).Add(cur, uint256.NewInt(1))
+			},
+			wantErr: true,
+		},
+		{
+			name: "bonded_tokens_pool, decrease",
+			prepare: func() setup {
+				modEth := common.BytesToAddress(authtypes.NewModuleAddress(stakingtypes.BondedPoolName).Bytes())
+				return setup{
+					addr:    modEth,
+					current: s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), modEth),
+				}
+			},
+			amountFn: func(cur *uint256.Int) *uint256.Int {
+				if cur.IsZero() {
+					return uint256.NewInt(0)
+				}
+				return new(uint256.Int).Sub(cur, uint256.NewInt(1))
+			},
+			wantErr: true,
+		},
+		{
+			// zero delta: allowed on ZetaChain (see note above), nothing is
+			// minted or burned, so the balance must be untouched either way
+			name: "bonded_tokens_pool, equal (zero delta, allowed)",
+			prepare: func() setup {
+				modEth := common.BytesToAddress(authtypes.NewModuleAddress(stakingtypes.BondedPoolName).Bytes())
+				return setup{
+					addr:    modEth,
+					current: s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), modEth),
+				}
+			},
+			amountFn: func(cur *uint256.Int) *uint256.Int { return new(uint256.Int).Set(cur) },
+			wantErr:  false,
+		},
+	}
+
+	for _, tc := range cases {
+		s.Run(tc.name, func() {
+			s.SetupTest()
+			st := tc.prepare()
+			amount := tc.amountFn(st.current)
+
+			err := s.Network.App.GetEVMKeeper().SetBalance(s.Network.GetContext(), st.addr, amount)
+			if tc.wantErr {
+				s.Require().Error(err)
+				s.Require().Contains(err.Error(), "is not allowed to receive funds")
+			} else {
+				s.Require().NoError(err)
+			}
+
+			after := s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), st.addr)
+			if tc.wantErr {
+				s.Require().Equal(st.current, after, "a rejected write must not change the balance")
+			} else {
+				s.Require().Equal(amount, after, "an allowed write must land")
+			}
+		})
+	}
+}
+
+func (s *KeeperTestSuite) TestSetBalanceAllowsEOA() {
+	s.SetupTest()
+	addr := utiltx.GenerateAddress()
+	amount := uint256.NewInt(12345)
+
+	err := s.Network.App.GetEVMKeeper().SetBalance(s.Network.GetContext(), addr, amount)
+	s.Require().NoError(err)
+
+	got := s.Network.App.GetEVMKeeper().GetBalance(s.Network.GetContext(), addr)
+	s.Require().Equal(amount, got)
 }

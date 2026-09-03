@@ -10,10 +10,12 @@ import (
 	"github.com/cosmos/evm/x/vm/statedb"
 	"github.com/cosmos/evm/x/vm/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
@@ -25,13 +27,18 @@ var _ statedb.Keeper = &Keeper{}
 
 // GetAccount returns nil if account is not exist
 func (k *Keeper) GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account {
-	acct := k.GetAccountWithoutBalance(ctx, addr)
+	cosmosAddr := sdk.AccAddress(addr.Bytes())
+	acct := k.accountKeeper.GetAccount(ctx, cosmosAddr)
 	if acct == nil {
 		return nil
 	}
 
-	acct.Balance = k.SpendableCoin(ctx, addr)
-	return acct
+	return statedb.NewAccount(
+		acct.GetSequence(),
+		k.SpendableCoin(ctx, addr),
+		k.lockedCoin(ctx, addr),
+		k.GetCodeHash(ctx, addr).Bytes(),
+	)
 }
 
 // GetState loads contract state from database.
@@ -108,16 +115,75 @@ func (k *Keeper) ForEachStorage(ctx sdk.Context, addr common.Address, cb func(ke
 	}
 }
 
-// SetBalance update account's balance, compare with current balance first, then decide to mint or burn.
+// SetAccountBalance update account's balance, compare with current balance first,
+// then decide to mint or burn.
+//
+// If account has a Locked balance specified within it, that value is used in
+// order to compute the final balance. If Locked is nil, account's locked
+// balance is fetched from state first in order to compute the final balance.
+func (k *Keeper) SetAccountBalance(ctx sdk.Context, addr common.Address, account statedb.Account) error {
+	locked := account.LockedBalanceSnapshot()
+	if locked == nil {
+		return k.SetBalance(ctx, addr, account.Balance)
+	}
+	return k.SetBalanceWithLocked(ctx, addr, account.Balance, locked)
+}
+
+// SetBalance updates an account's balance, compare with current balance first,
+// then decide to mint or burn.
 func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amount *uint256.Int) error {
+	cosmosAddr := sdk.AccAddress(addr.Bytes())
+	lockedCoin := k.bankWrapper.LockedCoins(ctx, cosmosAddr).AmountOf(types.GetEVMCoinDenom())
+	return k.SetBalanceWithLocked(ctx, addr, amount, lockedCoin.BigInt())
+}
+
+// SetBalanceWithLocked updates an account's balance using the provided locked
+// value to reconstruct the bank balance, instead of re-reading LockedCoins from
+// state.
+//
+// Locked must be non nil and is used to compute the final balance instead of
+// looking it up from state at set time. If you do not know the locked balance
+// already, use SetBalance in order to look it up from state at set time.
+func (k *Keeper) SetBalanceWithLocked(ctx sdk.Context, addr common.Address, amount *uint256.Int, locked *big.Int) error {
 	if amount == nil {
 		return nil
 	}
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
-	coin := k.bankWrapper.SpendableCoin(ctx, cosmosAddr, types.GetEVMCoinDenom())
 
-	balance := coin.Amount.BigInt()
-	delta := new(big.Int).Sub(amount.ToBig(), balance)
+	// Reconstruct the target bank balance as spendable + locked snapshot,
+	// then mint or burn the delta against the current bank balance.
+	target := new(big.Int).Add(amount.ToBig(), locked)
+	current := k.bankWrapper.GetBalance(ctx, cosmosAddr, types.GetEVMCoinDenom()).Amount.BigInt()
+	delta := new(big.Int).Sub(target, current)
+
+	// The EVM must never reconcile a balance into or out of an address the chain
+	// has declared must not receive funds. That reconciliation is the mint/burn
+	// primitive the statedb underflow turns into an exploit, and for module
+	// accounts it would also break the invariants the owning module maintains
+	// (the staking pools being the motivating case).
+	//
+	// NOTE: two deliberate divergences from upstream cosmos/evm, which rejects
+	// *any* module account unconditionally at the top of this function.
+	//
+	//  1. The check consults the chain's blocked-address policy rather than
+	//     testing whether the account is a module account. Under the upstream
+	//     evmd configuration every module account is blocked, so behaviour there
+	//     is unchanged. Chains that deliberately permit a module account to hold
+	//     and move funds keep working: ZetaChain leaves x/fungible and
+	//     x/crosschain out of its blocked-receive set precisely because they
+	//     originate EVM calls and pay value out of their own accounts
+	//     (SetupChainGasCoinAndPool sends native ZETA into the gas pool via a
+	//     payable addLiquidityETH call, which is a real non-zero delta).
+	//
+	//  2. It fires only on a non-zero delta. A zero delta mints and burns
+	//     nothing, so allowing it preserves the security property while letting
+	//     module-initiated EVM calls that move no value through -- ZRC20
+	//     deploys and system-contract calls make the sender dirty in the statedb
+	//     and reach this path with delta == 0 on every call.
+	if delta.Sign() != 0 && k.bankWrapper.BlockedAddr(cosmosAddr) {
+		return errorsmod.Wrapf(errortypes.ErrUnauthorized, "%s is not allowed to receive funds", cosmosAddr)
+	}
+
 	switch delta.Sign() {
 	case 1:
 		// mint
@@ -154,7 +220,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 	}
 	k.accountKeeper.SetAccount(ctx, acct)
 
-	if err := k.SetBalance(ctx, addr, account.Balance); err != nil {
+	if err := k.SetAccountBalance(ctx, addr, account); err != nil {
 		return err
 	}
 
@@ -164,6 +230,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 		"nonce", account.Nonce,
 		"codeHash", common.BytesToHash(account.CodeHash).Hex(),
 		"balance", account.Balance,
+		"locked-balance", account.LockedBalanceSnapshot(),
 	)
 	return nil
 }
@@ -262,8 +329,7 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 	baseAccount := k.accountKeeper.GetAccount(ctx, cosmosAddr)
 	k.accountKeeper.SetAccount(ctx, authtypes.NewBaseAccount(cosmosAddr, baseAccount.GetPubKey(), baseAccount.GetAccountNumber(), baseAccount.GetSequence()))
 
-	// clear balance
-	if err := k.SetBalance(ctx, addr, new(uint256.Int)); err != nil {
+	if err := k.SetBalanceWithLocked(ctx, addr, new(uint256.Int), new(big.Int)); err != nil {
 		return err
 	}
 
