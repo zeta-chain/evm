@@ -321,6 +321,20 @@ func (mr *MockBankKeeperMockRecorder) IterateTotalSupply(ctx, cb interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IterateTotalSupply", reflect.TypeOf((*MockBankKeeper)(nil).IterateTotalSupply), ctx, cb)
 }
 
+// LockedCoins mocks base method.
+func (m *MockBankKeeper) LockedCoins(ctx context.Context, addr types.AccAddress) types.Coins {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LockedCoins", ctx, addr)
+	ret0, _ := ret[0].(types.Coins)
+	return ret0
+}
+
+// LockedCoins indicates an expected call of LockedCoins.
+func (mr *MockBankKeeperMockRecorder) LockedCoins(ctx, addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockedCoins", reflect.TypeOf((*MockBankKeeper)(nil).LockedCoins), ctx, addr)
+}
+
 // MintCoins mocks base method.
 func (m *MockBankKeeper) MintCoins(ctx context.Context, moduleName string, amt types.Coins) error {
 	m.ctrl.T.Helper()
@@ -732,6 +746,34 @@ func (m *MockBankWrapper) IterateTotalSupply(ctx context.Context, cb func(types.
 func (mr *MockBankWrapperMockRecorder) IterateTotalSupply(ctx, cb interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IterateTotalSupply", reflect.TypeOf((*MockBankWrapper)(nil).IterateTotalSupply), ctx, cb)
+}
+
+// LockedCoins mocks base method.
+func (m *MockBankWrapper) LockedCoins(ctx context.Context, addr types.AccAddress) types.Coins {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LockedCoins", ctx, addr)
+	ret0, _ := ret[0].(types.Coins)
+	return ret0
+}
+
+// BlockedAddr mocks base method.
+func (m *MockBankWrapper) BlockedAddr(addr types.AccAddress) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockedAddr", addr)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// BlockedAddr indicates an expected call of BlockedAddr.
+func (mr *MockBankWrapperMockRecorder) BlockedAddr(addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockedAddr", reflect.TypeOf((*MockBankWrapper)(nil).BlockedAddr), addr)
+}
+
+// LockedCoins indicates an expected call of LockedCoins.
+func (mr *MockBankWrapperMockRecorder) LockedCoins(ctx, addr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LockedCoins", reflect.TypeOf((*MockBankWrapper)(nil).LockedCoins), ctx, addr)
 }
 
 // MintAmountToAccount mocks base method.
