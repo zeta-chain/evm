@@ -4,7 +4,7 @@
 
 ### SECURITY
 
-- [\#31](https://github.com/zeta-chain/evm/pull/31) Port the upstream `cosmos/evm`
+- [\#36](https://github.com/zeta-chain/evm/pull/36) Port the upstream `cosmos/evm`
   statedb balance hardening to this fork: snapshot the locked balance on the statedb
   account, guard `SubBalance` against underflow, guard `AddBalance` against overflow,
   make `StateDB.Commit()` atomic so a late failure discards the whole commit, reject
